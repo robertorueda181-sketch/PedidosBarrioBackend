@@ -1,0 +1,50 @@
+using Microsoft.OpenApi;
+using PedidosBarrio.Api.EndPoint;
+using PedidosBarrio.Api.Middlewares;
+using PedidosBarrio.Infrastructure.IoC;
+using PedidosBarrio.Api;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+
+builder.Services.AddControllers();
+// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddOpenApi();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    // Esto es importante si cambiaste la versión por defecto (v1) o el nombre del documento
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Mi API de Empresas", Version = "v1" });
+});
+
+// ¡Llama a tu método de extensión aquí!
+// Aquí llamas a tu método de extensión
+builder.Services.AddInfrastructure(builder.Configuration);
+
+var app = builder.Build();
+
+EmpresaEndpoints.MapEmpresaEndpoints(app);
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi("swagger/openapi/v1.json");
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        // Apunta al endpoint correcto de tu documento Swagger/OpenAPI
+        // Si AddSwaggerGen usa "v1", entonces aquí también debe ser "v1"
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Mi API de Empresas v1");
+        c.RoutePrefix = "swagger"; // La URL base para Swagger UI (ej. https://localhost:7045/swagger)
+    });
+}
+
+app.UseHttpsRedirection();
+app.UseErrorHandlingMiddleware();
+
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();

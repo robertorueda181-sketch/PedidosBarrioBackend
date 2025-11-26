@@ -1,0 +1,176 @@
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio cache/options
+.vs/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Rider
+.idea/
+*.sln.iml
+*.swp
+*.swo
+*~
+
+# ReSharper
+_ReSharper*/
+*.resharper.user
+
+# Test Results
+[Tt]estResults/
+*.trx
+*.coverage
+
+# NUnit
+*.VisualState.xml
+TestResult.xml
+nunit-*.xml
+
+# Build Results of an ATL Project
+[Dd]ebugPS/
+[Rr]eleasePS/
+dlldata.c
+
+# Benchmark Results
+BenchmarkDotNet.Artifacts/
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.html
+
+# NuGet Credential Provider
+\.nuget/plugins/NuGet.CredentialProvider.Plugin/
+
+# NuGet
+*.nupkg
+*.snupkg
+!.nuget/NuGet.Config
+!.nuget/NuGet.exe
+!.nuget/packages.config
+.nuget/
+
+# Local user-specific files
+appsettings.local.json
+appsettings.*.local.json
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Database files
+*.mdf
+*.ldf
+*.ndf
+*.db
+*.sqlite
+*.sqlite3
+
+# User-specific files for Visual Studio
+*.VC.db
+*.VC.VC.opendb
+
+# SQL Server files
+App_Data/
+*.MDF
+*.LREF
+
+# Mac
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Rider diagnostic files
+.idea/diagnostics/
+.idea/workspace.xml
+.idea/modules.xml
+
+# Hot Reload
+.hot-reload/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# IDE specific
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+
+# npm/yarn (if applicable)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Webpack
+dist/
+*.bundle.*
+
+# Package manager
+packages/
+
+# Miscellaneous
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+launchSettings.json
+
+# User Secrets (local development)
+secrets.json
+**/secrets.json
+
+# Coverage reports
+coverage/
+*.coverage
+OpenCover/
+
+# Build Folders (you can keep bin if you'd like, to store dlls and pdbs)
+[Bb]in/
+[Oo]bj/
+
+# mstest test results
+TestResults/
+
+# System files
+Thumbs.db
+.DS_Store
+
+# Visual Studio
+.vscode/
+.vs/
+*.code-workspace
+*.sln.vs
+
+# Resharper
+.resharper.user

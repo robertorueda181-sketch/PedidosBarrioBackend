@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# ASPDEPR002: Type or member is obsolete
+dotnet_diagnostic.ASPDEPR002.severity = none

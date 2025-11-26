@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+  </Folder>
+  <Project Path="PedidosBarrio.Application/PedidosBarrio.Application.csproj" />
+  <Project Path="PedidosBarrio.CrossCutting/PedidosBarrio.CrossCutting.csproj" />
+  <Project Path="PedidosBarrio.Domain/PedidosBarrio.Domain.csproj" />
+  <Project Path="PedidosBarrio.Infrastructure/PedidosBarrio.Infrastructure.csproj" />
+  <Project Path="PedidosBarrio.Tests/PedidosBarrio.Tests.csproj" />
+  <Project Path="PedidosBarrio/PedidosBarrio.Api.csproj" />
+</Solution>
