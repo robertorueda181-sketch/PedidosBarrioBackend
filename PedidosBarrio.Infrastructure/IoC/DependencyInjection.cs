@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Interfaces;
 using PedidosBarrio.Application.Mappers;
 using PedidosBarrio.Application.Services;
@@ -14,11 +15,26 @@ namespace PedidosBarrio.Infrastructure.IoC
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddSingleton(configuration.GetConnectionString("DefaultConnection"));
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            services.AddSingleton(connectionString);
 
             // Repositorios
-            services.AddScoped<ICompanyRepository, CompanyRepository>(sp => // IEmpresaRepository -> ICompanyRepository, EmpresaRepository -> CompanyRepository
-                new CompanyRepository(configuration.GetConnectionString("DefaultConnection")));
+            services.AddScoped<ICompanyRepository, CompanyRepository>(sp => 
+                new CompanyRepository(connectionString));
+            services.AddScoped<IEmpresaRepository, EmpresaRepository>(sp => 
+                new EmpresaRepository(connectionString));
+            services.AddScoped<ISuscripcionRepository, SuscripcionRepository>(sp => 
+                new SuscripcionRepository(connectionString));
+            services.AddScoped<IProductoRepository, ProductoRepository>(sp => 
+                new ProductoRepository(connectionString));
+            services.AddScoped<IImagenRepository, ImagenRepository>(sp => 
+                new ImagenRepository(connectionString));
+            services.AddScoped<ITipoRepository, TipoRepository>(sp => 
+                new TipoRepository(connectionString));
+            services.AddScoped<IInmuebleRepository, InmuebleRepository>(sp => 
+                new InmuebleRepository(connectionString));
+            services.AddScoped<INegocioRepository, NegocioRepository>(sp => 
+                new NegocioRepository(connectionString));
 
             // AutoMapper
             services.AddAutoMapper(cfg =>
@@ -27,19 +43,22 @@ namespace PedidosBarrio.Infrastructure.IoC
                 // Por ejemplo: cfg.ValidateContentsOnStart = false;
             }, typeof(MappingProfile).Assembly);
 
-            // FluentValidation
-            services.AddValidatorsFromAssemblyContaining<CreateCompanyDtoValidator>(); // CreateEmpresaDtoValidator -> CreateCompanyDtoValidator
+            // FluentValidation - Registrar todos los validadores del assembly
+            services.AddValidatorsFromAssemblyContaining<CreateCompanyDtoValidator>();
+
+            // Registrar validadores específicos explícitamente para asegurar que estén disponibles
+            services.AddScoped<IValidator<CreateEmpresaDto>, CreateEmpresaDtoValidator>();
+            services.AddScoped<IValidator<CreateSuscripcionDto>, CreateSuscripcionDtoValidator>();
+            services.AddScoped<IValidator<CreateProductoDto>, CreateProductoDtoValidator>();
+            services.AddScoped<IValidator<CreateImagenDto>, CreateImagenDtoValidator>();
+            services.AddScoped<IValidator<CreateInmuebleDto>, CreateInmuebleDtoValidator>();
+            services.AddScoped<IValidator<CreateNegocioDto>, CreateNegocioDtoValidator>();
 
             // MediatR
-            // Registra MediatR y todos los handlers, requests y notificaciones
-            // que se encuentren en el ensamblado de SolutionName.Application
-            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CompanyService).Assembly)); // EmpresaService -> CompanyService
-            // Alternativamente, puedes usar el ensamblado de cualquier Command/Query o Handler
-            // services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateCompanyCommand).Assembly));
+            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CompanyService).Assembly));
 
             // El servicio de aplicación ahora es un "Facade" que usa MediatR
-            services.AddScoped<ICompanyService, CompanyService>(); // IEmpresaService -> ICompanyService, EmpresaService -> CompanyService
-            services.AddScoped<ICompanyRepository, CompanyRepository>(); // IEmpresaService -> ICompanyService, EmpresaService -> CompanyService
+            services.AddScoped<ICompanyService, CompanyService>();
 
             return services;
         }

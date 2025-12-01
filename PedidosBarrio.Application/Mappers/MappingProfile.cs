@@ -1,5 +1,4 @@
-﻿
-using AutoMapper;
+﻿using AutoMapper;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Domain.Entities;
 
@@ -9,7 +8,7 @@ namespace PedidosBarrio.Application.Mappers
     {
         public MappingProfile()
         {
-            // Mapeo de Entidad a DTO
+            // ===================== COMPANY MAPPINGS =====================
             CreateMap<Company, CompanyDto>()
                 .ForMember(dest => dest.Ruc, opt => opt.MapFrom(src => src.Ruc))
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
@@ -17,7 +16,6 @@ namespace PedidosBarrio.Application.Mappers
                 .ForMember(dest => dest.AddressCity, opt => opt.MapFrom(src => src.AddressCity))
                 .ForMember(dest => dest.AddressZipCode, opt => opt.MapFrom(src => src.AddressZipCode));
 
-            // Mapeo de DTO a Entidad (para creación)
             CreateMap<CreateCompanyDto, Company>()
                 .ForMember(dest => dest.Ruc, opt => opt.MapFrom(src => src.Ruc))
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber))
@@ -25,6 +23,32 @@ namespace PedidosBarrio.Application.Mappers
                 .ForMember(dest => dest.AddressCity, opt => opt.MapFrom(src => src.AddressCity))
                 .ForMember(dest => dest.AddressZipCode, opt => opt.MapFrom(src => src.AddressZipCode));
 
+            // ===================== EMPRESA MAPPINGS =====================
+            CreateMap<Empresa, EmpresaDto>();
+            CreateMap<CreateEmpresaDto, Empresa>();
+
+            // ===================== SUSCRIPCION MAPPINGS =====================
+            CreateMap<Suscripcion, SuscripcionDto>();
+            CreateMap<CreateSuscripcionDto, Suscripcion>();
+
+            // ===================== PRODUCTO MAPPINGS =====================
+            CreateMap<Producto, ProductoDto>();
+            CreateMap<CreateProductoDto, Producto>();
+
+            // ===================== IMAGEN MAPPINGS =====================
+            CreateMap<Imagen, ImagenDto>();
+            CreateMap<CreateImagenDto, Imagen>();
+
+            // ===================== TIPO MAPPINGS =====================
+            CreateMap<Tipo, TipoDto>();
+
+            // ===================== INMUEBLE MAPPINGS =====================
+            CreateMap<Inmueble, InmuebleDto>();
+            CreateMap<CreateInmuebleDto, Inmueble>();
+
+            // ===================== NEGOCIO MAPPINGS =====================
+            CreateMap<Negocio, NegocioDto>();
+            CreateMap<CreateNegocioDto, Negocio>();
         }
     }
 }

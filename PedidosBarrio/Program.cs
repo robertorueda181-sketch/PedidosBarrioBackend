@@ -24,8 +24,6 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
-EmpresaEndpoints.MapEmpresaEndpoints(app);
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -41,10 +39,22 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Usar el middleware de logging antes del error handling
+app.UseLoggingMiddleware();
 app.UseErrorHandlingMiddleware();
 
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Mapear todos los endpoints
+app.MapEmpresaEndpoints();
+app.MapSuscripcionEndpoints();
+app.MapProductoEndpoints();
+app.MapImagenEndpoints();
+app.MapTipoEndpoints();
+app.MapInmuebleEndpoints();
+app.MapNegocioEndpoints();
 
 app.Run();

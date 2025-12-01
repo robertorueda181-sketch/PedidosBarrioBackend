@@ -1,0 +1,73 @@
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using PedidosBarrio.Application.Commands.CreateEmpresa;
+using PedidosBarrio.Application.Commands.DeleteEmpresa;
+using PedidosBarrio.Application.Commands.UpdateEmpresa;
+using PedidosBarrio.Application.DTOs;
+using PedidosBarrio.Application.Queries.GetAllEmpresas;
+using PedidosBarrio.Application.Queries.GetEmpresaById;
+
+namespace PedidosBarrio.Api.EndPoint
+{
+    public static class EmpresaEndpoint
+    {
+        public static void MapEmpresaEndpoints(this IEndpointRouteBuilder app)
+        {
+            var group = app.MapGroup("/api/Empresas")
+                           .WithTags("Empresas");
+
+            // GET /api/Empresas
+            group.MapGet("/", async (IMediator mediator) =>
+            {
+                var empresas = await mediator.Send(new GetAllEmpresasQuery());
+                return Results.Ok(empresas);
+            })
+            .WithName("GetAllEmpresas")
+            .WithOpenApi();
+
+            // GET /api/Empresas/{id}
+            group.MapGet("/{id:guid}", async (Guid id, IMediator mediator) =>
+            {
+                var empresa = await mediator.Send(new GetEmpresaByIdQuery(id));
+                return empresa is not null ? Results.Ok(empresa) : Results.NotFound();
+            })
+            .WithName("GetEmpresaById")
+            .WithOpenApi();
+
+            // POST /api/Empresas
+            group.MapPost("/", async ([FromBody] CreateEmpresaDto createDto, IMediator mediator) =>
+            {
+                var empresaDto = await mediator.Send(new CreateEmpresaCommand(
+                    createDto.Nombre, 
+                    createDto.Descripcion,
+                    createDto.Direccion,
+                    createDto.Referencia,   
+                    createDto.Email, 
+                    createDto.Contrasena, // Contraseña en texto plano, se hashea en el handler
+                    createDto.Telefono));
+                return Results.Created($"/api/Empresas/{empresaDto.EmpresaID}", empresaDto);
+            })
+            .WithName("CreateEmpresa")
+            .WithOpenApi();
+
+            // PUT /api/Empresas/{id}
+            group.MapPut("/{id:guid}", async (Guid id, [FromBody] EmpresaDto updateDto, IMediator mediator) =>
+            {
+                var command = new UpdateEmpresaCommand(id, updateDto.Nombre, updateDto.Descripcion, updateDto.Direccion, updateDto.Referencia, updateDto.Email, updateDto.Telefono, updateDto.Activa);
+                await mediator.Send(command);
+                return Results.NoContent();
+            })
+            .WithName("UpdateEmpresa")
+            .WithOpenApi();
+
+            // DELETE /api/Empresas/{id}
+            group.MapDelete("/{id:guid}", async (Guid id, IMediator mediator) =>
+            {
+                await mediator.Send(new DeleteEmpresaCommand(id));
+                return Results.NoContent();
+            })
+            .WithName("DeleteEmpresa")
+            .WithOpenApi();
+        }
+    }
+}
