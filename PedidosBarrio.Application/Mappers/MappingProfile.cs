@@ -24,8 +24,15 @@ namespace PedidosBarrio.Application.Mappers
                 .ForMember(dest => dest.AddressZipCode, opt => opt.MapFrom(src => src.AddressZipCode));
 
             // ===================== EMPRESA MAPPINGS =====================
-            CreateMap<Empresa, EmpresaDto>();
+            CreateMap<Empresa, EmpresaDto>()
+                 .ForMember(dest => dest.EmpresaID, opt => opt.MapFrom(src => src.ID));
             CreateMap<CreateEmpresaDto, Empresa>();
+
+            // ===================== USUARIO MAPPINGS =====================
+            CreateMap<Usuario, UsuarioDto>()
+                .ForMember(dest => dest.UsuarioID, opt => opt.MapFrom(src => src.ID))
+                .ForMember(dest => dest.Activo, opt => opt.MapFrom(src => src.Activa));
+            CreateMap<CreateUsuarioDto, Usuario>();
 
             // ===================== SUSCRIPCION MAPPINGS =====================
             CreateMap<Suscripcion, SuscripcionDto>();

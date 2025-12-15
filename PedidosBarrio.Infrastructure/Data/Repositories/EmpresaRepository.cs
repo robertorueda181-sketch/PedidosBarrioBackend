@@ -1,30 +1,26 @@
 using Dapper;
-using Microsoft.Data.SqlClient;
 using PedidosBarrio.Domain.Entities;
 using PedidosBarrio.Domain.Repositories;
+using PedidosBarrio.Infrastructure.Data.Common;
 using System.Data;
 
 namespace PedidosBarrio.Infrastructure.Data.Repositories
 {
-    public class EmpresaRepository : IEmpresaRepository
+    public class EmpresaRepository : GenericRepository, IEmpresaRepository
     {
-        private readonly string _connectionString;
-
-        public EmpresaRepository(string connectionString)
+        public EmpresaRepository(IDbConnectionProvider connectionProvider) : base(connectionProvider)
         {
-            _connectionString = connectionString;
         }
-
-        private IDbConnection CreateConnection() => new SqlConnection(_connectionString);
 
         public async Task<Empresa> GetByIdAsync(Guid id)
         {
             using (var connection = CreateConnection())
             {
-                return await connection.QuerySingleOrDefaultAsync<Empresa>(
+                return await QuerySingleOrDefaultAsync<Empresa>(
+                    connection,
                     "sp_GetEmpresaById", 
                     new { EmpresaID = id }, 
-                    commandType: CommandType.StoredProcedure);
+                    CommandType.StoredProcedure);
             }
         }
 
@@ -32,7 +28,8 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             using (var connection = CreateConnection())
             {
-                return await connection.QueryAsync<Empresa>(
+                return await QueryAsync<Empresa>(
+                    connection,
                     "sp_GetAllEmpresas",
                     commandType: CommandType.StoredProcedure);
             }
@@ -44,18 +41,23 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@Nombre", empresa.Nombre);
-                parameters.Add("@Descripcion", empresa.Descripcion);
+                parameters.Add("@Descripcion", empresa.Descripcion ?? (object)DBNull.Value);
                 parameters.Add("@Email", empresa.Email);
                 parameters.Add("@ContrasenaHash", empresa.ContrasenaHash);
                 parameters.Add("@ContrasenaSalt", empresa.ContrasenaSalt);
                 parameters.Add("@Telefono", empresa.Telefono);
-                parameters.Add("@Direccion", empresa.Direccion);
-                parameters.Add("@Referencia", empresa.Referencia);
+                parameters.Add("@Direccion", empresa.Direccion ?? (object)DBNull.Value);
+                parameters.Add("@Referencia", empresa.Referencia ?? (object)DBNull.Value);
+                parameters.Add("@EmpresaID", dbType: DbType.Guid, direction: ParameterDirection.Output);
 
-                await connection.ExecuteAsync(
+                await ExecuteAsync(
+                    connection,
                     "sp_CreateEmpresa",
                     parameters,
-                    commandType: CommandType.StoredProcedure);
+                    CommandType.StoredProcedure);
+
+                var generatedId = parameters.Get<Guid>("@EmpresaID");
+                empresa.ID = generatedId;
             }
         }
 
@@ -66,14 +68,20 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                 var parameters = new DynamicParameters();
                 parameters.Add("@EmpresaID", empresa.ID);
                 parameters.Add("@Nombre", empresa.Nombre);
+                parameters.Add("@Descripcion", empresa.Descripcion ?? (object)DBNull.Value);
                 parameters.Add("@Email", empresa.Email);
+                parameters.Add("@ContrasenaHash", empresa.ContrasenaHash);
+                parameters.Add("@ContrasenaSalt", empresa.ContrasenaSalt);
                 parameters.Add("@Telefono", empresa.Telefono);
+                parameters.Add("@Direccion", empresa.Direccion ?? (object)DBNull.Value);
+                parameters.Add("@Referencia", empresa.Referencia ?? (object)DBNull.Value);
                 parameters.Add("@Activa", empresa.Activa);
 
-                await connection.ExecuteAsync(
+                await ExecuteAsync(
+                    connection,
                     "sp_UpdateEmpresa",
                     parameters,
-                    commandType: CommandType.StoredProcedure);
+                    CommandType.StoredProcedure);
             }
         }
 
@@ -81,11 +89,13 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             using (var connection = CreateConnection())
             {
-                await connection.ExecuteAsync(
+                await ExecuteAsync(
+                    connection,
                     "sp_DeleteEmpresa",
                     new { EmpresaID = id },
-                    commandType: CommandType.StoredProcedure);
+                    CommandType.StoredProcedure);
             }
         }
     }
 }
+

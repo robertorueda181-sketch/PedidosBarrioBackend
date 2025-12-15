@@ -18,6 +18,22 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Mi API de Empresas", Version = "v1" });
 });
 
+// Configurar CORS desde appsettings
+var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+if (corsOrigins != null && corsOrigins.Length > 0)
+{
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowAngular", policy =>
+        {
+            policy.WithOrigins(corsOrigins)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        });
+    });
+}
+
 // ¡Llama a tu método de extensión aquí!
 // Aquí llamas a tu método de extensión
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -39,6 +55,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Usar CORS
+app.UseCors("AllowAngular");
 
 // Usar el middleware de logging antes del error handling
 app.UseLoggingMiddleware();

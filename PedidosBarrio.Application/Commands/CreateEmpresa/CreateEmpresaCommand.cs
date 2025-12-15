@@ -10,17 +10,17 @@ namespace PedidosBarrio.Application.Commands.CreateEmpresa
         public string Direccion { get; set; }
         public string Referencia { get; set; }
         public string Email { get; set; }
-        public string ContrasenaHash { get; set; } // Contraseña en texto plano, se hashea en el handler
+        public string Contrasena { get; set; } 
         public string Telefono { get; set; }
 
-        public CreateEmpresaCommand(string nombre, string descripcion, string direccion, string referencia, string email, string contrasenaHash, string telefono)
+        public CreateEmpresaCommand(string nombre, string descripcion, string direccion, string referencia, string email, string contrasena, string telefono)
         {
             Nombre = nombre;
             Descripcion = descripcion;
             Direccion = direccion;
             Referencia = referencia;
             Email = email;
-            ContrasenaHash = contrasenaHash;
+            Contrasena = contrasena;
             Telefono = telefono;
         }
     }

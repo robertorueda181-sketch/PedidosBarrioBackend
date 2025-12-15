@@ -3,10 +3,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Interfaces;
+using PedidosBarrio.Application.Logging;
 using PedidosBarrio.Application.Mappers;
 using PedidosBarrio.Application.Services;
 using PedidosBarrio.Application.Validator;
 using PedidosBarrio.Domain.Repositories;
+using PedidosBarrio.Infrastructure.Data.Common;
 using PedidosBarrio.Infrastructure.Data.Repositories;
 
 namespace PedidosBarrio.Infrastructure.IoC
@@ -16,25 +18,25 @@ namespace PedidosBarrio.Infrastructure.IoC
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
             var connectionString = configuration.GetConnectionString("DefaultConnection");
-            services.AddSingleton(connectionString);
+            var databaseProvider = configuration.GetSection("Database:Provider").Value ?? "SqlServer";
+
+            // Crear el proveedor de base de datos según la configuración
+            var dbProvider = DbConnectionProviderFactory.CreateFromString(databaseProvider, connectionString);
+            services.AddSingleton<IDbConnectionProvider>(dbProvider);
+
+            // Logger de aplicación
+            services.AddScoped<IApplicationLogger>(sp => new ConsoleFileLogger("Logs"));
 
             // Repositorios
-            services.AddScoped<ICompanyRepository, CompanyRepository>(sp => 
-                new CompanyRepository(connectionString));
-            services.AddScoped<IEmpresaRepository, EmpresaRepository>(sp => 
-                new EmpresaRepository(connectionString));
-            services.AddScoped<ISuscripcionRepository, SuscripcionRepository>(sp => 
-                new SuscripcionRepository(connectionString));
-            services.AddScoped<IProductoRepository, ProductoRepository>(sp => 
-                new ProductoRepository(connectionString));
-            services.AddScoped<IImagenRepository, ImagenRepository>(sp => 
-                new ImagenRepository(connectionString));
-            services.AddScoped<ITipoRepository, TipoRepository>(sp => 
-                new TipoRepository(connectionString));
-            services.AddScoped<IInmuebleRepository, InmuebleRepository>(sp => 
-                new InmuebleRepository(connectionString));
-            services.AddScoped<INegocioRepository, NegocioRepository>(sp => 
-                new NegocioRepository(connectionString));
+            services.AddScoped<ICompanyRepository, CompanyRepository>();
+            services.AddScoped<IEmpresaRepository, EmpresaRepository>();
+            services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+            services.AddScoped<ISuscripcionRepository, SuscripcionRepository>();
+            services.AddScoped<IProductoRepository, ProductoRepository>();
+            services.AddScoped<IImagenRepository, ImagenRepository>();
+            services.AddScoped<ITipoRepository, TipoRepository>();
+            services.AddScoped<IInmuebleRepository, InmuebleRepository>();
+            services.AddScoped<INegocioRepository, NegocioRepository>();
 
             // AutoMapper
             services.AddAutoMapper(cfg =>
@@ -48,6 +50,8 @@ namespace PedidosBarrio.Infrastructure.IoC
 
             // Registrar validadores específicos explícitamente para asegurar que estén disponibles
             services.AddScoped<IValidator<CreateEmpresaDto>, CreateEmpresaDtoValidator>();
+            services.AddScoped<IValidator<CreateUsuarioDto>, CreateUsuarioDtoValidator>();
+            services.AddScoped<IValidator<LoginDto>, LoginDtoValidator>();
             services.AddScoped<IValidator<CreateSuscripcionDto>, CreateSuscripcionDtoValidator>();
             services.AddScoped<IValidator<CreateProductoDto>, CreateProductoDtoValidator>();
             services.AddScoped<IValidator<CreateImagenDto>, CreateImagenDtoValidator>();
@@ -64,3 +68,4 @@ namespace PedidosBarrio.Infrastructure.IoC
         }
     }
 }
+

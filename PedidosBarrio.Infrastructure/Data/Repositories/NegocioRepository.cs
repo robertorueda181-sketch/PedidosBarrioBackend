@@ -1,30 +1,26 @@
 using Dapper;
-using Microsoft.Data.SqlClient;
 using PedidosBarrio.Domain.Entities;
 using PedidosBarrio.Domain.Repositories;
+using PedidosBarrio.Infrastructure.Data.Common;
 using System.Data;
 
 namespace PedidosBarrio.Infrastructure.Data.Repositories
 {
-    public class NegocioRepository : INegocioRepository
+    public class NegocioRepository : GenericRepository, INegocioRepository
     {
-        private readonly string _connectionString;
-
-        public NegocioRepository(string connectionString)
+        public NegocioRepository(IDbConnectionProvider connectionProvider) : base(connectionProvider)
         {
-            _connectionString = connectionString;
         }
-
-        private IDbConnection CreateConnection() => new SqlConnection(_connectionString);
 
         public async Task<Negocio> GetByIdAsync(int id)
         {
             using (var connection = CreateConnection())
             {
-                return await connection.QuerySingleOrDefaultAsync<Negocio>(
+                return await QuerySingleOrDefaultAsync<Negocio>(
+                    connection,
                     "sp_GetNegocioById",
                     new { NegocioID = id },
-                    commandType: CommandType.StoredProcedure);
+                    CommandType.StoredProcedure);
             }
         }
 
@@ -32,7 +28,8 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             using (var connection = CreateConnection())
             {
-                return await connection.QueryAsync<Negocio>(
+                return await QueryAsync<Negocio>(
+                    connection,
                     "sp_GetAllNegocios",
                     commandType: CommandType.StoredProcedure);
             }
@@ -42,10 +39,11 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             using (var connection = CreateConnection())
             {
-                return await connection.QueryAsync<Negocio>(
+                return await QueryAsync<Negocio>(
+                    connection,
                     "sp_GetNegociosByEmpresa",
                     new { EmpresaID = empresaId },
-                    commandType: CommandType.StoredProcedure);
+                    CommandType.StoredProcedure);
             }
         }
 
@@ -60,10 +58,11 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                 parameters.Add("@URL_Opcional", negocio.URLOpcional);
                 parameters.Add("@Descripcion", negocio.Descripcion);
 
-                return await connection.QuerySingleAsync<int>(
+                return await QuerySingleOrDefaultAsync<int>(
+                    connection,
                     "sp_CreateNegocio",
                     parameters,
-                    commandType: CommandType.StoredProcedure);
+                    CommandType.StoredProcedure);
             }
         }
 
@@ -79,10 +78,11 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                 parameters.Add("@URL_Opcional", negocio.URLOpcional);
                 parameters.Add("@Descripcion", negocio.Descripcion);
 
-                await connection.ExecuteAsync(
+                await ExecuteAsync(
+                    connection,
                     "sp_UpdateNegocio",
                     parameters,
-                    commandType: CommandType.StoredProcedure);
+                    CommandType.StoredProcedure);
             }
         }
 
@@ -90,10 +90,11 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             using (var connection = CreateConnection())
             {
-                await connection.ExecuteAsync(
+                await ExecuteAsync(
+                    connection,
                     "sp_DeleteNegocio",
                     new { NegocioID = id },
-                    commandType: CommandType.StoredProcedure);
+                    CommandType.StoredProcedure);
             }
         }
     }

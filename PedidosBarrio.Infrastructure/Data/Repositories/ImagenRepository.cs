@@ -1,30 +1,26 @@
 using Dapper;
-using Microsoft.Data.SqlClient;
 using PedidosBarrio.Domain.Entities;
 using PedidosBarrio.Domain.Repositories;
+using PedidosBarrio.Infrastructure.Data.Common;
 using System.Data;
 
 namespace PedidosBarrio.Infrastructure.Data.Repositories
 {
-    public class ImagenRepository : IImagenRepository
+    public class ImagenRepository : GenericRepository, IImagenRepository
     {
-        private readonly string _connectionString;
-
-        public ImagenRepository(string connectionString)
+        public ImagenRepository(IDbConnectionProvider connectionProvider) : base(connectionProvider)
         {
-            _connectionString = connectionString;
         }
-
-        private IDbConnection CreateConnection() => new SqlConnection(_connectionString);
 
         public async Task<Imagen> GetByIdAsync(int id)
         {
             using (var connection = CreateConnection())
             {
-                return await connection.QuerySingleOrDefaultAsync<Imagen>(
+                return await QuerySingleOrDefaultAsync<Imagen>(
+                    connection,
                     "sp_GetImagenById",
                     new { ImagenID = id },
-                    commandType: CommandType.StoredProcedure);
+                    CommandType.StoredProcedure);
             }
         }
 
@@ -32,7 +28,8 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             using (var connection = CreateConnection())
             {
-                return await connection.QueryAsync<Imagen>(
+                return await QueryAsync<Imagen>(
+                    connection,
                     "sp_GetAllImagenes",
                     commandType: CommandType.StoredProcedure);
             }
@@ -42,10 +39,11 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             using (var connection = CreateConnection())
             {
-                return await connection.QueryAsync<Imagen>(
+                return await QueryAsync<Imagen>(
+                    connection,
                     "sp_GetImagenesByProducto",
                     new { ProductoID = productoId },
-                    commandType: CommandType.StoredProcedure);
+                    CommandType.StoredProcedure);
             }
         }
 
@@ -58,10 +56,11 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                 parameters.Add("@URL_Imagen", imagen.URLImagen);
                 parameters.Add("@Descripcion", imagen.Descripcion);
 
-                return await connection.QuerySingleAsync<int>(
+                return await QuerySingleOrDefaultAsync<int>(
+                    connection,
                     "sp_CreateImagen",
                     parameters,
-                    commandType: CommandType.StoredProcedure);
+                    CommandType.StoredProcedure);
             }
         }
 
@@ -75,10 +74,11 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                 parameters.Add("@URL_Imagen", imagen.URLImagen);
                 parameters.Add("@Descripcion", imagen.Descripcion);
 
-                await connection.ExecuteAsync(
+                await ExecuteAsync(
+                    connection,
                     "sp_UpdateImagen",
                     parameters,
-                    commandType: CommandType.StoredProcedure);
+                    CommandType.StoredProcedure);
             }
         }
 
@@ -86,10 +86,11 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             using (var connection = CreateConnection())
             {
-                await connection.ExecuteAsync(
+                await ExecuteAsync(
+                    connection,
                     "sp_DeleteImagen",
                     new { ImagenID = id },
-                    commandType: CommandType.StoredProcedure);
+                    CommandType.StoredProcedure);
             }
         }
     }

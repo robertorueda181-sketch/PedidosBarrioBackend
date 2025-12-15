@@ -1,21 +1,16 @@
 ﻿using Dapper;
-using Microsoft.Data.SqlClient;
 using PedidosBarrio.Domain.Entities;
 using PedidosBarrio.Domain.Repositories;
+using PedidosBarrio.Infrastructure.Data.Common;
 using System.Data;
 
 namespace PedidosBarrio.Infrastructure.Data.Repositories
 {
-    public class CompanyRepository : ICompanyRepository
+    public class CompanyRepository : GenericRepository, ICompanyRepository
     {
-        private readonly string _connectionString;
-
-        public CompanyRepository(string connectionString)
+        public CompanyRepository(IDbConnectionProvider connectionProvider) : base(connectionProvider)
         {
-            _connectionString = connectionString;
         }
-
-        private IDbConnection CreateConnection() => new SqlConnection(_connectionString);
 
         public async Task AddAsync(Company company)
         {
@@ -30,7 +25,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                 parameters.Add("@AddressCity", company.AddressCity);
                 parameters.Add("@AddressZipCode", company.AddressZipCode);
 
-                await connection.ExecuteAsync("sp_AddCompany", parameters, commandType: CommandType.StoredProcedure);
+                await ExecuteAsync(connection, "sp_AddCompany", parameters, CommandType.StoredProcedure);
             }
         }
 
@@ -38,7 +33,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             using (var connection = CreateConnection())
             {
-                await connection.ExecuteAsync("sp_DeleteCompany", new { Id = id }, commandType: CommandType.StoredProcedure);
+                await ExecuteAsync(connection, "sp_DeleteCompany", new { Id = id }, CommandType.StoredProcedure);
             }
         }
 
@@ -46,7 +41,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             using (var connection = CreateConnection())
             {
-                return await connection.QueryAsync<Company>("sp_GetAllCompanies", commandType: CommandType.StoredProcedure);
+                return await QueryAsync<Company>(connection, "sp_GetAllCompanies", commandType: CommandType.StoredProcedure);
             }
         }
 
@@ -54,7 +49,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             using (var connection = CreateConnection())
             {
-                return await connection.QuerySingleOrDefaultAsync<Company>("sp_GetCompanyById", new { Id = id }, commandType: CommandType.StoredProcedure);
+                return await QuerySingleOrDefaultAsync<Company>(connection, "sp_GetCompanyById", new { Id = id }, CommandType.StoredProcedure);
             }
         }
 
@@ -71,7 +66,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                 parameters.Add("@AddressCity", company.AddressCity);
                 parameters.Add("@AddressZipCode", company.AddressZipCode);
 
-                await connection.ExecuteAsync("sp_UpdateCompany", parameters, commandType: CommandType.StoredProcedure);
+                await ExecuteAsync(connection, "sp_UpdateCompany", parameters, CommandType.StoredProcedure);
             }
         }
     }

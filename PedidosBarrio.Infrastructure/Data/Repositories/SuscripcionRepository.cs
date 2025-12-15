@@ -1,21 +1,16 @@
 using Dapper;
-using Microsoft.Data.SqlClient;
 using PedidosBarrio.Domain.Entities;
 using PedidosBarrio.Domain.Repositories;
+using PedidosBarrio.Infrastructure.Data.Common;
 using System.Data;
 
 namespace PedidosBarrio.Infrastructure.Data.Repositories
 {
-    public class SuscripcionRepository : ISuscripcionRepository
+    public class SuscripcionRepository : GenericRepository, ISuscripcionRepository
     {
-        private readonly string _connectionString;
-
-        public SuscripcionRepository(string connectionString)
+        public SuscripcionRepository(IDbConnectionProvider connectionProvider) : base(connectionProvider)
         {
-            _connectionString = connectionString;
         }
-
-        private IDbConnection CreateConnection() => new SqlConnection(_connectionString);
 
         public async Task<Suscripcion> GetByIdAsync(int id)
         {

@@ -1,30 +1,26 @@
 using Dapper;
-using Microsoft.Data.SqlClient;
 using PedidosBarrio.Domain.Entities;
 using PedidosBarrio.Domain.Repositories;
+using PedidosBarrio.Infrastructure.Data.Common;
 using System.Data;
 
 namespace PedidosBarrio.Infrastructure.Data.Repositories
 {
-    public class InmuebleRepository : IInmuebleRepository
+    public class InmuebleRepository : GenericRepository, IInmuebleRepository
     {
-        private readonly string _connectionString;
-
-        public InmuebleRepository(string connectionString)
+        public InmuebleRepository(IDbConnectionProvider connectionProvider) : base(connectionProvider)
         {
-            _connectionString = connectionString;
         }
-
-        private IDbConnection CreateConnection() => new SqlConnection(_connectionString);
 
         public async Task<Inmueble> GetByIdAsync(int id)
         {
             using (var connection = CreateConnection())
             {
-                return await connection.QuerySingleOrDefaultAsync<Inmueble>(
+                return await QuerySingleOrDefaultAsync<Inmueble>(
+                    connection,
                     "sp_GetInmuebleById",
                     new { InmuebleID = id },
-                    commandType: CommandType.StoredProcedure);
+                    CommandType.StoredProcedure);
             }
         }
 
@@ -32,7 +28,8 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             using (var connection = CreateConnection())
             {
-                return await connection.QueryAsync<Inmueble>(
+                return await QueryAsync<Inmueble>(
+                    connection,
                     "sp_GetAllInmuebles",
                     commandType: CommandType.StoredProcedure);
             }
@@ -42,10 +39,11 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             using (var connection = CreateConnection())
             {
-                return await connection.QueryAsync<Inmueble>(
+                return await QueryAsync<Inmueble>(
+                    connection,
                     "sp_GetInmueblesByEmpresa",
                     new { EmpresaID = empresaId },
-                    commandType: CommandType.StoredProcedure);
+                    CommandType.StoredProcedure);
             }
         }
 
@@ -63,10 +61,11 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                 parameters.Add("@Banos", inmueble.Banos);
                 parameters.Add("@Descripcion", inmueble.Descripcion);
 
-                return await connection.QuerySingleAsync<int>(
+                return await QuerySingleOrDefaultAsync<int>(
+                    connection,
                     "sp_CreateInmueble",
                     parameters,
-                    commandType: CommandType.StoredProcedure);
+                    CommandType.StoredProcedure);
             }
         }
 
@@ -85,10 +84,11 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                 parameters.Add("@Banos", inmueble.Banos);
                 parameters.Add("@Descripcion", inmueble.Descripcion);
 
-                await connection.ExecuteAsync(
+                await ExecuteAsync(
+                    connection,
                     "sp_UpdateInmueble",
                     parameters,
-                    commandType: CommandType.StoredProcedure);
+                    CommandType.StoredProcedure);
             }
         }
 
@@ -96,10 +96,11 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             using (var connection = CreateConnection())
             {
-                await connection.ExecuteAsync(
+                await ExecuteAsync(
+                    connection,
                     "sp_DeleteInmueble",
                     new { InmuebleID = id },
-                    commandType: CommandType.StoredProcedure);
+                    CommandType.StoredProcedure);
             }
         }
     }

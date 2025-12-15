@@ -1,19 +1,24 @@
-﻿
-using FluentValidation;
+﻿using FluentValidation;
 using System.Net;
 using System.Text.Json;
 
 namespace PedidosBarrio.Api.Middlewares
 {
+    /// <summary>
+    /// Middleware centralizado para:
+    /// 1. Capturar TODAS las excepciones no controladas
+    /// 2. Loguear los errores
+    /// 3. Retornar respuestas consistentes
+    /// </summary>
     public class ErrorHandlingMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly ILogger<ErrorHandlingMiddleware> _logger;
+        private readonly ISimpleLogger _logger;
 
-        public ErrorHandlingMiddleware(RequestDelegate next, ILogger<ErrorHandlingMiddleware> logger)
+        public ErrorHandlingMiddleware(RequestDelegate next)
         {
             _next = next;
-            _logger = logger;
+            _logger = new SimpleFileLogger("Logs");
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -24,54 +29,102 @@ namespace PedidosBarrio.Api.Middlewares
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Ha ocurrido un error inesperado.");
+                // ✅ AQUÍ SE LOGUEAN TODOS LOS ERRORES
                 await HandleExceptionAsync(context, ex);
             }
         }
 
-        private static Task HandleExceptionAsync(HttpContext context, Exception exception)
+        private async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
             context.Response.ContentType = "application/json";
-            HttpStatusCode statusCode = HttpStatusCode.InternalServerError; // Default
+            HttpStatusCode statusCode = HttpStatusCode.InternalServerError;
             string message = "Ocurrió un error interno del servidor.";
             object errors = null;
+            string logLevel = "ERROR";
+            string exceptionType = exception.GetType().Name;
 
+            // Determinar tipo de error y loguear
             switch (exception)
             {
+                case ValidationException validationException:
+                    statusCode = HttpStatusCode.BadRequest;
+                    message = "Errores de validación.";
+                    errors = validationException.Errors
+                        .Select(e => new { Field = e.PropertyName, Message = e.ErrorMessage })
+                        .ToList();
+                    logLevel = "WARNING";
+                    exceptionType = "ValidationException";
+
+                    // ✅ LOGUEAR ERRORES DE VALIDACIÓN
+                    var validationErrors = string.Join("; ", 
+                        validationException.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
+                    await _logger.LogAsync(logLevel, "VALIDATION_ERROR", 
+                        $"Validación fallida en {context.Request.Path}\nErrores: {validationErrors}");
+                    break;
+
                 case ApplicationException appException:
                     statusCode = HttpStatusCode.BadRequest;
                     message = appException.Message;
+                    logLevel = "WARNING";
+                    exceptionType = "ApplicationException";
+
+                    // ✅ LOGUEAR ERRORES DE APLICACIÓN
+                    await _logger.LogAsync(logLevel, "APPLICATION_ERROR",
+                        $"Error de aplicación en {context.Request.Path}\nMensaje: {appException.Message}");
                     break;
-                case ValidationException validationException: // <-- Nuevo caso para FluentValidation
+
+                case ArgumentNullException argNullEx:
                     statusCode = HttpStatusCode.BadRequest;
-                    message = "Errores de validación."; // Mensaje general para validación
-                                                        // Extraemos los errores de FluentValidation y los formateamos
-                    errors = validationException.Errors
-                                                .Select(e => new { Field = e.PropertyName, Message = e.ErrorMessage })
-                                                .ToList();
+                    message = "Argumento nulo o inválido.";
+                    logLevel = "WARNING";
+                    exceptionType = "ArgumentNullException";
+
+                    // ✅ LOGUEAR ARGUMENTOS NULOS
+                    await _logger.LogAsync(logLevel, "ARGUMENT_NULL_ERROR",
+                        $"Argumento nulo en {context.Request.Path}\nDetalle: {argNullEx.Message}", argNullEx);
                     break;
-                // Puedes añadir más tipos de excepciones y códigos de estado aquí
+
+                case KeyNotFoundException keyNotFoundEx:
+                    statusCode = HttpStatusCode.NotFound;
+                    message = "Recurso no encontrado.";
+                    logLevel = "WARNING";
+                    exceptionType = "KeyNotFoundException";
+
+                    // ✅ LOGUEAR NO ENCONTRADO
+                    await _logger.LogAsync(logLevel, "NOT_FOUND_ERROR",
+                        $"Recurso no encontrado en {context.Request.Path}");
+                    break;
+
                 default:
-                    // Para otras excepciones no controladas, se mantiene 500
-                    // En un entorno de producción, podrías registrar esta excepción completa
-                    // para depuración sin exponer detalles al cliente.
+                    // ✅ LOGUEAR EXCEPCIONES NO CONTROLADAS CON STACK TRACE
+                    await _logger.LogAsync("ERROR", "UNHANDLED_EXCEPTION",
+                        $"Excepción no controlada de tipo {exceptionType} en {context.Request.Path}\n" +
+                        $"Método: {context.Request.Method} {context.Request.Path}\n" +
+                        $"IP: {context.Connection.RemoteIpAddress}\n" +
+                        $"Mensaje: {exception.Message}",
+                        exception);
                     break;
             }
+
             context.Response.StatusCode = (int)statusCode;
 
             var responseBody = new
             {
                 error = message,
                 status = (int)statusCode,
+                timestamp = DateTime.UtcNow,
+                path = context.Request.Path,
+                method = context.Request.Method,
+                exceptionType = exceptionType,
                 errors
             };
 
             var result = JsonSerializer.Serialize(responseBody, new JsonSerializerOptions
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase // Opcional: para usar camelCase en JSON
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             });
 
-            return context.Response.WriteAsync(result);
+            await context.Response.WriteAsync(result);
         }
     }
 

@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using PedidosBarrio.Application.Commands.CreateEmpresa;
 using PedidosBarrio.Application.Commands.DeleteEmpresa;
+using PedidosBarrio.Application.Commands.Login;
 using PedidosBarrio.Application.Commands.UpdateEmpresa;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Queries.GetAllEmpresas;
@@ -67,6 +68,15 @@ namespace PedidosBarrio.Api.EndPoint
                 return Results.NoContent();
             })
             .WithName("DeleteEmpresa")
+            .WithOpenApi();
+
+            // POST /api/Empresas/Login
+            group.MapPost("/Login", async ([FromBody] LoginDto loginDto, IMediator mediator) =>
+            {
+                var loginResponse = await mediator.Send(new LoginCommand(loginDto.Email, loginDto.Contrasena));
+                return Results.Ok(loginResponse);
+            })
+            .WithName("Login")
             .WithOpenApi();
         }
     }

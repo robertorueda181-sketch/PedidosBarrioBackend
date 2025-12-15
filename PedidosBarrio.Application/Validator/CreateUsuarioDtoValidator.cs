@@ -4,27 +4,19 @@ using PedidosBarrio.Domain.Repositories;
 
 namespace PedidosBarrio.Application.Validator
 {
-    public class CreateEmpresaDtoValidator : AbstractValidator<CreateEmpresaDto>
+    public class CreateUsuarioDtoValidator : AbstractValidator<CreateUsuarioDto>
     {
-        private readonly IEmpresaRepository _empresaRepository;
+        private readonly IUsuarioRepository _usuarioRepository;
 
-        public CreateEmpresaDtoValidator(IEmpresaRepository empresaRepository)
+        public CreateUsuarioDtoValidator(IUsuarioRepository usuarioRepository)
         {
-            _empresaRepository = empresaRepository;
+            _usuarioRepository = usuarioRepository;
 
-            RuleFor(dto => dto.Nombre)
-                .NotEmpty().WithMessage("El nombre de la empresa no puede estar vacío.")
-                .MaximumLength(255).WithMessage("El nombre no puede exceder los 255 caracteres.");
-
-            RuleFor(dto => dto.Descripcion)
-                .MaximumLength(1000).WithMessage("La descripción no puede exceder los 1000 caracteres.");
-
-            RuleFor(dto => dto.Direccion)
-                .NotEmpty().WithMessage("La dirección es obligatoria.")
-                .MaximumLength(500).WithMessage("La dirección no puede exceder los 500 caracteres.");
-
-            RuleFor(dto => dto.Referencia)
-                .MaximumLength(255).WithMessage("La referencia no puede exceder los 255 caracteres.");
+            RuleFor(dto => dto.NombreUsuario)
+                .NotEmpty().WithMessage("El nombre de usuario no puede estar vacío.")
+                .MinimumLength(3).WithMessage("El nombre de usuario debe tener al menos 3 caracteres.")
+                .MaximumLength(50).WithMessage("El nombre de usuario no puede exceder los 50 caracteres.")
+                .MustAsync(NombreUsuarioNotExist).WithMessage("El nombre de usuario ya está registrado.");
 
             RuleFor(dto => dto.Email)
                 .NotEmpty().WithMessage("El email es obligatorio.")
@@ -39,9 +31,8 @@ namespace PedidosBarrio.Application.Validator
                 .Must(ContainsNumber).WithMessage("La contraseña debe contener al menos un número.")
                 .Must(ContainsSpecialCharacter).WithMessage("La contraseña debe contener al menos un carácter especial.");
 
-            RuleFor(dto => dto.Telefono)
-                .NotEmpty().WithMessage("El teléfono es obligatorio.")
-                .Matches(@"^\+?[\d\s\-\(\)]{9,20}$").WithMessage("El teléfono debe ser válido.");
+            RuleFor(dto => dto.EmpresaID)
+                .NotEqual(Guid.Empty).WithMessage("El EmpresaID es obligatorio.");
         }
 
         private bool ContainsUppercaseAndLowercase(string password)
@@ -59,6 +50,22 @@ namespace PedidosBarrio.Application.Validator
             return password.Any(c => !char.IsLetterOrDigit(c));
         }
 
+        private async Task<bool> NombreUsuarioNotExist(string nombreUsuario, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(nombreUsuario))
+                return true;
+
+            try
+            {
+                var usuario = await _usuarioRepository.GetByNombreUsuarioAsync(nombreUsuario);
+                return usuario == null;
+            }
+            catch
+            {
+                return true;
+            }
+        }
+
         private async Task<bool> EmailNotExist(string email, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(email))
@@ -66,16 +73,13 @@ namespace PedidosBarrio.Application.Validator
 
             try
             {
-                // Obtener todas las empresas y verificar si el email existe
-                var empresas = await _empresaRepository.GetAllAsync();
-                return !empresas.Any(e => e.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
+                var usuario = await _usuarioRepository.GetByEmailAsync(email);
+                return usuario == null;
             }
             catch
             {
-                // Si hay error al consultar, permitir continuar (mejor fallar en BD después)
                 return true;
             }
         }
     }
 }
-

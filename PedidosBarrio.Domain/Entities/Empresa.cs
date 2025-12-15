@@ -11,6 +11,8 @@ namespace PedidosBarrio.Domain.Entities
         public string Direccion { get; set; }
         public string Referencia { get; set; }
 
+        public int UsuarioID { get; set; }
+
         public Empresa(string nombre, string email, string contrasenaHash,string contrasenaSalt, string telefono)
         {
             ID = Guid.NewGuid();
