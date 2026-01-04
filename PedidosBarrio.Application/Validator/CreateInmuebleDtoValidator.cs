@@ -7,8 +7,6 @@ namespace PedidosBarrio.Application.Validator
     {
         public CreateInmuebleDtoValidator()
         {
-            RuleFor(dto => dto.EmpresaID)
-                .GreaterThan(0).WithMessage("El ID de la empresa debe ser mayor a 0.");
 
             RuleFor(dto => dto.TiposID)
                 .GreaterThan(0).WithMessage("El ID del tipo debe ser mayor a 0.");

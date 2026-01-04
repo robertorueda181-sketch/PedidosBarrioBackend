@@ -36,12 +36,12 @@ namespace PedidosBarrio.Api.EndPoint
             .WithOpenApi();
 
             // GET /api/Imagenes/producto/{productoId}
-            group.MapGet("/producto/{productoId:int}", async (int productoId, IMediator mediator) =>
+            group.MapGet("/id/{externalId:int}", async (int externalId, string tipo, IMediator mediator) =>
             {
-                var imagenes = await mediator.Send(new GetImagenesByProductoQuery(productoId));
+                var imagenes = await mediator.Send(new GetImagenesByProductoQuery(externalId,tipo));
                 return Results.Ok(imagenes);
             })
-            .WithName("GetImagenesByProducto")
+            .WithName("GetImagenesById")
             .WithOpenApi();
 
             // POST /api/Imagenes

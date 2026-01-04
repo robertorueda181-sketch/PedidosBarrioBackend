@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PedidosBarrio.Application.Commands.CreateEmpresa;
 using PedidosBarrio.Application.Commands.DeleteEmpresa;
 using PedidosBarrio.Application.Commands.Login;
+using PedidosBarrio.Application.Commands.Register;
 using PedidosBarrio.Application.Commands.UpdateEmpresa;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Queries.GetAllEmpresas;
@@ -78,6 +79,19 @@ namespace PedidosBarrio.Api.EndPoint
             })
             .WithName("Login")
             .WithOpenApi();
+
+            // POST /api/Empresas/Register
+            group.MapPost("/Register", async ([FromBody] RegisterDto registerDto, IMediator mediator) =>
+            {
+                var loginResponse = await mediator.Send(new RegisterCommand(registerDto));
+                return Results.Created($"/api/Empresas/{loginResponse.EmpresaID}", loginResponse);
+            })
+            .WithName("Register")
+            .WithOpenApi()
+            .WithDescription("Registra una nueva empresa con usuario. Devuelve datos de login y token")
+            .Produces<LoginResponseDto>(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status409Conflict);
         }
     }
 }

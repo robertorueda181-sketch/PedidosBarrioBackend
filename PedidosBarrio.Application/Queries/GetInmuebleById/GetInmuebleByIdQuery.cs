@@ -3,7 +3,7 @@ using PedidosBarrio.Application.DTOs;
 
 namespace PedidosBarrio.Application.Queries.GetInmuebleById
 {
-    public class GetInmuebleByIdQuery : IRequest<InmuebleDto>
+    public class GetInmuebleByIdQuery : IRequest<InmuebleDetailsDto>
     {
         public int InmuebleID { get; set; }
 

@@ -18,9 +18,9 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             {
                 return await QuerySingleOrDefaultAsync<Imagen>(
                     connection,
-                    "sp_GetImagenById",
-                    new { ImagenID = id },
-                    CommandType.StoredProcedure);
+                    "SELECT * FROM sp_GetImagenById(@imagenid)",
+                    new { imagenid = id },
+                    CommandType.Text);
             }
         }
 
@@ -30,20 +30,20 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             {
                 return await QueryAsync<Imagen>(
                     connection,
-                    "sp_GetAllImagenes",
-                    commandType: CommandType.StoredProcedure);
+                    "SELECT * FROM sp_GetAllImagenes()",
+                    commandType: CommandType.Text);
             }
         }
 
-        public async Task<IEnumerable<Imagen>> GetByProductoIdAsync(int productoId)
+        public async Task<IEnumerable<Imagen>> GetByProductoIdAsync(int productoId, string tipo)
         {
             using (var connection = CreateConnection())
             {
                 return await QueryAsync<Imagen>(
                     connection,
-                    "sp_GetImagenesByProducto",
-                    new { ProductoID = productoId },
-                    CommandType.StoredProcedure);
+                    "SELECT * FROM sp_GetImagenesByExternalId(@externalid, @tipo)",
+                    new { externalid = productoId, tipo = tipo },
+                    CommandType.Text);
             }
         }
 
@@ -52,15 +52,16 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             using (var connection = CreateConnection())
             {
                 var parameters = new DynamicParameters();
-                parameters.Add("@ProductoID", imagen.ProductoID);
-                parameters.Add("@URL_Imagen", imagen.URLImagen);
-                parameters.Add("@Descripcion", imagen.Descripcion);
+                parameters.Add("@externalid", imagen.ExternalId);
+                parameters.Add("@urli", imagen.URLImagen);
+                parameters.Add("@descripcion", imagen.Descripcion);
+                parameters.Add("@tipo", imagen.Type ?? "prod");
 
                 return await QuerySingleOrDefaultAsync<int>(
                     connection,
-                    "sp_CreateImagen",
+                    "SELECT sp_CreateImagen(@externalid, @urli, @descripcion, @tipo)",
                     parameters,
-                    CommandType.StoredProcedure);
+                    CommandType.Text);
             }
         }
 
@@ -69,16 +70,17 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             using (var connection = CreateConnection())
             {
                 var parameters = new DynamicParameters();
-                parameters.Add("@ImagenID", imagen.ImagenID);
-                parameters.Add("@ProductoID", imagen.ProductoID);
-                parameters.Add("@URL_Imagen", imagen.URLImagen);
-                parameters.Add("@Descripcion", imagen.Descripcion);
+                parameters.Add("@imagenid", imagen.ImagenID);
+                parameters.Add("@externalid", imagen.ExternalId);
+                parameters.Add("@urli", imagen.URLImagen);
+                parameters.Add("@descripcion", imagen.Descripcion);
+                parameters.Add("@tipo", imagen.Type ?? "prod");
 
                 await ExecuteAsync(
                     connection,
-                    "sp_UpdateImagen",
+                    "SELECT sp_UpdateImagen(@imagenid, @externalid, @urli, @descripcion, @tipo)",
                     parameters,
-                    CommandType.StoredProcedure);
+                    CommandType.Text);
             }
         }
 
@@ -88,9 +90,9 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             {
                 await ExecuteAsync(
                     connection,
-                    "sp_DeleteImagen",
-                    new { ImagenID = id },
-                    CommandType.StoredProcedure);
+                    "SELECT sp_DeleteImagen(@imagenid)",
+                    new { imagenid = id },
+                    CommandType.Text);
             }
         }
     }

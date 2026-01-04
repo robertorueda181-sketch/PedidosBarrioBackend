@@ -1,6 +1,8 @@
 ﻿using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Interfaces;
 using PedidosBarrio.Application.Logging;
@@ -10,6 +12,7 @@ using PedidosBarrio.Application.Validator;
 using PedidosBarrio.Domain.Repositories;
 using PedidosBarrio.Infrastructure.Data.Common;
 using PedidosBarrio.Infrastructure.Data.Repositories;
+using System.Text;
 
 namespace PedidosBarrio.Infrastructure.IoC
 {
@@ -57,12 +60,38 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<IValidator<CreateImagenDto>, CreateImagenDtoValidator>();
             services.AddScoped<IValidator<CreateInmuebleDto>, CreateInmuebleDtoValidator>();
             services.AddScoped<IValidator<CreateNegocioDto>, CreateNegocioDtoValidator>();
+            services.AddScoped<IValidator<RegisterDto>, RegisterDtoValidator>();
+
+            // JWT Token Service
+            services.AddScoped<IJwtTokenService, JwtTokenService>();
 
             // MediatR
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CompanyService).Assembly));
 
             // El servicio de aplicación ahora es un "Facade" que usa MediatR
             services.AddScoped<ICompanyService, CompanyService>();
+
+            // Configurar autenticación JWT
+            var jwtSecret = configuration.GetSection("Jwt:Secret").Value;
+            if (!string.IsNullOrEmpty(jwtSecret))
+            {
+                services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                    .AddJwtBearer(options =>
+                    {
+                        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
+                        options.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidateIssuerSigningKey = true,
+                            IssuerSigningKey = securityKey,
+                            ValidateIssuer = true,
+                            ValidIssuer = configuration.GetSection("Jwt:Issuer").Value ?? "PedidosBarrio",
+                            ValidateAudience = true,
+                            ValidAudience = configuration.GetSection("Jwt:Audience").Value ?? "PedidosBarrioApp",
+                            ValidateLifetime = true,
+                            ClockSkew = TimeSpan.Zero
+                        };
+                    });
+            }
 
             return services;
         }

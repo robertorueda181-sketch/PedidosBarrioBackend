@@ -18,7 +18,7 @@ namespace PedidosBarrio.Application.Queries.GetImagenesByProducto
 
         public async Task<IEnumerable<ImagenDto>> Handle(GetImagenesByProductoQuery query, CancellationToken cancellationToken)
         {
-            var imagenes = await _imagenRepository.GetByProductoIdAsync(query.ProductoID);
+            var imagenes = await _imagenRepository.GetByProductoIdAsync(query.ProductoID,query.Tipo);
             return _mapper.Map<IEnumerable<ImagenDto>>(imagenes);
         }
     }

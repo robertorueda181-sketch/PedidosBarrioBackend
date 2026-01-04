@@ -44,6 +44,9 @@ namespace PedidosBarrio.Application.Mappers
 
             // ===================== IMAGEN MAPPINGS =====================
             CreateMap<Imagen, ImagenDto>();
+            CreateMap<Imagen, ImagenUrlDto>()
+                .ForMember(dest => dest.URLImagen, opt => opt.MapFrom(src => src.URLImagen))
+                .ForMember(dest => dest.Descripcion, opt => opt.MapFrom(src => src.Descripcion));
             CreateMap<CreateImagenDto, Imagen>();
 
             // ===================== TIPO MAPPINGS =====================
@@ -52,6 +55,9 @@ namespace PedidosBarrio.Application.Mappers
             // ===================== INMUEBLE MAPPINGS =====================
             CreateMap<Inmueble, InmuebleDto>();
             CreateMap<CreateInmuebleDto, Inmueble>();
+            
+            // Mapping para DTO con detalles (includes Tipos e Imagenes)
+            CreateMap<InmuebleDetailsDto, InmuebleDetailsDto>();
 
             // ===================== NEGOCIO MAPPINGS =====================
             CreateMap<Negocio, NegocioDto>();

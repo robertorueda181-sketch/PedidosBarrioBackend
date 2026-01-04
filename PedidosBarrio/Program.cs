@@ -56,8 +56,19 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// ? Servir archivos estáticos (imágenes)
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+        System.IO.Path.Combine(builder.Environment.ContentRootPath, "images")),
+    RequestPath = "/images"
+});
+
 // Usar CORS
 app.UseCors("AllowAngular");
+
+// Usar autenticación JWT
+app.UseAuthentication();
 
 // Usar el middleware de logging antes del error handling
 app.UseLoggingMiddleware();
@@ -68,6 +79,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 // Mapear todos los endpoints
+app.MapAuthEndpoints();
 app.MapEmpresaEndpoints();
 app.MapSuscripcionEndpoints();
 app.MapProductoEndpoints();

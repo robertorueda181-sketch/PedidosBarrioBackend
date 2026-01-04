@@ -18,9 +18,9 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             {
                 return await QuerySingleOrDefaultAsync<Usuario>(
                     connection,
-                    "sp_GetUsuarioById",
-                    new { UsuarioID = id },
-                    CommandType.StoredProcedure);
+                    "SELECT * FROM sp_GetUsuarioById(@usuarioID)",
+                    new { usuarioID = id },
+                    CommandType.Text);
             }
         }
 
@@ -30,9 +30,9 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             {
                 return await QuerySingleOrDefaultAsync<Usuario>(
                     connection,
-                    "sp_GetUsuarioByEmail",
-                    new { Email = email },
-                    CommandType.StoredProcedure);
+                    "SELECT * FROM sp_GetUsuarioByEmail(@email)",
+                    new { email = email },
+                    CommandType.Text);
             }
         }
 
@@ -42,9 +42,9 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             {
                 return await QuerySingleOrDefaultAsync<Usuario>(
                     connection,
-                    "sp_GetUsuarioByNombreUsuario",
-                    new { NombreUsuario = nombreUsuario },
-                    CommandType.StoredProcedure);
+                    "SELECT * FROM sp_GetUsuarioByNombreUsuario(@nombreUsuario)",
+                    new { nombreUsuario = nombreUsuario },
+                    CommandType.Text);
             }
         }
 
@@ -54,8 +54,8 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             {
                 return await QueryAsync<Usuario>(
                     connection,
-                    "sp_GetAllUsuarios",
-                    commandType: CommandType.StoredProcedure);
+                    "SELECT * FROM sp_GetAllUsuarios()",
+                    commandType: CommandType.Text);
             }
         }
 
@@ -65,9 +65,9 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             {
                 return await QueryAsync<Usuario>(
                     connection,
-                    "sp_GetUsuariosByEmpresaId",
-                    new { EmpresaID = empresaID },
-                    CommandType.StoredProcedure);
+                    "SELECT * FROM sp_GetUsuariosByEmpresaId(@empresaID)",
+                    new { empresaID = empresaID },
+                    CommandType.Text);
             }
         }
 

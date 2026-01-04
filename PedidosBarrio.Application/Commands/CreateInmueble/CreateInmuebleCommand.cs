@@ -5,7 +5,7 @@ namespace PedidosBarrio.Application.Commands.CreateInmueble
 {
     public class CreateInmuebleCommand : IRequest<InmuebleDto>
     {
-        public int EmpresaID { get; set; }
+        public Guid EmpresaID { get; set; }
         public int TiposID { get; set; }
         public decimal Precio { get; set; }
         public string Medidas { get; set; }
@@ -14,7 +14,7 @@ namespace PedidosBarrio.Application.Commands.CreateInmueble
         public int Banos { get; set; }
         public string Descripcion { get; set; }
 
-        public CreateInmuebleCommand(int empresaID, int tiposID, decimal precio, string medidas, string ubicacion, int dormitorios, int banos, string descripcion)
+        public CreateInmuebleCommand(Guid empresaID, int tiposID, decimal precio, string medidas, string ubicacion, int dormitorios, int banos, string descripcion)
         {
             EmpresaID = empresaID;
             TiposID = tiposID;
