@@ -33,15 +33,17 @@ namespace PedidosBarrio.Application.Queries.GetInmuebleById
                 InmuebleID = inmueble.InmuebleID,
                 EmpresaID = inmueble.EmpresaID,
                 TiposID = inmueble.TiposID,
-                TipoInmueble = inmueble.Tipo,                          // ? Del mapeo manual en GetByIdAsync
+                TipoInmueble = inmueble.Tipo,                         
                 OperacionID = inmueble.OperacionID,
-                TipoOperacion = inmueble.Operacion?.Descripcion,       // ? Del mapeo manual en GetByIdAsync
+                TipoOperacion = inmueble.Operacion?.Descripcion,       
                 Precio = inmueble.Precio,
                 Medidas = inmueble.Medidas,
                 Ubicacion = inmueble.Ubicacion,
                 Dormitorios = inmueble.Dormitorios,
                 Banos = inmueble.Banos,
                 Descripcion = inmueble.Descripcion,
+                Latitud = inmueble.Latitud,
+                Longitud = inmueble.Longitud,
                 Imagenes = _mapper.Map<List<ImagenUrlDto>>(
                     await _imagenRepository.GetByProductoIdAsync(query.InmuebleID, "inm"))
             };

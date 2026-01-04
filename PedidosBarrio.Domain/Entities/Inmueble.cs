@@ -18,6 +18,8 @@ namespace PedidosBarrio.Domain.Entities
 
         public Imagen Imagen { get; set; } = new();
         public Tipo Operacion { get; set; } = new();
+        public string Latitud { get; set; }
+        public string Longitud { get; set; } 
 
         public Inmueble(Guid empresaID, int tiposID, decimal precio, string medidas, string ubicacion, int dormitorios, int banos, string descripcion, int? operacionID = null)
         {

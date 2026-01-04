@@ -24,6 +24,8 @@ namespace PedidosBarrio.Application.DTOs
         public int Dormitorios { get; set; }
         public int Banos { get; set; }
         public string Descripcion { get; set; }
+        public string Latitud { get; set; }
+        public string Longitud { get; set; }
         
         public List<ImagenUrlDto> Imagenes { get; set; } = new List<ImagenUrlDto>();
     }

@@ -37,6 +37,8 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                 )
                 {
                     InmuebleID = (int)row.InmuebleID,
+                    Latitud = ((decimal) row.latitud).ToString(),
+                    Longitud = ((decimal) row.longitud).ToString(),
                     Tipo = (string)row.Tipo,
                     Activa = true,
                     Operacion = new Tipo { Descripcion = (string)row.Operacion }
