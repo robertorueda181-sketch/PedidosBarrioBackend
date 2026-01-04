@@ -2,7 +2,7 @@ namespace PedidosBarrio.Application.DTOs
 {
     public class CreateNegocioDto
     {
-        public int EmpresaID { get; set; }
+        public Guid EmpresaID { get; set; }
         public int TiposID { get; set; }
         public string URLNegocio { get; set; }
         public string Descripcion { get; set; }

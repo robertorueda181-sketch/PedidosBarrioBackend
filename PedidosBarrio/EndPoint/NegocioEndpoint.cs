@@ -36,7 +36,7 @@ namespace PedidosBarrio.Api.EndPoint
             .WithOpenApi();
 
             // GET /api/Negocios/empresa/{empresaId}
-            group.MapGet("/empresa/{empresaId:int}", async (int empresaId, IMediator mediator) =>
+            group.MapGet("/empresa/{empresaId:Guid}", async (Guid empresaId, IMediator mediator) =>
             {
                 var negocios = await mediator.Send(new GetNegociosByEmpresaQuery(empresaId));
                 return Results.Ok(negocios);
@@ -58,7 +58,7 @@ namespace PedidosBarrio.Api.EndPoint
             group.MapPut("/{id:int}", async (int id, [FromBody] NegocioDto updateDto, IMediator mediator) =>
             {
                 var command = new UpdateNegocioCommand(id, updateDto.EmpresaID, updateDto.TiposID, updateDto.URLNegocio,
-                    updateDto.Descripcion, updateDto.URLOpcional);
+                    updateDto.Descripcion);
                 await mediator.Send(command);
                 return Results.NoContent();
             })

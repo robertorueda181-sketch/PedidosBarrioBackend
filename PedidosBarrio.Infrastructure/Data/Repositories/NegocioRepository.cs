@@ -16,11 +16,24 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             using (var connection = CreateConnection())
             {
-                return await QuerySingleOrDefaultAsync<Negocio>(
-                    connection,
-                    "sp_GetNegocioById",
-                    new { NegocioID = id },
-                    CommandType.StoredProcedure);
+                var result = await connection.QueryAsync(
+                    "SELECT * FROM sp_GetNegocioById(@negocioid)",
+                    new { negocioid = id },
+                    commandType: CommandType.Text);
+
+                var row = result.FirstOrDefault();
+                if (row == null)
+                    return null;
+
+                return new Negocio(
+                    empresaID: (Guid)row.EmpresaID,
+                    tiposID: (int)row.TiposID,
+                    urlNegocio: (string)row.URLCalculada,
+                    descripcion: (string)row.Descripcion
+                )
+                {
+                    NegocioID = (int)row.NegocioID
+                };
             }
         }
 
@@ -28,22 +41,41 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             using (var connection = CreateConnection())
             {
-                return await QueryAsync<Negocio>(
-                    connection,
-                    "sp_GetAllNegocios",
-                    commandType: CommandType.StoredProcedure);
+                var result = await connection.QueryAsync(
+                    "SELECT * FROM sp_getallnegocios()",
+                    commandType: CommandType.Text);
+
+                return result.Select(row => new Negocio(
+                    empresaID: (Guid)row.EmpresaID,
+                    tiposID: (int)row.TiposID,
+                    urlNegocio: (string)row.URLCalculada,
+                    descripcion: (string)row.Descripcion
+                )
+                {
+                    NegocioID = (int)row.NegocioID,
+                    Imagenes = new Imagen() {URLImagen = (string)row.URLImagen }
+                }).ToList();
             }
         }
 
-        public async Task<IEnumerable<Negocio>> GetByEmpresaIdAsync(int empresaId)
+        public async Task<IEnumerable<Negocio>> GetByEmpresaIdAsync(Guid empresaId)
         {
             using (var connection = CreateConnection())
             {
-                return await QueryAsync<Negocio>(
-                    connection,
-                    "sp_GetNegociosByEmpresa",
-                    new { EmpresaID = empresaId },
-                    CommandType.StoredProcedure);
+                var result = await connection.QueryAsync(
+                    "SELECT * FROM sp_GetNegociosByEmpresa(@empresaid)",
+                    new { empresaid = empresaId },
+                    commandType: CommandType.Text);
+
+                return result.Select(row => new Negocio(
+                    empresaID: (Guid)row.EmpresaID,
+                    tiposID: (int)row.TiposID,
+                    urlNegocio: (string)row.URLCalculada,
+                    descripcion: (string)row.Descripcion
+                )
+                {
+                    NegocioID = (int)row.NegocioID
+                }).ToList();
             }
         }
 
@@ -52,17 +84,17 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             using (var connection = CreateConnection())
             {
                 var parameters = new DynamicParameters();
-                parameters.Add("@EmpresaID", negocio.EmpresaID);
-                parameters.Add("@TiposID", negocio.TiposID);
-                parameters.Add("@URL_NEGOCIO", negocio.URLNegocio);
-                parameters.Add("@URL_Opcional", negocio.URLOpcional);
-                parameters.Add("@Descripcion", negocio.Descripcion);
+                parameters.Add("@empresaid", negocio.EmpresaID);
+                parameters.Add("@tiposid", negocio.TiposID);
+                parameters.Add("@urlnegocio", negocio.URLNegocio);
+                parameters.Add("@urlopcional", negocio.URLOpcional);
+                parameters.Add("@descripcion", negocio.Descripcion);
 
                 return await QuerySingleOrDefaultAsync<int>(
                     connection,
-                    "sp_CreateNegocio",
+                    "SELECT sp_CreateNegocio(@empresaid, @tiposid, @urlnegocio, @urlopcional, @descripcion)",
                     parameters,
-                    CommandType.StoredProcedure);
+                    CommandType.Text);
             }
         }
 
@@ -71,18 +103,18 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             using (var connection = CreateConnection())
             {
                 var parameters = new DynamicParameters();
-                parameters.Add("@NegocioID", negocio.NegocioID);
-                parameters.Add("@EmpresaID", negocio.EmpresaID);
-                parameters.Add("@TiposID", negocio.TiposID);
-                parameters.Add("@URL_NEGOCIO", negocio.URLNegocio);
-                parameters.Add("@URL_Opcional", negocio.URLOpcional);
-                parameters.Add("@Descripcion", negocio.Descripcion);
+                parameters.Add("@negocioid", negocio.NegocioID);
+                parameters.Add("@empresaid", negocio.EmpresaID);
+                parameters.Add("@tiposid", negocio.TiposID);
+                parameters.Add("@urlnegocio", negocio.URLNegocio);
+                parameters.Add("@urlopcional", negocio.URLOpcional);
+                parameters.Add("@descripcion", negocio.Descripcion);
 
                 await ExecuteAsync(
                     connection,
-                    "sp_UpdateNegocio",
+                    "SELECT sp_UpdateNegocio(@negocioid, @empresaid, @tiposid, @urlnegocio, @urlopcional, @descripcion)",
                     parameters,
-                    CommandType.StoredProcedure);
+                    CommandType.Text);
             }
         }
 
@@ -92,10 +124,12 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             {
                 await ExecuteAsync(
                     connection,
-                    "sp_DeleteNegocio",
-                    new { NegocioID = id },
-                    CommandType.StoredProcedure);
+                    "SELECT sp_DeleteNegocio(@negocioid)",
+                    new { negocioid = id },
+                    CommandType.Text);
             }
         }
     }
 }
+
+

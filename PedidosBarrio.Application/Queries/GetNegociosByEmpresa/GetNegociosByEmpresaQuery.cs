@@ -5,9 +5,9 @@ namespace PedidosBarrio.Application.Queries.GetNegociosByEmpresa
 {
     public class GetNegociosByEmpresaQuery : IRequest<IEnumerable<NegocioDto>>
     {
-        public int EmpresaID { get; set; }
+        public Guid EmpresaID { get; set; }
 
-        public GetNegociosByEmpresaQuery(int empresaID)
+        public GetNegociosByEmpresaQuery(Guid empresaID)
         {
             EmpresaID = empresaID;
         }

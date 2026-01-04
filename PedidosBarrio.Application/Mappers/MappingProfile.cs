@@ -60,7 +60,8 @@ namespace PedidosBarrio.Application.Mappers
             CreateMap<InmuebleDetailsDto, InmuebleDetailsDto>();
 
             // ===================== NEGOCIO MAPPINGS =====================
-            CreateMap<Negocio, NegocioDto>();
+            CreateMap<Negocio, NegocioDto>()
+                .ForMember(dest => dest.UrlImagen, opt => opt.MapFrom(src => src.Imagenes.URLImagen));
             CreateMap<CreateNegocioDto, Negocio>();
         }
     }
