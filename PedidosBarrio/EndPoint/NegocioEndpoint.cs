@@ -7,6 +7,7 @@ using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Queries.GetAllNegocios;
 using PedidosBarrio.Application.Queries.GetNegocioById;
 using PedidosBarrio.Application.Queries.GetNegociosByEmpresa;
+using PedidosBarrio.Application.Queries.GetNegocioByCodigoEmpresa;
 
 namespace PedidosBarrio.Api.EndPoint
 {
@@ -26,8 +27,17 @@ namespace PedidosBarrio.Api.EndPoint
             .WithName("GetAllNegocios")
             .WithOpenApi();
 
+            // GET /api/Negocios/codigo/{codigoEmpresa} - ? NUEVO
+            group.MapGet("/codigo/{codigoEmpresa}", async (string codigoEmpresa, IMediator mediator) =>
+            {
+                var negocio = await mediator.Send(new GetNegocioByCodigoEmpresaQuery(codigoEmpresa));
+                return negocio is not null ? Results.Ok(negocio) : Results.NotFound();
+            })
+            .WithName("GetNegocioByCodigoEmpresa")
+            .WithOpenApi();
+
             // GET /api/Negocios/{id}
-            group.MapGet("/{id:int}", async (int id, IMediator mediator) =>
+            group.MapGet("/{id}", async (string id, IMediator mediator) =>
             {
                 var negocio = await mediator.Send(new GetNegocioByIdQuery(id));
                 return negocio is not null ? Results.Ok(negocio) : Results.NotFound();
@@ -76,3 +86,4 @@ namespace PedidosBarrio.Api.EndPoint
         }
     }
 }
+

@@ -35,15 +35,15 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             }
         }
 
-        public async Task<IEnumerable<Producto>> GetByEmpresaIdAsync(int empresaId)
+        public async Task<IEnumerable<Producto>> GetByEmpresaIdAsync(Guid empresaId)
         {
             using (var connection = CreateConnection())
             {
                 return await QueryAsync<Producto>(
                     connection,
-                    "sp_GetProductosByEmpresa",
-                    new { EmpresaID = empresaId },
-                    CommandType.StoredProcedure);
+                    "SELECT * FROM fn_GetProductosByEmpresaId(@p_empresa_id)",
+                    new { p_empresa_id = empresaId },
+                    commandType: CommandType.Text);
             }
         }
 

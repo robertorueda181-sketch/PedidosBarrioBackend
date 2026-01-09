@@ -14,7 +14,7 @@ namespace PedidosBarrio.Application.Commands.DeleteNegocio
 
         public async Task<Unit> Handle(DeleteNegocioCommand command, CancellationToken cancellationToken)
         {
-            var negocio = await _negocioRepository.GetByIdAsync(command.NegocioID);
+            var negocio = await _negocioRepository.GetByIdAsync(command.NegocioID.ToString());
             if (negocio == null)
             {
                 throw new ApplicationException($"Negocio with ID {command.NegocioID} not found.");

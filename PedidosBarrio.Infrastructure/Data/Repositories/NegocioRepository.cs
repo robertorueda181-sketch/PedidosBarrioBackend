@@ -12,7 +12,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
         }
 
-        public async Task<Negocio> GetByIdAsync(int id)
+        public async Task<Negocio> GetByIdAsync(string id)
         {
             using (var connection = CreateConnection())
             {
@@ -34,6 +34,23 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                 {
                     NegocioID = (int)row.NegocioID
                 };
+            }
+        }
+
+        public async Task<EmpresaNegocio> GetByCodigoEmpresaAsync(string id)
+        {
+            using (var connection = CreateConnection())
+            {
+                var result = await connection.QueryAsync<EmpresaNegocio>(
+                    "SELECT * FROM sp_getnegociobyid(@negocioid)",
+                    new { negocioid = id },
+                    commandType: CommandType.Text);
+
+                var row = result.FirstOrDefault();
+                if (row == null)
+                    return null;
+
+                return row;
             }
         }
 

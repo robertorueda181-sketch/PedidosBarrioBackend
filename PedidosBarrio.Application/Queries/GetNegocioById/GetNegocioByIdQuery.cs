@@ -5,9 +5,9 @@ namespace PedidosBarrio.Application.Queries.GetNegocioById
 {
     public class GetNegocioByIdQuery : IRequest<NegocioDto>
     {
-        public int NegocioID { get; set; }
+        public string NegocioID { get; set; }
 
-        public GetNegocioByIdQuery(int negocioID)
+        public GetNegocioByIdQuery(string negocioID)
         {
             NegocioID = negocioID;
         }
