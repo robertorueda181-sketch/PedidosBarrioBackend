@@ -51,17 +51,16 @@ namespace PedidosBarrio.Application.Queries.GetNegocioByCodigoEmpresa
                 Referencia = empresa.Referencia,
                 Categorias = categorias.Select(c => new CategoriaDetalleDto
                 {
-                    CategoriaID = c.CategoriaID,
-                    EmpresaID = c.EmpresaID,
+                    CategoriaID = c.Categoria_ID,
                     Descripcion = c.Descripcion,
                     Codigo = c.Codigo,
-                    Activo = c.Activo,
                     Mostrar = c.Mostrar
                 }).ToList(),
                 Productos = productos.Select(p => new ProductoDetalleDto
                 {
                     ProductoID = p.ProductoID,
                     EmpresaID = empresa.EmpresaID,
+                    CategoriaID = p.CategoriaID,
                     Nombre = p.Nombre,
                     Descripcion = p.Descripcion,
                     Precio = p.Precio,

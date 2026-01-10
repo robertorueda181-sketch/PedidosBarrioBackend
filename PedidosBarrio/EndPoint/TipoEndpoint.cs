@@ -18,6 +18,18 @@ namespace PedidosBarrio.Api.EndPoint
                 .Produces<IEnumerable<TipoDto>>(StatusCodes.Status200OK)
                 .WithDescription("Obtiene todos los tipos, opcionalmente filtrados por tipo o parámetro")
                 .WithSummary("Obtener Tipos");
+
+            // GET /api/Tipos/valores - Obtener valores distintos de la columna Tipo (tipo_ser, tipo_neg)
+            group.MapGet("/valores", async (IMediator mediator) =>
+            {
+                var tipos = await mediator.Send(new PedidosBarrio.Application.Queries.GetTipos.GetTiposQuery());
+                return Results.Ok(tipos);
+            })
+            .WithName("GetTiposValores")
+            .WithOpenApi()
+            .Produces<IEnumerable<TipoDto>>(StatusCodes.Status200OK)
+            .WithDescription("Obtiene los valores distintos de la columna Tipo filtrando por parametros tipo_ser y tipo_neg")
+            .WithSummary("Obtener valores de Tipo");
         }
 
         private static async Task<IResult> GetAllTipos(
@@ -35,3 +47,4 @@ namespace PedidosBarrio.Api.EndPoint
         }
     }
 }
+

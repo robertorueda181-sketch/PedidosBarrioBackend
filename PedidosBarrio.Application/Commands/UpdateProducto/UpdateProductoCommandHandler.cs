@@ -28,7 +28,8 @@ namespace PedidosBarrio.Application.Commands.UpdateProducto
             producto = new Producto(command.EmpresaID, command.Nombre, command.Descripcion)
             {
                 ProductoID = command.ProductoID,
-                FechaCreacion = producto.FechaCreacion
+                FechaCreacion = producto.FechaCreacion,
+                CategoriaID = command.CategoriaID
             };
 
             await _productoRepository.UpdateAsync(producto);

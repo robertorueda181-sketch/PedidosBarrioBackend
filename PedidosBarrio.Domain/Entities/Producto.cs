@@ -3,7 +3,8 @@ namespace PedidosBarrio.Domain.Entities
     public class Producto
     {
         public int ProductoID { get; set; }
-        public int EmpresaID { get; set; }
+        public Guid EmpresaID { get; set; }
+        public short CategoriaID { get; set; }
         public string Nombre { get; set; }
         public string Descripcion { get; set; }
         public DateTime FechaCreacion { get; set; }
@@ -11,7 +12,7 @@ namespace PedidosBarrio.Domain.Entities
         public int Stock { get; set; }
         public string Imagen { get; set; }
 
-        public Producto(int empresaID, string nombre, string descripcion)
+        public Producto(Guid empresaID, string nombre, string descripcion)
         {
             EmpresaID = empresaID;
             Nombre = nombre;

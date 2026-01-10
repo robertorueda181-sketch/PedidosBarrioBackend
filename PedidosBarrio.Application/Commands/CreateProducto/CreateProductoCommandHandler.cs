@@ -20,6 +20,7 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
         public async Task<ProductoDto> Handle(CreateProductoCommand command, CancellationToken cancellationToken)
         {
             var producto = new Producto(command.EmpresaID, command.Nombre, command.Descripcion);
+            producto.CategoriaID = command.CategoriaID;
 
             await _productoRepository.AddAsync(producto);
             return _mapper.Map<ProductoDto>(producto);

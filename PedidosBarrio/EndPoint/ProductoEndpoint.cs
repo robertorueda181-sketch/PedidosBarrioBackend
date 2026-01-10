@@ -36,7 +36,7 @@ namespace PedidosBarrio.Api.EndPoint
             .WithOpenApi();
 
             // GET /api/Productos/empresa/{empresaId}
-            group.MapGet("/empresa/{empresaId:int}", async (Guid empresaId, IMediator mediator) =>
+            group.MapGet("/empresa/{empresaId:Guid}", async (Guid empresaId, IMediator mediator) =>
             {
                 var productos = await mediator.Send(new GetProductosByEmpresaQuery(empresaId));
                 return Results.Ok(productos);
@@ -47,7 +47,7 @@ namespace PedidosBarrio.Api.EndPoint
             // POST /api/Productos
             group.MapPost("/", async ([FromBody] CreateProductoDto createDto, IMediator mediator) =>
             {
-                var productoDto = await mediator.Send(new CreateProductoCommand(createDto.EmpresaID, createDto.Nombre, createDto.Descripcion));
+                var productoDto = await mediator.Send(new CreateProductoCommand(createDto.EmpresaID, createDto.CategoriaID, createDto.Nombre, createDto.Descripcion));
                 return Results.Created($"/api/Productos/{productoDto.ProductoID}", productoDto);
             })
             .WithName("CreateProducto")
@@ -56,7 +56,7 @@ namespace PedidosBarrio.Api.EndPoint
             // PUT /api/Productos/{id}
             group.MapPut("/{id:int}", async (int id, [FromBody] ProductoDto updateDto, IMediator mediator) =>
             {
-                var command = new UpdateProductoCommand(id, updateDto.EmpresaID, updateDto.Nombre, updateDto.Descripcion);
+                var command = new UpdateProductoCommand(id, updateDto.EmpresaID, updateDto.CategoriaID, updateDto.Nombre, updateDto.Descripcion);
                 await mediator.Send(command);
                 return Results.NoContent();
             })

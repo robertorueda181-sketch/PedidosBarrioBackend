@@ -2,7 +2,7 @@ namespace PedidosBarrio.Domain.Entities
 {
     public class Categoria
     {
-        public short CategoriaID { get; set; }
+        public short Categoria_ID { get; set; }
         public Guid EmpresaID { get; set; }
         public string Descripcion { get; set; }
         public string Codigo { get; set; }
@@ -11,7 +11,7 @@ namespace PedidosBarrio.Domain.Entities
 
         public Categoria(short categoriaId, Guid empresaId, string descripcion, string codigo, bool activo = true, bool mostrar = false)
         {
-            CategoriaID = categoriaId;
+            Categoria_ID = categoriaId;
             EmpresaID = empresaId;
             Descripcion = descripcion;
             Codigo = codigo;

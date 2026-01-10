@@ -22,10 +22,8 @@ namespace PedidosBarrio.Application.DTOs
     public class CategoriaDetalleDto
     {
         public short CategoriaID { get; set; }
-        public Guid EmpresaID { get; set; }
         public string Descripcion { get; set; }
         public string Codigo { get; set; }
-        public bool Activo { get; set; }
         public bool Mostrar { get; set; }
     }
 
@@ -36,6 +34,7 @@ namespace PedidosBarrio.Application.DTOs
     {
         public int ProductoID { get; set; }
         public Guid EmpresaID { get; set; }
+        public short CategoriaID { get; set; }
         public string Nombre { get; set; }
         public string Descripcion { get; set; }
         public decimal Precio { get; set; }
@@ -43,3 +42,4 @@ namespace PedidosBarrio.Application.DTOs
         public string URLImagen { get; set; }
     }
 }
+

@@ -41,7 +41,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             {
                 return await QueryAsync<Producto>(
                     connection,
-                    "SELECT * FROM fn_GetProductosByEmpresaId(@p_empresa_id)",
+                    "SELECT * FROM public.sp_getproductosbyempresa(@p_empresa_id)",
                     new { p_empresa_id = empresaId },
                     commandType: CommandType.Text);
             }
@@ -53,6 +53,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             {
                 var parameters = new DynamicParameters();
                 parameters.Add("@EmpresaID", producto.EmpresaID);
+                parameters.Add("@CategoriaID", producto.CategoriaID);
                 parameters.Add("@Nombre", producto.Nombre);
                 parameters.Add("@Descripcion", producto.Descripcion);
 
@@ -97,3 +98,4 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         }
     }
 }
+

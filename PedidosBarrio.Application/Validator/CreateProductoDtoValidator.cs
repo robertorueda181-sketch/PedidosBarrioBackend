@@ -8,7 +8,7 @@ namespace PedidosBarrio.Application.Validator
         public CreateProductoDtoValidator()
         {
             RuleFor(dto => dto.EmpresaID)
-                .GreaterThan(0).WithMessage("El ID de la empresa debe ser mayor a 0.");
+                .NotEmpty().WithMessage("El ID de la empresa no puede estar vacío.");
 
             RuleFor(dto => dto.Nombre)
                 .NotEmpty().WithMessage("El nombre del producto no puede estar vacío.")

@@ -64,7 +64,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             using (var connection = CreateConnection())
             {
                 var parameters = new DynamicParameters();
-                parameters.Add("@CategoriaID", categoria.CategoriaID);
+                parameters.Add("@CategoriaID", categoria.Categoria_ID);
                 parameters.Add("@EmpresaID", categoria.EmpresaID);
                 parameters.Add("@Descripcion", categoria.Descripcion);
                 parameters.Add("@Codigo", categoria.Codigo ?? (object)DBNull.Value);
@@ -84,7 +84,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             using (var connection = CreateConnection())
             {
                 var parameters = new DynamicParameters();
-                parameters.Add("@CategoriaID", categoria.CategoriaID);
+                parameters.Add("@CategoriaID", categoria.Categoria_ID);
                 parameters.Add("@EmpresaID", categoria.EmpresaID);
                 parameters.Add("@Descripcion", categoria.Descripcion);
                 parameters.Add("@Codigo", categoria.Codigo ?? (object)DBNull.Value);
