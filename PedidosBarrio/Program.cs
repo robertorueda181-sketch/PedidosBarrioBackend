@@ -87,5 +87,6 @@ app.MapImagenEndpoints();
 app.MapTipoEndpoints();
 app.MapInmuebleEndpoints();
 app.MapNegocioEndpoints();
+app.MapSearchEndpoints();
 
 app.Run();

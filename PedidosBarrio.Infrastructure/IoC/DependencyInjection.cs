@@ -41,6 +41,7 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<IInmuebleRepository, InmuebleRepository>();
             services.AddScoped<INegocioRepository, NegocioRepository>();
             services.AddScoped<ICategoriaRepository, CategoriaRepository>();
+            services.AddScoped<ISearchRepository, SearchRepository>();
 
             // AutoMapper
             services.AddAutoMapper(cfg =>
