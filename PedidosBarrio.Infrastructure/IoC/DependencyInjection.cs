@@ -42,6 +42,10 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<INegocioRepository, NegocioRepository>();
             services.AddScoped<ICategoriaRepository, CategoriaRepository>();
             services.AddScoped<ISearchRepository, SearchRepository>();
+            services.AddScoped<IMenuRepository, MenuRepository>();
+            
+            // Unit of Work para transacciones
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // AutoMapper
             services.AddAutoMapper(cfg =>
@@ -63,6 +67,7 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<IValidator<CreateInmuebleDto>, CreateInmuebleDtoValidator>();
             services.AddScoped<IValidator<CreateNegocioDto>, CreateNegocioDtoValidator>();
             services.AddScoped<IValidator<RegisterDto>, RegisterDtoValidator>();
+            services.AddScoped<IValidator<RegisterSocialRequestDto>, RegisterSocialRequestValidator>();
 
             // JWT Token Service
             services.AddScoped<IJwtTokenService, JwtTokenService>();

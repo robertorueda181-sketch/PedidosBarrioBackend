@@ -47,10 +47,9 @@ namespace PedidosBarrio.Application.Services
             {
                 new Claim(ClaimTypes.NameIdentifier, usuario.ID.ToString()),
                 new Claim(ClaimTypes.Email, usuario.Email),
-                new Claim(ClaimTypes.Name, usuario.NombreUsuario),
+                new Claim(ClaimTypes.Name, usuario.Email),
                 new Claim("NombreCompleto", usuario.Email),
-                new Claim("EmpresaID", usuario.EmpresaID.ToString()),
-                new Claim("Activa", usuario.Activa.ToString())
+                new Claim("EmpresaID", usuario.EmpresaID.ToString())
             };
 
             var tokenDescriptor = new SecurityTokenDescriptor

@@ -75,21 +75,20 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             using (var connection = CreateConnection())
             {
-                var parameters = new DynamicParameters();
-                parameters.Add("@NombreUsuario", usuario.NombreUsuario);
-                parameters.Add("@Email", usuario.Email);
-                parameters.Add("@ContrasenaHash", usuario.ContrasenaHash);
-                parameters.Add("@ContrasenaSalt", usuario.ContrasenaSalt);
-                parameters.Add("@EmpresaID", usuario.EmpresaID);
-                parameters.Add("@UsuarioID", usuario.ID, dbType: DbType.Guid, direction: ParameterDirection.Output);
-
-                await ExecuteAsync(
+                var generatedId = await QuerySingleOrDefaultAsync<Guid>(
                     connection,
-                    "sp_CreateUsuario",
-                    parameters,
-                    CommandType.StoredProcedure);
+                    "SELECT sp_CreateUsuario(@p_nombre_usuario, @p_email, @p_contrasena_hash, @p_contrasena_salt, @p_provider, @p_social_id)",
+                    new
+                    {
+                        p_nombre_usuario = usuario.NombreUsuario,
+                        p_email = usuario.Email,
+                        p_contrasena_hash = usuario.ContrasenaHash,
+                        p_contrasena_salt = usuario.ContrasenaSalt,
+                        p_provider = usuario.Provider,
+                        p_social_id = usuario.SocialId
+                    },
+                    CommandType.Text);
 
-                var generatedId = parameters.Get<Guid>("@UsuarioID");
                 usuario.ID = generatedId;
             }
         }
@@ -98,17 +97,17 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             using (var connection = CreateConnection())
             {
-                var parameters = new DynamicParameters();
-                parameters.Add("@UsuarioID", usuario.ID);
-                parameters.Add("@NombreUsuario", usuario.NombreUsuario);
-                parameters.Add("@Email", usuario.Email);
-                parameters.Add("@Activa", usuario.Activa);
-
                 await ExecuteAsync(
                     connection,
-                    "sp_UpdateUsuario",
-                    parameters,
-                    CommandType.StoredProcedure);
+                    "SELECT sp_UpdateUsuario(@p_usuario_id, @p_nombre_usuario, @p_email, @p_activa)",
+                    new
+                    {
+                        p_usuario_id = usuario.ID,
+                        p_nombre_usuario = usuario.NombreUsuario,
+                        p_email = usuario.Email,
+                        p_activa = usuario.Activa
+                    },
+                    CommandType.Text);
             }
         }
 
@@ -118,9 +117,9 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             {
                 await ExecuteAsync(
                     connection,
-                    "sp_DeleteUsuario",
-                    new { UsuarioID = id },
-                    CommandType.StoredProcedure);
+                    "SELECT sp_DeleteUsuario(@p_usuario_id)",
+                    new { p_usuario_id = id },
+                    CommandType.Text);
             }
         }
     }

@@ -20,4 +20,9 @@
     <ProjectReference Include="..\PedidosBarrio.Domain\PedidosBarrio.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Commands\AuthUnified\" />
+    <Folder Include="DTO\" />
+  </ItemGroup>
+
 </Project>

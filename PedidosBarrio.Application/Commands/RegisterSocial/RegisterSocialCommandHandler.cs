@@ -1,0 +1,214 @@
+using MediatR;
+using PedidosBarrio.Application.Commands.CreateInmueble;
+using PedidosBarrio.Application.Commands.CreateNegocio;
+using PedidosBarrio.Application.DTOs;
+using PedidosBarrio.Application.Logging;
+using PedidosBarrio.Application.Services;
+using PedidosBarrio.Application.Utilities;
+using PedidosBarrio.Domain.Entities;
+using PedidosBarrio.Domain.Repositories;
+using Microsoft.Extensions.Configuration;
+
+namespace PedidosBarrio.Application.Commands.RegisterSocial
+{
+    /// <summary>
+    /// Handler para registro completo (usuario/contraseña o Google)
+    /// Con soporte para transacciones
+    /// 1. Valida que email no exista
+    /// 2. Crea usuario, empresa y negocio/servicio/inmueble en una transacción
+    /// 3. Retorna token JWT
+    /// </summary>
+    public class RegisterSocialCommandHandler : IRequestHandler<RegisterSocialCommand, LoginResponseDto>
+    {
+        private readonly IUsuarioRepository _usuarioRepository;
+        private readonly IEmpresaRepository _empresaRepository;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IMediator _mediator;
+        private readonly IJwtTokenService _jwtTokenService;
+        private readonly IApplicationLogger _logger;
+        private readonly IConfiguration _configuration;
+
+        public RegisterSocialCommandHandler(
+            IUsuarioRepository usuarioRepository,
+            IEmpresaRepository empresaRepository,
+            IUnitOfWork unitOfWork,
+            IMediator mediator,
+            IJwtTokenService jwtTokenService,
+            IApplicationLogger logger,
+            IConfiguration configuration)
+        {
+            _usuarioRepository = usuarioRepository;
+            _empresaRepository = empresaRepository;
+            _unitOfWork = unitOfWork;
+            _mediator = mediator;
+            _jwtTokenService = jwtTokenService;
+            _logger = logger;
+            _configuration = configuration;
+        }
+
+        public async Task<LoginResponseDto> Handle(RegisterSocialCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await _logger.LogInformationAsync(
+                    $"Iniciando registro: {request.Email} - Tipo: {request.TipoEmpresa} - {request.Provider ?? "usuario/contraseña"}",
+                    "RegisterSocialCommand");
+
+                // ===== EJECUTAR EN TRANSACCIÓN =====
+                var response = await _unitOfWork.ExecuteInTransactionAsync(async () =>
+                {
+                    return await PerformRegistration(request, cancellationToken);
+                });
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                await _logger.LogErrorAsync(
+                    $"Error en registro: {ex.Message}",
+                    ex,
+                    "RegisterSocialCommand");
+                throw new ApplicationException($"Error al registrarse: {ex.Message}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Lógica de registro ejecutada dentro de una transacción
+        /// </summary>
+        private async Task<LoginResponseDto> PerformRegistration(RegisterSocialCommand request, CancellationToken cancellationToken)
+        {
+            // ===== 1. VALIDAR EMAIL NO EXISTA EN USUARIOS =====
+            var usuarioExistente = await _usuarioRepository.GetByEmailAsync(request.Email);
+            if (usuarioExistente != null)
+            {
+                await _logger.LogWarningAsync(
+                    $"Email ya registrado en usuarios: {request.Email}",
+                    "RegisterSocialCommand");
+                throw new ApplicationException($"El email {request.Email} ya está registrado.");
+            }
+
+            // ===== 3. CREAR USUARIO =====
+            string contrasenaHash = "";
+            string contrasenaSalt = "";
+
+            // Si es registro por usuario/contraseña (no Google)
+            if (string.IsNullOrEmpty(request.Provider))
+            {
+                if (string.IsNullOrEmpty(request.Contrasena))
+                    throw new ApplicationException("Contraseña requerida para registro sin Google.");
+
+                var (hash, salt) = PasswordHasher.HashPassword(request.Contrasena);
+                contrasenaHash = hash;
+                contrasenaSalt = salt;
+            }
+
+                var usuario = new Usuario(
+                    nombreUsuario: request.NombreUsuario ?? request.Email.Split('@')[0],
+                    email: request.Email,
+                    contrasenaHash: contrasenaHash,
+                    contrasenaSalt: contrasenaSalt)
+                {
+                    Activa = true,
+                    FechaRegistro = DateTime.UtcNow,
+                    Provider = request.Provider,
+                    SocialId = request.SocialId
+                };
+
+            await _usuarioRepository.AddAsync(usuario);
+
+            // ===== 4. CREAR EMPRESA =====
+            var empresa = new Empresa(usuario.ID, request.TipoEmpresa);
+            await _empresaRepository.AddAsync(empresa);
+            usuario.EmpresaID = empresa.ID;
+
+            // ===== 5. CREAR REGISTRO ESPECÍFICO SEGÚN TIPO DE EMPRESA =====
+            switch (request.TipoEmpresa)
+            {
+                case 1: // NEGOCIO
+                    var negocioCommand = new CreateNegocioCommand(
+                        empresaID: empresa.ID,
+                        tiposID: 1,
+                        urlNegocio: request.NombreEmpresa.ToLower().Replace(" ", "-"),
+                        descripcion: request.Descripcion);
+                    
+                    var negocioResult = await _mediator.Send(negocioCommand, cancellationToken);
+                    await _logger.LogInformationAsync(
+                        $"Negocio creado: {negocioResult.NegocioID} - {request.NombreEmpresa}",
+                        "RegisterSocialCommand");
+                    break;
+
+                case 2: // SERVICIO
+                    var servicioCommand = new CreateNegocioCommand(
+                        empresaID: empresa.ID,
+                        tiposID: 2,
+                        urlNegocio: request.NombreEmpresa.ToLower().Replace(" ", "-"),
+                        descripcion: request.Descripcion);
+                    
+                    var servicioResult = await _mediator.Send(servicioCommand, cancellationToken);
+                    await _logger.LogInformationAsync(
+                        $"Servicio creado: {servicioResult.NegocioID} - {request.NombreEmpresa}",
+                        "RegisterSocialCommand");
+                    break;
+
+                case 3: // INMUEBLE
+                    var inmuebleCommand = new CreateInmuebleCommand(
+                        empresaID: empresa.ID,
+                        tiposID: 3,
+                        precio: 0,
+                        medidas: request.Descripcion,
+                        ubicacion: request.Direccion,
+                        dormitorios: 0,
+                        banos: 0,
+                        descripcion: request.Descripcion);
+                    
+                    var inmuebleResult = await _mediator.Send(inmuebleCommand, cancellationToken);
+                    await _logger.LogInformationAsync(
+                        $"Inmueble creado: {inmuebleResult.InmuebleID} - {request.NombreEmpresa}",
+                        "RegisterSocialCommand");
+                    break;
+            }
+
+            // ===== 6. GENERAR TOKEN =====
+            var tokenExpirationMinutes = _configuration.GetSection("Jwt:TokenExpirationMinutes").Value;
+            int minutosExpiracion = !string.IsNullOrEmpty(tokenExpirationMinutes) && int.TryParse(tokenExpirationMinutes, out int minutos)
+                ? minutos
+                : 30;
+
+            var token = _jwtTokenService.GenerateToken(usuario, minutosExpiracion);
+            var refreshToken = _jwtTokenService.GenerateRefreshToken();
+
+            // ===== 7. MAPEAR TIPO DE EMPRESA =====
+            var tipoEmpresaStr = request.TipoEmpresa switch
+            {
+                1 => "NEGOCIO",
+                2 => "SERVICIO",
+                3 => "INMUEBLE",
+                _ => "DESCONOCIDO"
+            };
+
+            // ===== 8. RETORNAR RESPUESTA =====
+            var response = new LoginResponseDto
+            {
+                UsuarioID = usuario.ID,
+                Email = usuario.Email,
+                NombreUsuario = usuario.NombreUsuario,
+                NombreCompleto = $"{request.Nombre} {request.Apellido}",
+                EmpresaID = empresa.ID,
+                NombreEmpresa = request.NombreEmpresa,
+                TipoEmpresa = tipoEmpresaStr,
+                Categoria = request.Categoria,
+                Telefono = request.Telefono,
+                Token = token,
+                RefreshToken = refreshToken,
+                TokenExpiracion = DateTime.UtcNow.AddMinutes(minutosExpiracion),
+                EsNuevo = true
+            };
+
+            await _logger.LogInformationAsync(
+                $"Registro completado exitosamente: {usuario.Email} - Tipo: {tipoEmpresaStr}",
+                "RegisterSocialCommand");
+
+            return response;
+        }
+    }
+}

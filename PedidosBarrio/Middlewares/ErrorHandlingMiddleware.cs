@@ -63,14 +63,29 @@ namespace PedidosBarrio.Api.Middlewares
                     break;
 
                 case ApplicationException appException:
-                    statusCode = HttpStatusCode.BadRequest;
-                    message = appException.Message;
-                    logLevel = "WARNING";
-                    exceptionType = "ApplicationException";
+                    // ✅ DISTINGUIR ENTRE ERRORES DE APLICACIÓN Y BASE DE DATOS
+                    if (IsDataBaseException(appException))
+                    {
+                        // Error de BD = 500
+                        statusCode = HttpStatusCode.InternalServerError;
+                        message = "Error en la base de datos. Por favor, intente más tarde.";
+                        logLevel = "ERROR";
+                        exceptionType = "DatabaseException";
 
-                    // ✅ LOGUEAR ERRORES DE APLICACIÓN
-                    await _logger.LogAsync(logLevel, "APPLICATION_ERROR",
-                        $"Error de aplicación en {context.Request.Path}\nMensaje: {appException.Message}");
+                        await _logger.LogAsync(logLevel, "DATABASE_ERROR",
+                            $"Error de base de datos en {context.Request.Path}\nMensaje: {appException.Message}", appException);
+                    }
+                    else
+                    {
+                        // Error de aplicación = 400
+                        statusCode = HttpStatusCode.BadRequest;
+                        message = appException.Message;
+                        logLevel = "WARNING";
+                        exceptionType = "ApplicationException";
+
+                        await _logger.LogAsync(logLevel, "APPLICATION_ERROR",
+                            $"Error de aplicación en {context.Request.Path}\nMensaje: {appException.Message}");
+                    }
                     break;
 
                 case ArgumentNullException argNullEx:
@@ -125,6 +140,29 @@ namespace PedidosBarrio.Api.Middlewares
             });
 
             await context.Response.WriteAsync(result);
+        }
+
+        /// <summary>
+        /// Detecta si una excepción es relacionada con base de datos
+        /// </summary>
+        private bool IsDataBaseException(ApplicationException appException)
+        {
+            if (appException.InnerException == null)
+                return false;
+
+            var innerException = appException.InnerException;
+            var exceptionTypeName = innerException.GetType().FullName ?? "";
+
+            // Verificar si es excepción de BD
+            return exceptionTypeName.Contains("Npgsql") ||
+                   exceptionTypeName.Contains("SqlException") ||
+                   exceptionTypeName.Contains("Oracle") ||
+                   exceptionTypeName.Contains("MySQL") ||
+                   exceptionTypeName.Contains("DataException") ||
+                   innerException.Message.Contains("constraint") ||
+                   innerException.Message.Contains("duplicate") ||
+                   innerException.Message.Contains("connection") ||
+                   innerException.Message.Contains("timeout");
         }
     }
 

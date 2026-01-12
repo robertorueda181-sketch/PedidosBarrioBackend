@@ -24,6 +24,18 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             }
         }
 
+        public async Task<Empresa> GetByEmailAsync(string email)
+        {
+            using (var connection = CreateConnection())
+            {
+                return await QuerySingleOrDefaultAsync<Empresa>(
+                    connection,
+                    "SELECT * FROM public.\"Empresas\" WHERE \"Email\" = @email",
+                    new { email = email },
+                    CommandType.Text);
+            }
+        }
+
         public async Task<IEnumerable<Empresa>> GetAllAsync()
         {
             using (var connection = CreateConnection())
@@ -39,51 +51,20 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             using (var connection = CreateConnection())
             {
-                var parameters = new DynamicParameters();
-                parameters.Add("@Nombre", empresa.Nombre);
-                parameters.Add("@Descripcion", empresa.Descripcion ?? (object)DBNull.Value);
-                parameters.Add("@Email", empresa.Email);
-                parameters.Add("@ContrasenaHash", empresa.ContrasenaHash);
-                parameters.Add("@ContrasenaSalt", empresa.ContrasenaSalt);
-                parameters.Add("@Telefono", empresa.Telefono);
-                parameters.Add("@Direccion", empresa.Direccion ?? (object)DBNull.Value);
-                parameters.Add("@Referencia", empresa.Referencia ?? (object)DBNull.Value);
-                parameters.Add("@EmpresaID", dbType: DbType.Guid, direction: ParameterDirection.Output);
-
-                await ExecuteAsync(
+                var generatedId = await QuerySingleOrDefaultAsync<Guid>(
                     connection,
-                    "sp_CreateEmpresa",
-                    parameters,
-                    CommandType.StoredProcedure);
+                    "SELECT sp_CreateEmpresa(@p_usuarioID,@p_tipoEmpresa)",
+                    new
+                    {
+                        p_usuarioID = empresa.UsuarioID,
+                        p_tipoEmpresa = empresa.TipoEmpresa
+                    },
+                    CommandType.Text);
 
-                var generatedId = parameters.Get<Guid>("@EmpresaID");
                 empresa.ID = generatedId;
             }
         }
 
-        public async Task UpdateAsync(Empresa empresa)
-        {
-            using (var connection = CreateConnection())
-            {
-                var parameters = new DynamicParameters();
-                parameters.Add("@EmpresaID", empresa.ID);
-                parameters.Add("@Nombre", empresa.Nombre);
-                parameters.Add("@Descripcion", empresa.Descripcion ?? (object)DBNull.Value);
-                parameters.Add("@Email", empresa.Email);
-                parameters.Add("@ContrasenaHash", empresa.ContrasenaHash);
-                parameters.Add("@ContrasenaSalt", empresa.ContrasenaSalt);
-                parameters.Add("@Telefono", empresa.Telefono);
-                parameters.Add("@Direccion", empresa.Direccion ?? (object)DBNull.Value);
-                parameters.Add("@Referencia", empresa.Referencia ?? (object)DBNull.Value);
-                parameters.Add("@Activa", empresa.Activa);
-
-                await ExecuteAsync(
-                    connection,
-                    "sp_UpdateEmpresa",
-                    parameters,
-                    CommandType.StoredProcedure);
-            }
-        }
 
         public async Task DeleteAsync(Guid id)
         {

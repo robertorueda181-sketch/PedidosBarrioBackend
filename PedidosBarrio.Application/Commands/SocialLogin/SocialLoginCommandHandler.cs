@@ -77,8 +77,7 @@ namespace PedidosBarrio.Application.Commands.SocialLogin
                         nombreUsuario: username,
                         email: request.Email,
                         contrasenaHash: "", // No hay contraseña para login social
-                        contrasenaSalt: "",
-                        empresaID: Guid.Empty) // Usuario sin empresa asociada inicialmente
+                        contrasenaSalt: "") // Usuario sin empresa asociada inicialmente
                     {
                         Activa = true,
                         FechaRegistro = DateTime.UtcNow

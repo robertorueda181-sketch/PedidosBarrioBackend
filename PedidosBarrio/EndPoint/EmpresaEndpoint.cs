@@ -1,10 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using PedidosBarrio.Application.Commands.CreateEmpresa;
 using PedidosBarrio.Application.Commands.DeleteEmpresa;
 using PedidosBarrio.Application.Commands.Login;
-using PedidosBarrio.Application.Commands.Register;
-using PedidosBarrio.Application.Commands.UpdateEmpresa;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Queries.GetAllEmpresas;
 using PedidosBarrio.Application.Queries.GetEmpresaById;
@@ -36,31 +33,6 @@ namespace PedidosBarrio.Api.EndPoint
             .WithName("GetEmpresaById")
             .WithOpenApi();
 
-            // POST /api/Empresas
-            group.MapPost("/", async ([FromBody] CreateEmpresaDto createDto, IMediator mediator) =>
-            {
-                var empresaDto = await mediator.Send(new CreateEmpresaCommand(
-                    createDto.Nombre, 
-                    createDto.Descripcion,
-                    createDto.Direccion,
-                    createDto.Referencia,   
-                    createDto.Email, 
-                    createDto.Contrasena, // Contraseña en texto plano, se hashea en el handler
-                    createDto.Telefono));
-                return Results.Created($"/api/Empresas/{empresaDto.EmpresaID}", empresaDto);
-            })
-            .WithName("CreateEmpresa")
-            .WithOpenApi();
-
-            // PUT /api/Empresas/{id}
-            group.MapPut("/{id:guid}", async (Guid id, [FromBody] EmpresaDto updateDto, IMediator mediator) =>
-            {
-                var command = new UpdateEmpresaCommand(id, updateDto.Nombre, updateDto.Descripcion, updateDto.Direccion, updateDto.Referencia, updateDto.Email, updateDto.Telefono, updateDto.Activa);
-                await mediator.Send(command);
-                return Results.NoContent();
-            })
-            .WithName("UpdateEmpresa")
-            .WithOpenApi();
 
             // DELETE /api/Empresas/{id}
             group.MapDelete("/{id:guid}", async (Guid id, IMediator mediator) =>
@@ -80,18 +52,6 @@ namespace PedidosBarrio.Api.EndPoint
             .WithName("Login")
             .WithOpenApi();
 
-            // POST /api/Empresas/Register
-            group.MapPost("/Register", async ([FromBody] RegisterDto registerDto, IMediator mediator) =>
-            {
-                var loginResponse = await mediator.Send(new RegisterCommand(registerDto));
-                return Results.Created($"/api/Empresas/{loginResponse.EmpresaID}", loginResponse);
-            })
-            .WithName("Register")
-            .WithOpenApi()
-            .WithDescription("Registra una nueva empresa con usuario. Devuelve datos de login y token")
-            .Produces<LoginResponseDto>(StatusCodes.Status201Created)
-            .Produces(StatusCodes.Status400BadRequest)
-            .Produces(StatusCodes.Status409Conflict);
         }
     }
 }

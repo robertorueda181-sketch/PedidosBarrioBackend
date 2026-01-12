@@ -79,7 +79,8 @@ app.UseAuthorization();
 app.MapControllers();
 
 // Mapear todos los endpoints
-app.MapAuthEndpoints();
+app.MapRegisterEndpoints();
+app.MapLoginEndpoints();
 app.MapEmpresaEndpoints();
 app.MapSuscripcionEndpoints();
 app.MapProductoEndpoints();
@@ -88,5 +89,6 @@ app.MapTipoEndpoints();
 app.MapInmuebleEndpoints();
 app.MapNegocioEndpoints();
 app.MapSearchEndpoints();
+app.MapConfiguracionEndpoints();
 
 app.Run();

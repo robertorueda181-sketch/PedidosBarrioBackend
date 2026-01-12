@@ -7,15 +7,20 @@ namespace PedidosBarrio.Domain.Entities
         public string ContrasenaHash { get; set; }
         public string ContrasenaSalt { get; set; }
         public Guid EmpresaID { get; set; }
+        
+        // ===== SOCIAL LOGIN =====
+        public string Provider { get; set; } // "google" o null
+        public string SocialId { get; set; } // Google ID u otro provider ID
 
-        public Usuario(string nombreUsuario, string email, string contrasenaHash, string contrasenaSalt, Guid empresaID)
+        public Usuario(string nombreUsuario, string email, string contrasenaHash, string contrasenaSalt)
         {
             ID = Guid.NewGuid();
             NombreUsuario = nombreUsuario;
             Email = email;
             ContrasenaHash = contrasenaHash;
             ContrasenaSalt = contrasenaSalt;
-            EmpresaID = empresaID;
+            Activa = true;
+            FechaRegistro = DateTime.UtcNow;
         }
 
         private Usuario() { }
