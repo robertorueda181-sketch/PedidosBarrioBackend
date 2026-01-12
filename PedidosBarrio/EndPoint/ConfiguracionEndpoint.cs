@@ -2,7 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using PedidosBarrio.Application.Commands.Menu;
+using PedidosBarrio.Application.Queries.GetMenusByEmpresa;
 using PedidosBarrio.Application.DTOs;
 
 namespace PedidosBarrio.Api.EndPoint
@@ -37,7 +37,7 @@ namespace PedidosBarrio.Api.EndPoint
 
         private static async Task<IResult> GetMenusByEmpresa([FromRoute] Guid empresaId, IMediator mediator)
         {
-            var result = await mediator.Send(new GetMenusByEmpresaCommand(empresaId));
+            var result = await mediator.Send(new GetMenusByEmpresaQuery(empresaId));
             return Results.Ok(result);
         }
 
@@ -58,7 +58,7 @@ namespace PedidosBarrio.Api.EndPoint
                     return Results.BadRequest(new { error = "La empresa ID en el token no es válida" });
                 }
 
-                var result = await mediator.Send(new GetMenusByEmpresaCommand(empresaId));
+                var result = await mediator.Send(new GetMenusByEmpresaQuery(empresaId));
                 return Results.Ok(result);
             }
             catch (Exception ex)
