@@ -12,11 +12,7 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    // Esto es importante si cambiaste la versión por defecto (v1) o el nombre del documento
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Mi API de Empresas", Version = "v1" });
-});
+builder.Services.AddSwaggerGen();
 
 // Configurar CORS desde appsettings
 var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
@@ -84,6 +80,7 @@ app.MapLoginEndpoints();
 app.MapEmpresaEndpoints();
 app.MapSuscripcionEndpoints();
 app.MapProductoEndpoints();
+app.MapCategoriaEndpoints(); // Nuevo endpoint de categorías
 app.MapImagenEndpoints();
 app.MapTipoEndpoints();
 app.MapInmuebleEndpoints();

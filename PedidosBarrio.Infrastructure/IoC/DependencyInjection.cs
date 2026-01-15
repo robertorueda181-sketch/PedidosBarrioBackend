@@ -12,6 +12,7 @@ using PedidosBarrio.Application.Validator;
 using PedidosBarrio.Domain.Repositories;
 using PedidosBarrio.Infrastructure.Data.Common;
 using PedidosBarrio.Infrastructure.Data.Repositories;
+using PedidosBarrio.Infrastructure.Services;
 using System.Text;
 
 namespace PedidosBarrio.Infrastructure.IoC
@@ -29,6 +30,12 @@ namespace PedidosBarrio.Infrastructure.IoC
 
             // Logger de aplicación
             services.AddScoped<IApplicationLogger>(sp => new ConsoleFileLogger("Logs"));
+
+            // HttpContextAccessor para obtener información del usuario logueado
+            services.AddHttpContextAccessor();
+
+            // Current User Service para obtener información del token
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
 
             // Repositorios
             services.AddScoped<ICompanyRepository, CompanyRepository>();
@@ -68,6 +75,8 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<IValidator<CreateNegocioDto>, CreateNegocioDtoValidator>();
             services.AddScoped<IValidator<RegisterDto>, RegisterDtoValidator>();
             services.AddScoped<IValidator<RegisterSocialRequestDto>, RegisterSocialRequestValidator>();
+            services.AddScoped<IValidator<CreateCategoriaDto>, CreateCategoriaDtoValidator>();
+            services.AddScoped<IValidator<UpdateCategoriaDto>, UpdateCategoriaDtoValidator>();
 
             // JWT Token Service
             services.AddScoped<IJwtTokenService, JwtTokenService>();

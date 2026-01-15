@@ -2,21 +2,33 @@ namespace PedidosBarrio.Domain.Entities
 {
     public class Categoria
     {
-        public short Categoria_ID { get; set; }
+        public short CategoriaID { get; set; }
         public Guid EmpresaID { get; set; }
         public string Descripcion { get; set; }
-        public string Codigo { get; set; }
+        public string Color { get; set; }
         public bool Activo { get; set; }
-        public bool Mostrar { get; set; }
 
-        public Categoria(short categoriaId, Guid empresaId, string descripcion, string codigo, bool activo = true, bool mostrar = false)
+        public Categoria(Guid empresaId, string descripcion, string color)
         {
-            Categoria_ID = categoriaId;
             EmpresaID = empresaId;
             Descripcion = descripcion;
-            Codigo = codigo;
+            Color = color;
+            Activo = true; // Default true as requested
+        }
+        public Categoria(string descripcion, string color)
+        {
+            Descripcion = descripcion;
+            Color = color;
+            Activo = true; // Default true as requested
+        }
+        // Constructor for mapping from database
+        public Categoria(short categoriaId, Guid empresaId, string descripcion, string color, bool activo)
+        {
+            CategoriaID = categoriaId;
+            EmpresaID = empresaId;
+            Descripcion = descripcion;
+            Color = color;
             Activo = activo;
-            Mostrar = mostrar;
         }
 
         private Categoria() { }

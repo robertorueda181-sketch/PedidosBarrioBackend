@@ -46,6 +46,7 @@ namespace PedidosBarrio.Application.Services
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, usuario.ID.ToString()),
+                new Claim("UsuarioID", usuario.ID.ToString()), // Claim adicional para consistencia
                 new Claim(ClaimTypes.Email, usuario.Email),
                 new Claim(ClaimTypes.Name, usuario.Email),
                 new Claim("NombreCompleto", usuario.Email),

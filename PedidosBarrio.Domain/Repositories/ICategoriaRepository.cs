@@ -5,11 +5,12 @@ namespace PedidosBarrio.Domain.Repositories
     public interface ICategoriaRepository
     {
         Task<Categoria> GetByIdAsync(short categoriaId);
-        Task<IEnumerable<Categoria>> GetAllAsync();
+        Task<IEnumerable<Categoria>> GetAllAsync(Guid empresaId);
+        Task<IEnumerable<Categoria>> GetActiveAsync();
         Task<IEnumerable<Categoria>> GetByEmpresaIdAsync(Guid empresaId);
         Task<IEnumerable<Categoria>> GetByEmpresaIdMostrandoAsync(Guid empresaId);
-        Task<int> AddAsync(Categoria categoria);
+        Task<short> AddAsync(Categoria categoria);  
         Task UpdateAsync(Categoria categoria);
-        Task DeleteAsync(short categoriaId);
+        Task SoftDeleteAsync(short categoriaId); // Soft delete (sets Activo = false)
     }
 }

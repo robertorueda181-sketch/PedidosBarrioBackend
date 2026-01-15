@@ -103,6 +103,7 @@ namespace PedidosBarrio.Application.Commands.SocialLogin
                 var refreshToken = _jwtTokenService.GenerateRefreshToken();
                 var tokenExpiracion = DateTime.UtcNow.AddMinutes(minutosExpiracion);
 
+               
                 // Construir respuesta
                 var response = new SocialLoginResponseDto
                 {
@@ -114,6 +115,7 @@ namespace PedidosBarrio.Application.Commands.SocialLogin
                     Provider = request.Provider,
                     EsNuevoUsuario = esNuevoUsuario,
                     Token = token,
+                    TipoEmpresa = "tipoEmpresaStr",
                     TokenExpiracion = tokenExpiracion,
                     RefreshToken = refreshToken
                 };

@@ -17,4 +17,8 @@
     <ProjectReference Include="..\PedidosBarrio.Infrastructure\PedidosBarrio.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Logs\" />
+  </ItemGroup>
+
 </Project>

@@ -42,7 +42,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             using (var connection = CreateConnection())
             {
                 var result = await connection.QueryAsync<EmpresaNegocio>(
-                    "SELECT * FROM sp_getnegociobyid(@negocioid)",
+                    "SELECT * FROM sp_getnegociobyCodigoEmpresa(@negocioid)",
                     new { negocioid = id },
                     commandType: CommandType.Text);
 

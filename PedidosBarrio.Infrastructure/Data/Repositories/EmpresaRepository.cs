@@ -16,11 +16,17 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             using (var connection = CreateConnection())
             {
-                return await QuerySingleOrDefaultAsync<Empresa>(
-                    connection,
-                    "sp_GetEmpresaById", 
-                    new { EmpresaID = id }, 
-                    CommandType.StoredProcedure);
+                var result = await QuerySingleOrDefaultAsync<Empresa>(
+                  connection,
+                  "SELECT * FROM sp_GetEmpresaById(@p_id)",
+                  new
+                  {
+                      p_id = id
+                  },
+                  CommandType.Text);
+             
+                
+                return result;
             }
         }
 

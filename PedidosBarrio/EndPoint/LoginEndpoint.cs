@@ -46,23 +46,9 @@ namespace PedidosBarrio.Api.EndPoint
             [FromBody] LoginUnifiedRequest request,
             IMediator mediator)
         {
-            LoginCommand command;
 
-            if (string.IsNullOrEmpty(request.Provider))
-            {
-                // Login por usuario/contraseña
-                command = new LoginCommand(request.Email, request.Contrasena);
-            }
-            else if (request.Provider == "google")
-            {
-                // Login por Google
-                command = new LoginCommand(request.Email, request.Provider, request.IdToken, request.GoogleId);
-            }
-            else
-            {
-                return Results.BadRequest(new { error = "Provider no soportado. Use 'google' o null para usuario/contraseña." });
-            }
-
+            LoginCommand command = new LoginCommand(request.Email, request.Provider, request.IdToken, request.GoogleId);
+           
             var response = await mediator.Send(command);
             return Results.Ok(response);
         }

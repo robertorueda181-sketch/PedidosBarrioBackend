@@ -1,4 +1,3 @@
-using FluentValidation;
 using MediatR;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Logging;
@@ -52,14 +51,17 @@ namespace PedidosBarrio.Application.Commands.Login
                 // ===== 1. BUSCAR USUARIO POR EMAIL =====
                 var usuario = await _usuarioRepository.GetByEmailAsync(command.Email);
 
+                var empresa = await _empresaRepository.GetByIdAsync(usuario.EmpresaID);
+
                 if (usuario == null)
                 {
-                    if (command.Provider == "google") {
-                        throw new ApplicationException("No se ha registrad");
+                    if (command.Provider == "google")
+                    {
+                        throw new ApplicationException("No se ha registrado");
                     }
-                        await _logger.LogWarningAsync(
-                        $"Intento de login fallido - Usuario no encontrado: {command.Email}",
-                        "LoginCommand");
+                    await _logger.LogWarningAsync(
+                    $"Intento de login fallido - Usuario no encontrado: {command.Email}",
+                    "LoginCommand");
                     throw new ApplicationException("Email o contraseña inválidos.");
                 }
 
@@ -101,6 +103,17 @@ namespace PedidosBarrio.Application.Commands.Login
                 var token = _jwtTokenService.GenerateToken(usuario, minutosExpiracion);
                 var refreshToken = _jwtTokenService.GenerateRefreshToken();
 
+
+
+                var tipoEmpresaStr = empresa.TipoEmpresa switch
+                {
+                    1 => "NEGOCIO",
+                    2 => "SERVICIO",
+                    3 => "INMUEBLE",
+                    _ => "DESCONOCIDO"
+                };
+
+
                 // ===== 5. CONSTRUIR RESPUESTA =====
                 var response = new LoginResponseDto
                 {
@@ -110,7 +123,7 @@ namespace PedidosBarrio.Application.Commands.Login
                     NombreCompleto = usuario.NombreUsuario,
                     EmpresaID = usuario.EmpresaID,
                     NombreEmpresa = "Sin empresa",
-                    TipoEmpresa = "",
+                    TipoEmpresa = tipoEmpresaStr,
                     Telefono = null,
                     Token = token,
                     RefreshToken = refreshToken,
