@@ -77,9 +77,9 @@ namespace PedidosBarrio.Application.Commands.Login
                 else if (command.Provider == "google")
                 {
                     // Login por Google
-                    if (string.IsNullOrEmpty(command.IdToken))
+                    if (!command.SocialId.Equals(usuario.SocialId))
                     {
-                        throw new ApplicationException("IdToken de Google requerido.");
+                        throw new ApplicationException("IdToken de Google es incorrecto");
                     }
 
                     // TODO: Validar IdToken con Google en producción
