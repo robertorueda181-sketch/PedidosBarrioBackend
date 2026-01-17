@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using PedidosBarrio.Application.Services;
+using PedidosBarrio.Infrastructure.Authorization;
 
 namespace PedidosBarrio.Api.EndPoint
 {
@@ -9,7 +10,7 @@ namespace PedidosBarrio.Api.EndPoint
         {
             var group = app.MapGroup("/api/Email")
                            .WithTags("Email")
-                           .RequireAuthorization(); // Con autenticación
+                           .RequireAuthorization(AuthorizationPolicies.FeatureAccess.SendEmails); // Empresa o Admin
 
             // POST /api/Email/test-welcome - Probar email de bienvenida
             group.MapPost("/test-welcome", async (

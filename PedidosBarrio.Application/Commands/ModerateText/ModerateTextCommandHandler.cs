@@ -10,28 +10,27 @@ namespace PedidosBarrio.Application.Commands.ModerateText
     {
         private readonly ITextModerationService _textModerationService;
         private readonly IApplicationLogger _logger;
+        private readonly IValidator<ModerateTextCommand> _validator;
 
         public ModerateTextCommandHandler(
             ITextModerationService textModerationService,
-            IApplicationLogger logger)
+            IApplicationLogger logger,
+            IValidator<ModerateTextCommand> validator)
         {
             _textModerationService = textModerationService;
             _logger = logger;
+            _validator = validator;
         }
 
         public async Task<TextModerationResponseDto> Handle(ModerateTextCommand command, CancellationToken cancellationToken)
         {
             try
             {
-                // Validar entrada
-                if (string.IsNullOrWhiteSpace(command.Text))
+                // ===== VALIDAR ENTRADA CON FLUENTVALIDATION =====
+                var validationResult = await _validator.ValidateAsync(command, cancellationToken);
+                if (!validationResult.IsValid)
                 {
-                    throw new ValidationException("El texto no puede estar vacío");
-                }
-
-                if (command.Text.Length > 10000)
-                {
-                    throw new ValidationException("El texto no puede exceder los 10,000 caracteres");
+                    throw new ValidationException(validationResult.Errors);
                 }
 
                 // Log de la operación

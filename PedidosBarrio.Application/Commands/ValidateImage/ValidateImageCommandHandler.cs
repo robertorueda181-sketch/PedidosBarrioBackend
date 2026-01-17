@@ -11,23 +11,27 @@ namespace PedidosBarrio.Application.Commands.ValidateImage
     {
         private readonly IImageModerationService _imageModerationService;
         private readonly IApplicationLogger _logger;
+        private readonly IValidator<ValidateImageCommand> _validator;
 
         public ValidateImageCommandHandler(
             IImageModerationService imageModerationService,
-            IApplicationLogger logger)
+            IApplicationLogger logger,
+            IValidator<ValidateImageCommand> validator)
         {
             _imageModerationService = imageModerationService;
             _logger = logger;
+            _validator = validator;
         }
 
         public async Task<ImageValidationResponseDto> Handle(ValidateImageCommand command, CancellationToken cancellationToken)
         {
             try
             {
-                // Validar que al menos una fuente de imagen esté presente
-                if (string.IsNullOrEmpty(command.ImageUrl) && string.IsNullOrEmpty(command.Base64Image))
+                // ===== VALIDAR ENTRADA CON FLUENTVALIDATION =====
+                var validationResult = await _validator.ValidateAsync(command, cancellationToken);
+                if (!validationResult.IsValid)
                 {
-                    throw new ValidationException("Debe proporcionar ImageUrl o Base64Image");
+                    throw new ValidationException(validationResult.Errors);
                 }
 
                 // Log de la operación (sin información de usuario)

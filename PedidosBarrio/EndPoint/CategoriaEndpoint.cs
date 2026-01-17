@@ -7,6 +7,7 @@ using PedidosBarrio.Application.Commands.UpdateCategoria;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Queries.GetAllCategorias;
 using PedidosBarrio.Application.Queries.GetCategoriaById;
+using PedidosBarrio.Infrastructure.Authorization;
 
 namespace PedidosBarrio.Api.EndPoint
 {
@@ -16,7 +17,7 @@ namespace PedidosBarrio.Api.EndPoint
     {
         var group = app.MapGroup("/api/Categorias")
                        .WithTags("Categorias")
-                       .RequireAuthorization(); // Requiere autenticación para todos los endpoints
+                       .RequireAuthorization(AuthorizationPolicies.FeatureAccess.CreateCategories); // Solo Empresa o Admin
 
         var testGroup = app.MapGroup("/api/TestCategorias")
                            .WithTags("Test Categorias (Sin Auth)")

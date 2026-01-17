@@ -84,6 +84,7 @@ app.MapCategoriaEndpoints(); // Nuevo endpoint de categorías
 app.MapImageModerationEndpoints(); // Nuevo endpoint de moderación de imágenes
 app.MapTextModerationEndpoints(); // Nuevo endpoint de moderación de texto
 app.MapEmailEndpoints(); // Nuevo endpoint para emails
+app.MapAdvancedAuthorizationExamples(); // Ejemplos de autorización
 app.MapImagenEndpoints();
 app.MapTipoEndpoints();
 app.MapInmuebleEndpoints();

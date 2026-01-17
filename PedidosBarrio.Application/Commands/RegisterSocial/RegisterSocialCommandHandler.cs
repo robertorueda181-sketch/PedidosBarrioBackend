@@ -1,3 +1,4 @@
+using FluentValidation;
 using MediatR;
 using PedidosBarrio.Application.Commands.CreateInmueble;
 using PedidosBarrio.Application.Commands.CreateNegocio;
@@ -28,6 +29,7 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
         private readonly IApplicationLogger _logger;
         private readonly IConfiguration _configuration;
         private readonly IEmailService _emailService;
+        private readonly IValidator<RegisterSocialCommand> _validator;
 
         public RegisterSocialCommandHandler(
             IUsuarioRepository usuarioRepository,
@@ -37,7 +39,8 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
             IJwtTokenService jwtTokenService,
             IApplicationLogger logger,
             IConfiguration configuration,
-            IEmailService emailService)
+            IEmailService emailService,
+            IValidator<RegisterSocialCommand> validator)
         {
             _usuarioRepository = usuarioRepository;
             _empresaRepository = empresaRepository;
@@ -47,12 +50,24 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
             _logger = logger;
             _configuration = configuration;
             _emailService = emailService;
+            _validator = validator;
         }
 
         public async Task<LoginResponseDto> Handle(RegisterSocialCommand request, CancellationToken cancellationToken)
         {
             try
             {
+                // ===== VALIDAR ENTRADA CON FLUENTVALIDATION =====
+                var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+                if (!validationResult.IsValid)
+                {
+                    var errors = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage));
+                    await _logger.LogWarningAsync(
+                        $"Validación fallida en registro: {errors} - Email: {request.Email}",
+                        "RegisterSocialCommand");
+                    throw new ValidationException(validationResult.Errors);
+                }
+
                 await _logger.LogInformationAsync(
                     $"Iniciando registro: {request.Email} - Tipo: {request.TipoEmpresa} - {request.Provider ?? "usuario/contraseña"}",
                     "RegisterSocialCommand");
@@ -64,6 +79,10 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
                 });
 
                 return response;
+            }
+            catch (ValidationException)
+            {
+                throw; // Re-lanzar excepciones de validación sin modificar
             }
             catch (Exception ex)
             {
@@ -95,11 +114,9 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
             string contrasenaSalt = "";
 
             // Si es registro por usuario/contraseña (no Google)
+            // La validación ya se hizo con FluentValidation
             if (string.IsNullOrEmpty(request.Provider))
             {
-                if (string.IsNullOrEmpty(request.Contrasena))
-                    throw new ApplicationException("Contraseña requerida para registro sin Google.");
-
                 var (hash, salt) = PasswordHasher.HashPassword(request.Contrasena);
                 contrasenaHash = hash;
                 contrasenaSalt = salt;

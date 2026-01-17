@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PedidosBarrio.Application.Commands.ModerateText;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Services;
+using PedidosBarrio.Infrastructure.Authorization;
 
 namespace PedidosBarrio.Api.EndPoint
 {
@@ -13,7 +14,7 @@ namespace PedidosBarrio.Api.EndPoint
         {
             var group = app.MapGroup("/api/TextModeration")
                            .WithTags("Text Moderation")
-                           .AllowAnonymous(); // Público, sin autenticación
+                           .RequireAuthorization(AuthorizationPolicies.FeatureAccess.ModerateText); // Free (para testing) o Moderador+
 
             // POST /api/TextModeration/validate - Validar texto
             group.MapPost("/validate", async (

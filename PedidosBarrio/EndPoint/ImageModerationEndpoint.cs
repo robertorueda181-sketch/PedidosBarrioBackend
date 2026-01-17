@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using PedidosBarrio.Application.Commands.ValidateImage;
 using PedidosBarrio.Application.DTOs;
+using PedidosBarrio.Infrastructure.Authorization;
 
 namespace PedidosBarrio.Api.EndPoint
 {
@@ -12,7 +13,7 @@ namespace PedidosBarrio.Api.EndPoint
         {
             var group = app.MapGroup("/api/ImageModeration")
                            .WithTags("Image Moderation")
-                           .AllowAnonymous(); // No requiere autenticación
+                           .RequireAuthorization(AuthorizationPolicies.FeatureAccess.ModerateImages); // Vecino+ o Moderador+
 
             // POST /api/ImageModeration/validate - Validar imagen usando URL
             group.MapPost("/validate", async (

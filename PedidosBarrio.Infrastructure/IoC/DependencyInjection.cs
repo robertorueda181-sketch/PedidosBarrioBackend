@@ -1,15 +1,21 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using PedidosBarrio.Application.Commands.ModerateText;
+using PedidosBarrio.Application.Commands.RegisterSocial;
+using PedidosBarrio.Application.Commands.ValidateImage;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Interfaces;
 using PedidosBarrio.Application.Logging;
 using PedidosBarrio.Application.Mappers;
 using PedidosBarrio.Application.Services;
 using PedidosBarrio.Application.Validator;
+using PedidosBarrio.Domain.Enums;
 using PedidosBarrio.Domain.Repositories;
+using PedidosBarrio.Infrastructure.Authorization;
 using PedidosBarrio.Infrastructure.Data.Common;
 using PedidosBarrio.Infrastructure.Data.Repositories;
 using PedidosBarrio.Infrastructure.Services;
@@ -57,6 +63,9 @@ namespace PedidosBarrio.Infrastructure.IoC
             // Email Service
             services.AddScoped<IEmailService, SmtpEmailService>();
 
+            // Subscription Authorization Service (temporal sin ISuscripcionRepository)
+            services.AddScoped<ISubscriptionAuthorizationService, SubscriptionAuthorizationService>();
+
             // Repositorios
             services.AddScoped<ICompanyRepository, CompanyRepository>();
             services.AddScoped<IEmpresaRepository, EmpresaRepository>();
@@ -99,6 +108,11 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<IValidator<UpdateCategoriaDto>, UpdateCategoriaDtoValidator>();
             services.AddScoped<IValidator<ImageValidationRequestDto>, ImageValidationRequestDtoValidator>();
             services.AddScoped<IValidator<TextModerationRequestDto>, TextModerationRequestDtoValidator>();
+            
+            // Command Validators
+            services.AddScoped<IValidator<RegisterSocialCommand>, RegisterSocialCommandValidator>();
+            services.AddScoped<IValidator<ModerateTextCommand>, ModerateTextCommandValidator>();
+            services.AddScoped<IValidator<ValidateImageCommand>, ValidateImageCommandValidator>();
 
             // JWT Token Service
             services.AddScoped<IJwtTokenService, JwtTokenService>();
@@ -130,6 +144,42 @@ namespace PedidosBarrio.Infrastructure.IoC
                         };
                     });
             }
+
+            // ===== CONFIGURAR AUTORIZACIÓN PERSONALIZADA (TEMPORAL) =====
+            services.AddAuthorization(options =>
+            {
+                // Políticas básicas por suscripción
+                options.AddPolicy(AuthorizationPolicies.RequireFreePlan, policy =>
+                    policy.Requirements.Add(new SubscriptionRequirement(TipoSuscripcion.Free)));
+                
+                options.AddPolicy(AuthorizationPolicies.RequireVecinoPlan, policy =>
+                    policy.Requirements.Add(new SubscriptionRequirement(TipoSuscripcion.Vecino)));
+                
+                options.AddPolicy(AuthorizationPolicies.RequireEmpresaPlan, policy =>
+                    policy.Requirements.Add(new SubscriptionRequirement(TipoSuscripcion.Empresa)));
+
+                // Políticas por rol
+                options.AddPolicy(AuthorizationPolicies.RequireAdmin, policy =>
+                    policy.Requirements.Add(new RoleRequirement(UsuarioRol.Admin)));
+
+                // Feature access policies (temporales)
+                options.AddPolicy(AuthorizationPolicies.FeatureAccess.CreateCategories, policy =>
+                    policy.Requirements.Add(new SubscriptionOrRoleRequirement(TipoSuscripcion.Empresa, UsuarioRol.Admin)));
+                
+                options.AddPolicy(AuthorizationPolicies.FeatureAccess.ModerateImages, policy =>
+                    policy.Requirements.Add(new SubscriptionOrRoleRequirement(TipoSuscripcion.Vecino, UsuarioRol.Moderador)));
+                
+                options.AddPolicy(AuthorizationPolicies.FeatureAccess.ModerateText, policy =>
+                    policy.Requirements.Add(new SubscriptionOrRoleRequirement(TipoSuscripcion.Free, UsuarioRol.Moderador)));
+                
+                options.AddPolicy(AuthorizationPolicies.FeatureAccess.SendEmails, policy =>
+                    policy.Requirements.Add(new SubscriptionOrRoleRequirement(TipoSuscripcion.Empresa, UsuarioRol.Admin)));
+            });
+
+            // Registrar Authorization Handlers
+            services.AddScoped<IAuthorizationHandler, SubscriptionAuthorizationHandler>();
+            services.AddScoped<IAuthorizationHandler, RoleAuthorizationHandler>();
+            services.AddScoped<IAuthorizationHandler, SubscriptionOrRoleAuthorizationHandler>();
 
             return services;
         }
