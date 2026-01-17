@@ -27,6 +27,7 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
         private readonly IJwtTokenService _jwtTokenService;
         private readonly IApplicationLogger _logger;
         private readonly IConfiguration _configuration;
+        private readonly IEmailService _emailService;
 
         public RegisterSocialCommandHandler(
             IUsuarioRepository usuarioRepository,
@@ -35,7 +36,8 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
             IMediator mediator,
             IJwtTokenService jwtTokenService,
             IApplicationLogger logger,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IEmailService emailService)
         {
             _usuarioRepository = usuarioRepository;
             _empresaRepository = empresaRepository;
@@ -44,6 +46,7 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
             _jwtTokenService = jwtTokenService;
             _logger = logger;
             _configuration = configuration;
+            _emailService = emailService;
         }
 
         public async Task<LoginResponseDto> Handle(RegisterSocialCommand request, CancellationToken cancellationToken)
@@ -207,6 +210,38 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
             await _logger.LogInformationAsync(
                 $"Registro completado exitosamente: {usuario.Email} - Tipo: {tipoEmpresaStr}",
                 "RegisterSocialCommand");
+
+            // ===== 9. ENVIAR EMAIL DE BIENVENIDA Y EVALUACIÓN =====
+            try
+            {
+                var emailEnviado = await _emailService.SendWelcomeEmailAsync(
+                    toEmail: usuario.Email,
+                    userName: $"{request.Nombre} {request.Apellido}".Trim(),
+                    businessName: request.NombreEmpresa,
+                    businessType: tipoEmpresaStr
+                );
+
+                if (emailEnviado)
+                {
+                    await _logger.LogInformationAsync(
+                        $"Email de bienvenida enviado exitosamente a: {usuario.Email}",
+                        "RegisterSocialCommand");
+                }
+                else
+                {
+                    await _logger.LogWarningAsync(
+                        $"No se pudo enviar email de bienvenida a: {usuario.Email}",
+                        "RegisterSocialCommand");
+                }
+            }
+            catch (Exception emailEx)
+            {
+                // No fallar el registro si el email falla
+                await _logger.LogErrorAsync(
+                    $"Error al enviar email de bienvenida a {usuario.Email}: {emailEx.Message}",
+                    emailEx,
+                    "RegisterSocialCommand");
+            }
 
             return response;
         }

@@ -37,6 +37,26 @@ namespace PedidosBarrio.Infrastructure.IoC
             // Current User Service para obtener información del token
             services.AddScoped<ICurrentUserService, CurrentUserService>();
 
+            // Image Moderation Service - Google Vision API
+            services.AddHttpClient<IImageModerationService, GoogleVisionImageModerationService>();
+
+            // Memory Cache para moderación de texto
+            services.AddMemoryCache();
+
+            // Text Moderation Service - Cadena de servicios
+            services.AddHttpClient<OpenAITextModerationService>(client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(30); // Timeout de 30 segundos
+                client.DefaultRequestHeaders.Add("User-Agent", "PedidosBarrio/1.0");
+            });
+
+            // Registrar servicios en cadena: OpenAI -> Cache -> Hybrid
+            services.AddScoped<CachedTextModerationService>();
+            services.AddScoped<ITextModerationService, HybridTextModerationService>();
+
+            // Email Service
+            services.AddScoped<IEmailService, SmtpEmailService>();
+
             // Repositorios
             services.AddScoped<ICompanyRepository, CompanyRepository>();
             services.AddScoped<IEmpresaRepository, EmpresaRepository>();
@@ -77,6 +97,8 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<IValidator<RegisterSocialRequestDto>, RegisterSocialRequestValidator>();
             services.AddScoped<IValidator<CreateCategoriaDto>, CreateCategoriaDtoValidator>();
             services.AddScoped<IValidator<UpdateCategoriaDto>, UpdateCategoriaDtoValidator>();
+            services.AddScoped<IValidator<ImageValidationRequestDto>, ImageValidationRequestDtoValidator>();
+            services.AddScoped<IValidator<TextModerationRequestDto>, TextModerationRequestDtoValidator>();
 
             // JWT Token Service
             services.AddScoped<IJwtTokenService, JwtTokenService>();
