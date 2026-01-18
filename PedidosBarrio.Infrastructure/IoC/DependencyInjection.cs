@@ -108,6 +108,8 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<IValidator<UpdateCategoriaDto>, UpdateCategoriaDtoValidator>();
             services.AddScoped<IValidator<ImageValidationRequestDto>, ImageValidationRequestDtoValidator>();
             services.AddScoped<IValidator<TextModerationRequestDto>, TextModerationRequestDtoValidator>();
+            services.AddScoped<IValidator<CreateProductoDto>, CreateProductoDtoValidator>();
+            services.AddScoped<IValidator<UpdateProductoDto>, UpdateProductoDtoValidator>();
             
             // Command Validators
             services.AddScoped<IValidator<RegisterSocialCommand>, RegisterSocialCommandValidator>();

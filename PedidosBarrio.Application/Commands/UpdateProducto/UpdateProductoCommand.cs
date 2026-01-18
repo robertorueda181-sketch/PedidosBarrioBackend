@@ -6,18 +6,22 @@ namespace PedidosBarrio.Application.Commands.UpdateProducto
     public class UpdateProductoCommand : IRequest<ProductoDto>
     {
         public int ProductoID { get; set; }
-        public Guid EmpresaID { get; set; }
         public int CategoriaID { get; set; }
         public string Nombre { get; set; }
         public string Descripcion { get; set; }
+        public decimal Precio { get; set; }
+        public int Stock { get; set; }
+        public string Imagen { get; set; }
 
-        public UpdateProductoCommand(int productoID, Guid empresaID, int categoriaID, string nombre, string descripcion)
+        public UpdateProductoCommand(int productoId, UpdateProductoDto dto)
         {
-            ProductoID = productoID;
-            EmpresaID = empresaID;
-            CategoriaID = categoriaID;
-            Nombre = nombre;
-            Descripcion = descripcion;
+            ProductoID = productoId;
+            CategoriaID = dto.CategoriaID;
+            Nombre = dto.Nombre;
+            Descripcion = dto.Descripcion;
+            Precio = dto.Precio;
+            Stock = dto.Stock;
+            Imagen = dto.Imagen;
         }
     }
 }

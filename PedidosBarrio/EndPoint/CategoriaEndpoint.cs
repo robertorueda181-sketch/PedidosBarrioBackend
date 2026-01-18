@@ -1,12 +1,17 @@
-﻿using MediatR;
+﻿using FluentValidation;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PedidosBarrio.Application.Commands.CreateCategoria;
+using PedidosBarrio.Application.Commands.CreateProducto;
 using PedidosBarrio.Application.Commands.DeleteCategoria;
+using PedidosBarrio.Application.Commands.DeleteProducto;
 using PedidosBarrio.Application.Commands.UpdateCategoria;
+using PedidosBarrio.Application.Commands.UpdateProducto;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Queries.GetAllCategorias;
 using PedidosBarrio.Application.Queries.GetCategoriaById;
+using PedidosBarrio.Application.Queries.GetCombinedData;
 using PedidosBarrio.Infrastructure.Authorization;
 
 namespace PedidosBarrio.Api.EndPoint
@@ -14,16 +19,24 @@ namespace PedidosBarrio.Api.EndPoint
     public static class CategoriaEndpoint
     {
         public static void MapCategoriaEndpoints(this IEndpointRouteBuilder app)
-    {
-        var group = app.MapGroup("/api/Categorias")
-                       .WithTags("Categorias")
-                       .RequireAuthorization(AuthorizationPolicies.FeatureAccess.CreateCategories); // Solo Empresa o Admin
+        {
+            var group = app.MapGroup("/api/Categorias")
+                           .WithTags("Categorias y Productos")
+                           .RequireAuthorization();
 
-        var testGroup = app.MapGroup("/api/TestCategorias")
-                           .WithTags("Test Categorias (Sin Auth)")
-                           .AllowAnonymous(); // Grupo temporal sin autenticación
+            // ===== ENDPOINT PRINCIPAL: OBTENER CATEGORÍAS Y PRODUCTOS COMBINADOS =====
+            group.MapGet("/getAll", async (IMediator mediator) =>
+            {
+                var query = new GetCombinedDataQuery();
+                var result = await mediator.Send(query);
+                return Results.Ok(result);
+            })
+            .WithName("GetCombinedData")
+            .WithOpenApi()
+            .WithSummary("📋 Obtener categorías y productos de la empresa")
+            .WithDescription("Retorna todas las categorías y productos que pertenecen a la empresa del usuario logueado");
 
-            // GET /api/Categorias - Lista categorias por empresa del token
+            // ===== ENDPOINTS DE CATEGORÍAS =====
             group.MapGet("/", async (IMediator mediator) =>
             {
                 var categorias = await mediator.Send(new GetAllCategoriasQuery());
@@ -31,10 +44,9 @@ namespace PedidosBarrio.Api.EndPoint
             })
             .WithName("GetAllCategorias")
             .WithOpenApi()
-            .WithSummary("Obtiene todas las categorías de la empresa del usuario logueado")
-            .WithDescription("Retorna solo CategoriaID, Descripcion y Color de las categorías activas de la empresa");
+            .WithSummary("📂 Obtener todas las categorías")
+            .WithDescription("Retorna solo las categorías de la empresa del usuario logueado");
 
-            // GET /api/Categorias/{id}
             group.MapGet("/{id:int}", async (int id, IMediator mediator) =>
             {
                 var categoria = await mediator.Send(new GetCategoriaByIdQuery((short)id));
@@ -42,10 +54,9 @@ namespace PedidosBarrio.Api.EndPoint
             })
             .WithName("GetCategoriaById")
             .WithOpenApi()
-            .WithSummary("Obtiene una categoría por ID")
+            .WithSummary("📂 Obtener categoría por ID")
             .WithDescription("Retorna los detalles de una categoría específica");
 
-            // POST /api/Categorias - Agregar nueva categoría (EmpresaID del token)
             group.MapPost("/", async ([FromBody] CreateCategoriaDto createDto, IMediator mediator) =>
             {
                 var categoriaDto = await mediator.Send(new CreateCategoriaCommand(
@@ -56,10 +67,9 @@ namespace PedidosBarrio.Api.EndPoint
             })
             .WithName("CreateCategoria")
             .WithOpenApi()
-            .WithSummary("Crea una nueva categoría")
-            .WithDescription("Crea una nueva categoría para la empresa del usuario logueado. EmpresaID se obtiene del token JWT");
+            .WithSummary("✅ Crear nueva categoría")
+            .WithDescription("Crea una nueva categoría para la empresa del usuario logueado");
 
-            // PUT /api/Categorias/{id} - Editar solo Descripcion y Color
             group.MapPut("/{id:int}", async (int id, [FromBody] UpdateCategoriaDto updateDto, IMediator mediator) =>
             {
                 var command = new UpdateCategoriaCommand((short)id, updateDto.Descripcion, updateDto.Color);
@@ -68,51 +78,87 @@ namespace PedidosBarrio.Api.EndPoint
             })
             .WithName("UpdateCategoria")
             .WithOpenApi()
-            .WithSummary("Actualiza una categoría")
-            .WithDescription("Permite editar solo la Descripcion y Color de una categoría");
+            .WithSummary("✏️ Actualizar categoría")
+            .WithDescription("Actualiza una categoría existente verificando que pertenezca a la empresa");
 
-            // DELETE /api/Categorias/{id} - Soft delete (convierte Activo a false)
             group.MapDelete("/{id:int}", async (int id, IMediator mediator) =>
             {
-                // Convertir int a short para el command
                 await mediator.Send(new DeleteCategoriaCommand((short)id));
                 return Results.NoContent();
             })
             .WithName("DeleteCategoria")
             .WithOpenApi()
-            .WithSummary("Elimina una categoría (soft delete)")
-            .WithDescription("Realiza un soft delete estableciendo Activo = false en lugar de eliminar físicamente");
+            .WithSummary("🗑️ Eliminar categoría")
+            .WithDescription("Elimina una categoría verificando que pertenezca a la empresa");
 
-        // ========================================
-        // ENDPOINTS TEMPORALES SIN AUTENTICACIÓN PARA TESTING
-        // ========================================
+            // ===== ENDPOINTS DE PRODUCTOS =====
+            group.MapPost("/productos", async (
+                [FromBody] CreateProductoDto productoDto,
+                IMediator mediator,
+                IValidator<CreateProductoDto> validator) =>
+            {
+                var validationResult = await validator.ValidateAsync(productoDto);
+                if (!validationResult.IsValid)
+                {
+                    return Results.BadRequest(new
+                    {
+                        error = "Datos de entrada inválidos",
+                        errors = validationResult.Errors.Select(e => new
+                        {
+                            field = e.PropertyName,
+                            message = e.ErrorMessage
+                        })
+                    });
+                }
 
-        // GET /api/TestCategorias - Para testing sin JWT
-        testGroup.MapGet("/", async (IMediator mediator) =>
-        {
-            // Simular empresa ID hardcoded para testing
-            var categorias = await mediator.Send(new GetAllCategoriasQuery());
-            return Results.Ok(categorias);
-        })
-        .WithName("GetAllCategoriasTest")
-        .WithOpenApi()
-        .WithSummary("⚠️ TEMPORAL - Obtiene categorías sin autenticación")
-        .WithDescription("SOLO PARA TESTING - No usar en producción");
+                var command = new CreateProductoCommand(productoDto);
+                var result = await mediator.Send(command);
+                return Results.Created($"/api/categorias/productos/{result.ProductoID}", result);
+            })
+            .WithName("CreateProducto")
+            .WithOpenApi()
+            .WithSummary("🛍️ Crear nuevo producto")
+            .WithDescription("Crea un nuevo producto verificando que la categoría pertenezca a la empresa");
 
-        // POST /api/TestCategorias - Para testing sin JWT  
-        testGroup.MapPost("/", async ([FromBody] CreateCategoriaDto createDto, IMediator mediator) =>
-        {
-            // Por ahora usará un GUID hardcoded como empresa
-            var categoriaDto = await mediator.Send(new CreateCategoriaCommand(
-                createDto.Descripcion, 
-                createDto.Color));
-                
-            return Results.Created($"/api/TestCategorias/{categoriaDto.CategoriaID}", categoriaDto);
-        })
-        .WithName("CreateCategoriaTest")
-        .WithOpenApi()
-        .WithSummary("⚠️ TEMPORAL - Crea categoría sin autenticación")
-        .WithDescription("SOLO PARA TESTING - No usar en producción");
-    }
+            group.MapPut("/productos/{id:int}", async (
+                int id,
+                [FromBody] UpdateProductoDto productoDto,
+                IMediator mediator,
+                IValidator<UpdateProductoDto> validator) =>
+            {
+                var validationResult = await validator.ValidateAsync(productoDto);
+                if (!validationResult.IsValid)
+                {
+                    return Results.BadRequest(new
+                    {
+                        error = "Datos de entrada inválidos",
+                        errors = validationResult.Errors.Select(e => new
+                        {
+                            field = e.PropertyName,
+                            message = e.ErrorMessage
+                        })
+                    });
+                }
+
+                var command = new UpdateProductoCommand(id, productoDto);
+                var result = await mediator.Send(command);
+                return Results.Ok(result);
+            })
+            .WithName("UpdateProducto")
+            .WithOpenApi()
+            .WithSummary("✏️ Actualizar producto")
+            .WithDescription("Actualiza un producto existente verificando que pertenezca a la empresa");
+
+            group.MapDelete("/productos/{id:int}", async (int id, IMediator mediator) =>
+            {
+                var command = new DeleteProductoCommand(id);
+                var result = await mediator.Send(command);
+                return Results.Ok(new { success = result, message = "Producto eliminado correctamente" });
+            })
+            .WithName("DeleteProducto")
+            .WithOpenApi()
+            .WithSummary("🗑️ Eliminar producto")
+            .WithDescription("Elimina un producto verificando que pertenezca a la empresa");
+        }
     }
 }

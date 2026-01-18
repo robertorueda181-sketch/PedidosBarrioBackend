@@ -1,6 +1,6 @@
 namespace PedidosBarrio.Application.DTOs
 {
-    public class CreateProductoDto
+    public class UpdateProductoDto
     {
         public int CategoriaID { get; set; }
         public string Nombre { get; set; }

@@ -13,15 +13,6 @@ namespace PedidosBarrio.Api.EndPoint
         {
             var group = app.MapGroup("/api/configuracion").WithTags("Configuracion");
 
-            // Endpoint que requiere empresaId como parámetro
-            group.MapGet("/menus/{empresaId}", GetMenusByEmpresa)
-                .WithName("GetMenusByEmpresa")
-                .WithOpenApi()
-                .Produces<IEnumerable<MenuDto>>(StatusCodes.Status200OK)
-                .Produces<ProblemDetails>(StatusCodes.Status400BadRequest)
-                .Produces<ProblemDetails>(StatusCodes.Status500InternalServerError)
-                .WithSummary("Obtiene los menus por empresa");
-
             // Nuevo endpoint que obtiene la empresaId del token JWT
             group.MapGet("/menus", GetMenusFromToken)
                 .RequireAuthorization()
@@ -33,12 +24,6 @@ namespace PedidosBarrio.Api.EndPoint
                 .Produces<ProblemDetails>(StatusCodes.Status500InternalServerError)
                 .WithDescription("Obtiene los menús de configuración de la empresa autenticada desde el token JWT")
                 .WithSummary("Menús desde Token JWT");
-        }
-
-        private static async Task<IResult> GetMenusByEmpresa([FromRoute] Guid empresaId, IMediator mediator)
-        {
-            var result = await mediator.Send(new GetMenusByEmpresaQuery(empresaId));
-            return Results.Ok(result);
         }
 
         private static async Task<IResult> GetMenusFromToken(HttpContext context, IMediator mediator)

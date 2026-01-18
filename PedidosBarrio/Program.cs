@@ -79,8 +79,7 @@ app.MapRegisterEndpoints();
 app.MapLoginEndpoints();
 app.MapEmpresaEndpoints();
 app.MapSuscripcionEndpoints();
-app.MapProductoEndpoints();
-app.MapCategoriaEndpoints(); // Nuevo endpoint de categorías
+app.MapCategoriaEndpoints(); // Incluye endpoints de categorías Y productos
 app.MapImageModerationEndpoints(); // Nuevo endpoint de moderación de imágenes
 app.MapTextModerationEndpoints(); // Nuevo endpoint de moderación de texto
 app.MapEmailEndpoints(); // Nuevo endpoint para emails
