@@ -9,7 +9,7 @@ namespace PedidosBarrio.Domain.Entities
         public string URLOpcional { get; set; }
         public string Descripcion { get; set; }
         public DateTime FechaRegistro { get; set; }
-        public Imagen Imagenes { get; set; } = new();
+        public Imagen Imagenes { get; set; } = new Imagen();
 
 
         public Negocio(Guid empresaID, int tiposID, string urlNegocio, string descripcion, string urlOpcional = null)

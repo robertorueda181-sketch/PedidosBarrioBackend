@@ -60,6 +60,15 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<CachedTextModerationService>();
             services.AddScoped<ITextModerationService, HybridTextModerationService>();
 
+            // Log Repository
+            services.AddScoped<ILogRepository, LogRepository>();
+
+            // Database Logger Service
+            services.AddScoped<IApplicationLogger, DatabaseLogger>();
+
+            // Image Processing Service
+            services.AddScoped<IImageProcessingService, ImageProcessingService>();
+
             // Email Service
             services.AddScoped<IEmailService, SmtpEmailService>();
 
@@ -72,6 +81,7 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<IUsuarioRepository, UsuarioRepository>();
             services.AddScoped<ISuscripcionRepository, SuscripcionRepository>();
             services.AddScoped<IProductoRepository, ProductoRepository>();
+            services.AddScoped<IPrecioRepository, PrecioRepository>();
             services.AddScoped<IImagenRepository, ImagenRepository>();
             services.AddScoped<ITipoRepository, TipoRepository>();
             services.AddScoped<IInmuebleRepository, InmuebleRepository>();

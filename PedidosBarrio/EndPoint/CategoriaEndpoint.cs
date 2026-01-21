@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PedidosBarrio.Application.Commands.CreateCategoria;
@@ -12,7 +11,6 @@ using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Queries.GetAllCategorias;
 using PedidosBarrio.Application.Queries.GetCategoriaById;
 using PedidosBarrio.Application.Queries.GetCombinedData;
-using PedidosBarrio.Infrastructure.Authorization;
 
 namespace PedidosBarrio.Api.EndPoint
 {
@@ -94,23 +92,8 @@ namespace PedidosBarrio.Api.EndPoint
             // ===== ENDPOINTS DE PRODUCTOS =====
             group.MapPost("/productos", async (
                 [FromBody] CreateProductoDto productoDto,
-                IMediator mediator,
-                IValidator<CreateProductoDto> validator) =>
+                IMediator mediator) =>
             {
-                var validationResult = await validator.ValidateAsync(productoDto);
-                if (!validationResult.IsValid)
-                {
-                    return Results.BadRequest(new
-                    {
-                        error = "Datos de entrada inválidos",
-                        errors = validationResult.Errors.Select(e => new
-                        {
-                            field = e.PropertyName,
-                            message = e.ErrorMessage
-                        })
-                    });
-                }
-
                 var command = new CreateProductoCommand(productoDto);
                 var result = await mediator.Send(command);
                 return Results.Created($"/api/categorias/productos/{result.ProductoID}", result);
@@ -123,23 +106,8 @@ namespace PedidosBarrio.Api.EndPoint
             group.MapPut("/productos/{id:int}", async (
                 int id,
                 [FromBody] UpdateProductoDto productoDto,
-                IMediator mediator,
-                IValidator<UpdateProductoDto> validator) =>
+                IMediator mediator) =>
             {
-                var validationResult = await validator.ValidateAsync(productoDto);
-                if (!validationResult.IsValid)
-                {
-                    return Results.BadRequest(new
-                    {
-                        error = "Datos de entrada inválidos",
-                        errors = validationResult.Errors.Select(e => new
-                        {
-                            field = e.PropertyName,
-                            message = e.ErrorMessage
-                        })
-                    });
-                }
-
                 var command = new UpdateProductoCommand(id, productoDto);
                 var result = await mediator.Send(command);
                 return Results.Ok(result);

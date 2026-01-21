@@ -51,6 +51,10 @@ namespace PedidosBarrio.Application.Commands.Login
                 // ===== 1. BUSCAR USUARIO POR EMAIL =====
                 var usuario = await _usuarioRepository.GetByEmailAsync(command.Email);
 
+                if (usuario == null) {
+                    throw new ApplicationException("Email o contraseña inválidos.");
+                }
+
                 var empresa = await _empresaRepository.GetByIdAsync(usuario.EmpresaID);
 
                 if (usuario == null)

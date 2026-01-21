@@ -25,10 +25,9 @@ namespace PedidosBarrio.Application.Commands.UpdateImagen
                 throw new ApplicationException($"Imagen with ID {command.ImagenID} not found.");
             }
 
-            imagen = new Imagen(command.ProductoID, command.URLImagen, command.Descripcion)
-            {
-                ImagenID = command.ImagenID
-            };
+            imagen.ExternalId = command.ProductoID;
+            imagen.URLImagen = command.URLImagen;
+            imagen.Descripcion = command.Descripcion;
 
             await _imagenRepository.UpdateAsync(imagen);
             return _mapper.Map<ImagenDto>(imagen);

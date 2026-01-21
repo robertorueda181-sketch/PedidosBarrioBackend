@@ -19,7 +19,7 @@ namespace PedidosBarrio.Application.Commands.CreateImagen
 
         public async Task<ImagenDto> Handle(CreateImagenCommand command, CancellationToken cancellationToken)
         {
-            var imagen = new Imagen(command.ProductoID, command.URLImagen, command.Descripcion);
+            var imagen = new Imagen(command.ProductoID, command.URLImagen, Guid.NewGuid(), command.Descripcion);
 
             await _imagenRepository.AddAsync(imagen);
             return _mapper.Map<ImagenDto>(imagen);

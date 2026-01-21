@@ -10,17 +10,20 @@ namespace PedidosBarrio.Application.Queries.GetCombinedData
     {
         private readonly ICategoriaRepository _categoriaRepository;
         private readonly IProductoRepository _productoRepository;
+        private readonly IPrecioRepository _precioRepository;
         private readonly ICurrentUserService _currentUserService;
         private readonly IApplicationLogger _logger;
 
         public GetCombinedDataQueryHandler(
             ICategoriaRepository categoriaRepository,
             IProductoRepository productoRepository,
+            IPrecioRepository precioRepository,
             ICurrentUserService currentUserService,
             IApplicationLogger logger)
         {
             _categoriaRepository = categoriaRepository;
             _productoRepository = productoRepository;
+            _precioRepository = precioRepository;
             _currentUserService = currentUserService;
             _logger = logger;
         }
@@ -48,9 +51,14 @@ namespace PedidosBarrio.Application.Queries.GetCombinedData
 
                 // Obtener productos de la empresa
                 var productos = await _productoRepository.GetByEmpresaIdAsync(empresaId);
-                
+
                 // Crear diccionario de categorías para lookup eficiente
                 var categoriaLookup = categorias.ToDictionary(c => (int)c.CategoriaID);
+
+                // Obtener precios para todos los productos
+                var todosLosPrecios = await _precioRepository.GetByEmpresaIdAsync(empresaId);
+                var preciosPorProducto = todosLosPrecios.GroupBy(p => p.ExternalId)
+                    .ToDictionary(g => g.Key, g => g.OrderByDescending(p => p.IdPrecio).ToList());
 
                 var productoDtos = productos.Select(p => new ProductoDto
                 {
@@ -59,16 +67,31 @@ namespace PedidosBarrio.Application.Queries.GetCombinedData
                     CategoriaID = p.CategoriaID,
                     Nombre = p.Nombre,
                     Descripcion = p.Descripcion,
-                    FechaCreacion = p.FechaCreacion,
-                    Precio = p.Precio,
+                    FechaRegistro = p.FechaRegistro,
                     Stock = p.Stock,
-                    Imagen = p.Imagen,
+                    StockMinimo = p.StockMinimo,
+                    Inventario = p.Inventario,
+                    Visible = p.Visible,
                     CategoriaNombre = categoriaLookup.ContainsKey(p.CategoriaID) 
                         ? categoriaLookup[p.CategoriaID].Descripcion 
                         : "Sin categoría",
                     CategoriaColor = categoriaLookup.ContainsKey(p.CategoriaID) 
                         ? categoriaLookup[p.CategoriaID].Color 
-                        : "#CCCCCC"
+                        : "#CCCCCC",
+                    Precios = preciosPorProducto.ContainsKey(p.ProductoID)
+                        ? preciosPorProducto[p.ProductoID].Select(precio => new PrecioDto
+                        {
+                            IdPrecio = precio.IdPrecio,
+                            PrecioValor = precio.PrecioValor,
+                            ExternalId = precio.ExternalId,
+                            EmpresaID = precio.EmpresaID,
+                            FechaCreacion = precio.FechaCreacion,
+                            Activo = precio.Activo
+                        }).ToList()
+                        : new List<PrecioDto>(),
+                    PrecioActual = preciosPorProducto.ContainsKey(p.ProductoID) && preciosPorProducto[p.ProductoID].Any()
+                        ? preciosPorProducto[p.ProductoID].First().PrecioValor
+                        : null
                 }).ToList();
 
                 var result = new CombinedDataDto

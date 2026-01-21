@@ -16,7 +16,7 @@ namespace PedidosBarrio.Domain.Entities
         public DateTime FechaRegistro { get; set; }
         public bool Activa { get; set; }
 
-        public Imagen Imagen { get; set; } = new();
+        public Imagen Imagen { get; set; } = new Imagen();
         public Tipo Operacion { get; set; } = new();
         public string Latitud { get; set; }
         public string Longitud { get; set; } 

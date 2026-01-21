@@ -63,9 +63,8 @@ namespace PedidosBarrio.Application.Queries.GetNegocioByCodigoEmpresa
                     CategoriaID = p.CategoriaID,
                     Nombre = p.Nombre,
                     Descripcion = p.Descripcion,
-                    Precio = p.Precio,
                     Stock = p.Stock,
-                    URLImagen = p.Imagen
+                    URLImagen = p.Imagen // Campo imagen ya no existe en la nueva estructura
                 }).ToList()
             };
 
