@@ -52,6 +52,7 @@ public partial class PedidosBarrioDbContext : DbContext
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.CategoriaConfiguration());
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.PrecioConfiguration());
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.ConfiguracionConfiguration());
+        modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.ImagenConfiguration());
 
         // Configuraciones de otras entidades se manejan por Data Annotations en el Dominio
 

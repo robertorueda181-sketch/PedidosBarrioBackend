@@ -15,7 +15,7 @@ public partial class Empresa
         ID = Guid.NewGuid();
         UsuarioID = usuarioId;
         TipoEmpresa = tipoEmpresa;
-        FechaRegistro = DateTime.Now;
+        FechaRegistro = DateTime.UtcNow;
         Activa = true;
         Visible = true;
         Aprobado = false;

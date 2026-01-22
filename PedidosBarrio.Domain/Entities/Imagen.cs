@@ -14,11 +14,11 @@ public partial class Imagen
     {
         ExternalId = productoID;
         Urlimagen = urlImagen;
-        EmpresaID = empresaID;
-        Descripcion = descripcion;
-        FechaRegistro = DateTime.Now;
-        Activa = true;
-    }
+            EmpresaID = empresaID;
+            Descripcion = descripcion;
+            FechaRegistro = DateTime.UtcNow;
+            Activa = true;
+        }
 
     [Key]
     [Column("ImagenID")]

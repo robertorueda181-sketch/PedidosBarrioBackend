@@ -82,5 +82,25 @@ namespace PedidosBarrio.Infrastructure.Data.EntityConfigurations
         }
     }
 
-        // LogEntryConfiguration removido para usar Log (scaffolded)
+    public class ImagenConfiguration : IEntityTypeConfiguration<Imagen>
+    {
+        public void Configure(EntityTypeBuilder<Imagen> builder)
+        {
+            builder.ToTable("Imagen");
+            builder.HasKey(i => i.ImagenID);
+
+            builder.Property(i => i.ImagenID)
+                   .HasColumnName("ImagenID")
+                   .UseIdentityAlwaysColumn();
+
+            builder.Property(i => i.ExternalId).HasColumnName("ExternalId");
+            builder.Property(i => i.Urlimagen).HasColumnName("URLImagen").HasMaxLength(500);
+            builder.Property(i => i.Descripcion).HasColumnName("Descripcion");
+            builder.Property(i => i.EmpresaID).HasColumnName("EmpresaID");
+            builder.Property(i => i.Type).HasColumnName("Type").HasMaxLength(10);
+            builder.Property(i => i.Order).HasColumnName("order").HasDefaultValue(1);
+            builder.Property(i => i.FechaRegistro).HasColumnName("FechaRegistro").HasColumnType("timestamp with time zone");
+            builder.Property(i => i.Activa).HasColumnName("Activa").HasDefaultValue(true);
+        }
     }
+}

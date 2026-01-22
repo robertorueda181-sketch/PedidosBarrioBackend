@@ -16,7 +16,7 @@ public partial class Producto
         EmpresaID = empresaID;
         Nombre = nombre;
         Descripcion = descripcion;
-        FechaRegistro = DateTime.Now;
+        FechaRegistro = DateTime.UtcNow;
         Activa = true;
         Visible = true;
         Aprobado = true;

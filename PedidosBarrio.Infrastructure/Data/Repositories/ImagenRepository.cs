@@ -66,7 +66,9 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
 
         public async Task<int> AddAsync(Imagen imagen)
         {
-            if (!imagen.FechaRegistro.HasValue) imagen.FechaRegistro = DateTime.UtcNow;
+            if (!imagen.FechaRegistro.HasValue || imagen.FechaRegistro.Value.Kind != DateTimeKind.Utc) 
+                imagen.FechaRegistro = DateTime.UtcNow;
+
             if (!imagen.Activa.HasValue) imagen.Activa = true;
             if (string.IsNullOrEmpty(imagen.Type)) imagen.Type = "PRODUCT"; // Default if needed
 

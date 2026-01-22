@@ -18,10 +18,10 @@ public partial class Usuario
         NombreUsuario = nombreUsuario;
         Email = email;
         ContrasenaHash = contrasenaHash;
-        ContrasenaSalt = contrasenaSalt;
-        FechaRegistro = DateTime.Now;
-        Activa = true;
-    }
+            ContrasenaSalt = contrasenaSalt;
+            FechaRegistro = DateTime.UtcNow;
+            Activa = true;
+        }
 
     [Key]
     [Column("UsuarioID")]

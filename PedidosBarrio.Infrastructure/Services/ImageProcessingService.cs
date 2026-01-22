@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using PedidosBarrio.Application.Services;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Webp;
+using SixLabors.ImageSharp.Processing;
 
 namespace PedidosBarrio.Infrastructure.Services
 {
@@ -15,7 +18,7 @@ namespace PedidosBarrio.Infrastructure.Services
         {
             _environment = environment;
             _baseImagePath = Path.Combine(_environment.WebRootPath, "images", "productos");
-            _baseImageUrl = configuration["BaseUrl"] ?? "https://localhost:7000";
+            _baseImageUrl = configuration["BaseUrl"] ?? "https://localhost:7045";
 
             // Crear directorio si no existe
             if (!Directory.Exists(_baseImagePath))
@@ -29,25 +32,33 @@ namespace PedidosBarrio.Infrastructure.Services
             if (imageStream == null || imageStream.Length == 0)
                 throw new ArgumentException("Stream de imagen inválido");
 
-            // Validar formato por extensión
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
-            var fileExtension = Path.GetExtension(fileName).ToLowerInvariant();
-
-            if (!allowedExtensions.Contains(fileExtension))
-                throw new ArgumentException("Formato de archivo no soportado. Use: JPG, PNG, GIF, BMP");
-
             // Validar tamaño (máximo 10MB)
             if (imageStream.Length > 10 * 1024 * 1024)
                 throw new ArgumentException("El archivo es demasiado grande. Tamaño máximo: 10MB");
 
-            // Generar nombre único
-            var newFileName = $"{empresaId}_{productoId}_{DateTime.UtcNow:yyyyMMddHHmmss}{fileExtension}";
+            // Generar nombre único con extensión .webp
+            var newFileName = $"{empresaId}_{productoId}_{DateTime.UtcNow:yyyyMMddHHmmss}.webp";
             var filePath = Path.Combine(_baseImagePath, newFileName);
 
             try
             {
-                using var fileStream = new FileStream(filePath, FileMode.Create);
-                await imageStream.CopyToAsync(fileStream);
+                // Reset stream position if possible
+                if (imageStream.CanSeek) imageStream.Position = 0;
+
+                using (var image = await Image.LoadAsync(imageStream))
+                {
+                    // Redimensionar a 200x200
+                    image.Mutate(x => x.Resize(200, 200));
+
+                    // Configuramos el encoder de WebP para optimizar y comprimir
+                    var encoder = new WebpEncoder
+                    {
+                        Quality = 75, // Balance ideal entre calidad y peso
+                        Method = WebpEncodingMethod.BestQuality
+                    };
+
+                    await image.SaveAsync(filePath, encoder);
+                }
 
                 // Retornar URL relativa
                 return $"/images/productos/{newFileName}";
@@ -71,23 +82,25 @@ namespace PedidosBarrio.Infrastructure.Services
                 using var response = await httpClient.GetAsync(imageUrl);
                 response.EnsureSuccessStatusCode();
 
-                // Obtener extensión del Content-Type o URL
-                var contentType = response.Content.Headers.ContentType?.MediaType ?? "image/jpeg";
-                var extension = contentType switch
-                {
-                    "image/jpeg" => ".jpg",
-                    "image/png" => ".png",
-                    "image/gif" => ".gif",
-                    "image/bmp" => ".bmp",
-                    _ => ".jpg"
-                };
+                using var imageStream = await response.Content.ReadAsStreamAsync();
 
-                // Generar nombre único
-                var fileName = $"{empresaId}_{productoId}_{DateTime.UtcNow:yyyyMMddHHmmss}{extension}";
+                // Generar nombre único con extensión .webp
+                var fileName = $"{empresaId}_{productoId}_{DateTime.UtcNow:yyyyMMddHHmmss}.webp";
                 var filePath = Path.Combine(_baseImagePath, fileName);
 
-                using var fileStream = new FileStream(filePath, FileMode.Create);
-                await response.Content.CopyToAsync(fileStream);
+                using (var image = await Image.LoadAsync(imageStream))
+                {
+                    // Redimensionar a 200x200
+                    image.Mutate(x => x.Resize(200, 200));
+
+                    var encoder = new WebpEncoder
+                    {
+                        Quality = 75,
+                        Method = WebpEncodingMethod.BestQuality
+                    };
+
+                    await image.SaveAsync(filePath, encoder);
+                }
 
                 // Retornar URL relativa
                 return $"/images/productos/{fileName}";

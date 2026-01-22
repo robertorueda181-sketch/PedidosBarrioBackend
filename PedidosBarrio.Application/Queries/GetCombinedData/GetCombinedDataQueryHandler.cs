@@ -11,6 +11,8 @@ namespace PedidosBarrio.Application.Queries.GetCombinedData
         private readonly ICategoriaRepository _categoriaRepository;
         private readonly IProductoRepository _productoRepository;
         private readonly IPrecioRepository _precioRepository;
+        private readonly IImagenRepository _imagenRepository;
+        private readonly IImageProcessingService _imageProcessingService;
         private readonly ICurrentUserService _currentUserService;
         private readonly IApplicationLogger _logger;
 
@@ -18,12 +20,16 @@ namespace PedidosBarrio.Application.Queries.GetCombinedData
             ICategoriaRepository categoriaRepository,
             IProductoRepository productoRepository,
             IPrecioRepository precioRepository,
+            IImagenRepository imagenRepository,
+            IImageProcessingService imageProcessingService,
             ICurrentUserService currentUserService,
             IApplicationLogger logger)
         {
             _categoriaRepository = categoriaRepository;
             _productoRepository = productoRepository;
             _precioRepository = precioRepository;
+            _imagenRepository = imagenRepository;
+            _imageProcessingService = imageProcessingService;
             _currentUserService = currentUserService;
             _logger = logger;
         }
@@ -60,39 +66,85 @@ namespace PedidosBarrio.Application.Queries.GetCombinedData
                 var preciosPorProducto = todosLosPrecios.GroupBy(p => p.ExternalId)
                     .ToDictionary(g => g.Key, g => g.OrderByDescending(p => p.IdPrecio).ToList());
 
-                var productoDtos = productos.Select(p => new ProductoDto
+                // Obtener imágenes para todos los productos
+                var todasLasImagenes = await _imagenRepository.GetByEmpresaIdAsync(empresaId);
+                var imagenesPorProducto = todasLasImagenes.GroupBy(i => i.ExternalId ?? 0)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
+                var productoDtos = new List<ProductoDto>();
+                foreach (var p in productos)
                 {
-                    ProductoID = p.ProductoID,
-                    EmpresaID = p.EmpresaID ?? Guid.Empty,
-                    CategoriaID = p.CategoriaID ?? 0,
-                    Nombre = p.Nombre,
-                    Descripcion = p.Descripcion ?? string.Empty,
-                    FechaRegistro = p.FechaRegistro ?? DateTime.Now,
-                    Stock = p.Stock,
-                    StockMinimo = p.StockMinimo ?? 0,
-                    Inventario = p.Inventario,
-                    Visible = p.Visible ?? false,
-                    CategoriaNombre = (p.CategoriaID.HasValue && categoriaLookup.ContainsKey((int)p.CategoriaID.Value)) 
-                        ? categoriaLookup[(int)p.CategoriaID.Value].Descripcion 
-                        : "Sin categoría",
-                    CategoriaColor = (p.CategoriaID.HasValue && categoriaLookup.ContainsKey((int)p.CategoriaID.Value)) 
-                        ? categoriaLookup[(int)p.CategoriaID.Value].Color 
-                        : "#CCCCCC",
-                    Precios = preciosPorProducto.ContainsKey(p.ProductoID)
-                        ? preciosPorProducto[p.ProductoID].Select(precio => new PrecioDto
+                    var dto = new ProductoDto
+                    {
+                        ProductoID = p.ProductoID,
+                        EmpresaID = p.EmpresaID ?? Guid.Empty,
+                        CategoriaID = p.CategoriaID ?? 0,
+                        Nombre = p.Nombre,
+                        Descripcion = p.Descripcion ?? string.Empty,
+                        FechaRegistro = p.FechaRegistro ?? DateTime.Now,
+                        Stock = p.Stock,
+                        StockMinimo = p.StockMinimo ?? 0,
+                        Inventario = p.Inventario,
+                        Visible = p.Visible ?? false,
+                        CategoriaNombre = (p.CategoriaID.HasValue && categoriaLookup.ContainsKey((int)p.CategoriaID.Value)) 
+                            ? categoriaLookup[(int)p.CategoriaID.Value].Descripcion 
+                            : "Sin categoría",
+                        CategoriaColor = (p.CategoriaID.HasValue && categoriaLookup.ContainsKey((int)p.CategoriaID.Value)) 
+                            ? categoriaLookup[(int)p.CategoriaID.Value].Color 
+                            : "#CCCCCC",
+                        Precios = preciosPorProducto.ContainsKey(p.ProductoID)
+                            ? preciosPorProducto[p.ProductoID].Select(precio => new PrecioDto
+                            {
+                                IdPrecio = precio.IdPrecio,
+                                PrecioValor = precio.PrecioValor,
+                                ExternalId = precio.ExternalId,
+                                EmpresaID = precio.EmpresaID,
+                                FechaCreacion = precio.FechaCreacion,
+                                Activo = precio.Activo
+                            }).ToList()
+                            : new List<PrecioDto>(),
+                        PrecioActual = preciosPorProducto.ContainsKey(p.ProductoID) && preciosPorProducto[p.ProductoID].Any()
+                            ? preciosPorProducto[p.ProductoID].First().PrecioValor
+                            : null
+                    };
+
+                    // Mapear imágenes con URL completa
+                    if (imagenesPorProducto.ContainsKey(p.ProductoID))
+                    {
+                        foreach (var img in imagenesPorProducto[p.ProductoID])
                         {
-                            IdPrecio = precio.IdPrecio,
-                            PrecioValor = precio.PrecioValor,
-                            ExternalId = precio.ExternalId,
-                            EmpresaID = precio.EmpresaID,
-                            FechaCreacion = precio.FechaCreacion,
-                            Activo = precio.Activo
-                        }).ToList()
-                        : new List<PrecioDto>(),
-                    PrecioActual = preciosPorProducto.ContainsKey(p.ProductoID) && preciosPorProducto[p.ProductoID].Any()
-                        ? preciosPorProducto[p.ProductoID].First().PrecioValor
-                        : null
-                }).ToList();
+                            var imgDto = new ImagenProductoDto
+                            {
+                                ImagenID = img.ImagenID,
+                                ExternalId = img.ExternalId ?? 0,
+                                URLImagen = img.Urlimagen,
+                                Descripcion = img.Descripcion ?? string.Empty,
+                                FechaRegistro = img.FechaRegistro ?? DateTime.Now,
+                                Activa = img.Activa ?? true,
+                                Type = img.Type ?? "PRODUCT",
+                                Order = img.Order,
+                                EmpresaID = img.EmpresaID ?? Guid.Empty
+                            };
+
+                            // Resolver URL completa
+                            if (!string.IsNullOrEmpty(imgDto.URLImagen))
+                            {
+                                imgDto.URLImagen = await _imageProcessingService.GetImageUrlAsync(imgDto.URLImagen);
+                            }
+
+                            dto.Imagenes.Add(imgDto);
+                        }
+
+                        // Establecer imagen principal para el DTO
+                        var principal = dto.Imagenes.OrderBy(i => i.Order).FirstOrDefault();
+                        if (principal != null)
+                        {
+                            dto.ImagenPrincipal = principal.URLImagen;
+                        }
+                    }
+
+                    productoDtos.Add(dto);
+                }
 
                 var result = new CombinedDataDto
                 {

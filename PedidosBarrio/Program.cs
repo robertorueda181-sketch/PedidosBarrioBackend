@@ -52,13 +52,19 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// ? Servir archivos estáticos (imágenes)
-app.UseStaticFiles(new StaticFileOptions
+// Servir archivos estáticos desde wwwroot (default)
+app.UseStaticFiles();
+
+// Opcional: Servir también desde una carpeta 'images' en el root si existe
+var externalImagesPath = Path.Combine(builder.Environment.ContentRootPath, "images");
+if (Directory.Exists(externalImagesPath))
 {
-    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
-        System.IO.Path.Combine(builder.Environment.ContentRootPath, "images")),
-    RequestPath = "/images"
-});
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(externalImagesPath),
+        RequestPath = "/images"
+    });
+}
 
 // Usar CORS
 app.UseCors("AllowAngular");

@@ -14,6 +14,7 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
         private readonly ICategoriaRepository _categoriaRepository;
         private readonly IPrecioRepository _precioRepository;
         private readonly IImagenRepository _imagenRepository;
+        private readonly IImageProcessingService _imageProcessingService;
         private readonly ICurrentUserService _currentUserService;
         private readonly IApplicationLogger _logger;
         private readonly IValidator<CreateProductoDto> _validator;
@@ -23,6 +24,7 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
             ICategoriaRepository categoriaRepository,
             IPrecioRepository precioRepository,
             IImagenRepository imagenRepository,
+            IImageProcessingService imageProcessingService,
             ICurrentUserService currentUserService,
             IApplicationLogger logger,
             IValidator<CreateProductoDto> validator)
@@ -31,6 +33,7 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
             _categoriaRepository = categoriaRepository;
             _precioRepository = precioRepository;
             _imagenRepository = imagenRepository;
+            _imageProcessingService = imageProcessingService;
             _currentUserService = currentUserService;
             _logger = logger;
             _validator = validator;
@@ -116,7 +119,25 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
                 // Crear imagen inicial si se proporciona
                 if (!string.IsNullOrEmpty(request.ImagenUrl))
                 {
-                    var imagen = new Imagen(productoId, request.ImagenUrl, empresaId, request.ImagenDescripcion ?? "");
+                    var imageUrl = request.ImagenUrl;
+
+                    // Si es URL externa, optimizarla
+                    if (imageUrl.StartsWith("http"))
+                    {
+                        try
+                        {
+                            imageUrl = await _imageProcessingService.OptimizeAndSaveImageFromUrlAsync(
+                                imageUrl, 
+                                productoId, 
+                                empresaId);
+                        }
+                        catch
+                        {
+                            // Ignorar error y usar URL original o dejar vacío
+                        }
+                    }
+
+                    var imagen = new Imagen(productoId, imageUrl, empresaId, request.ImagenDescripcion ?? "");
                     await _imagenRepository.AddAsync(imagen);
                 }
 
@@ -128,46 +149,59 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
                 var precios = await _precioRepository.GetByProductoIdAsync(productoId);
                 var imagenes = await _imagenRepository.GetByProductoIdAsync(productoId);
 
-                return new ProductoDto
-                {
-                    ProductoID = productoId,
-                    EmpresaID = producto.EmpresaID ?? Guid.Empty,
-                    CategoriaID = producto.CategoriaID ?? 0,
-                    Nombre = producto.Nombre,
-                    Descripcion = producto.Descripcion ?? string.Empty,
-                    FechaRegistro = producto.FechaRegistro ?? DateTime.Now,
-                    Stock = producto.Stock,
-                    StockMinimo = producto.StockMinimo ?? 0,
-                    Activa = producto.Activa,
-                    Inventario = producto.Inventario,
-                    CategoriaNombre = categoria.Descripcion,
-                    CategoriaColor = categoria.Color ?? string.Empty,
-                    Precios = precios.Select(p => new PrecioDto
+                    var dto = new ProductoDto
                     {
-                        IdPrecio = p.IdPrecio,
-                        PrecioValor = p.PrecioValor,
-                        ExternalId = p.ExternalId,
-                        EmpresaID = p.EmpresaID,
-                        FechaCreacion = p.FechaCreacion,
-                        Activo = p.Activo,
-                        EsPrincipal = p.EsPrincipal
-                    }).ToList(),
-                    PrecioActual = precios.FirstOrDefault(p => p.EsPrincipal)?.PrecioValor ?? precios.FirstOrDefault()?.PrecioValor,
-                    Imagenes = imagenes.Select(i => new ImagenProductoDto
+                        ProductoID = productoId,
+                        EmpresaID = producto.EmpresaID ?? Guid.Empty,
+                        CategoriaID = producto.CategoriaID ?? 0,
+                        Nombre = producto.Nombre,
+                        Descripcion = producto.Descripcion ?? string.Empty,
+                        FechaRegistro = producto.FechaRegistro ?? DateTime.Now,
+                        Stock = producto.Stock,
+                        StockMinimo = producto.StockMinimo ?? 0,
+                        Inventario = producto.Inventario,
+                        CategoriaNombre = categoria.Descripcion,
+                        CategoriaColor = categoria.Color ?? string.Empty,
+                        Precios = precios.Select(p => new PrecioDto
+                        {
+                            IdPrecio = p.IdPrecio,
+                            PrecioValor = p.PrecioValor,
+                            ExternalId = p.ExternalId,
+                            EmpresaID = p.EmpresaID,
+                            FechaCreacion = p.FechaCreacion,
+                            Activo = p.Activo,
+                            EsPrincipal = p.EsPrincipal
+                        }).ToList(),
+                        PrecioActual = precios.FirstOrDefault(p => p.EsPrincipal)?.PrecioValor ?? precios.FirstOrDefault()?.PrecioValor,
+                        Imagenes = new List<ImagenProductoDto>()
+                    };
+
+                    foreach (var i in imagenes)
                     {
-                        ImagenID = i.ImagenID,
-                        ExternalId = i.ExternalId ?? 0,
-                        URLImagen = i.URLImagen ?? string.Empty,
-                        Descripcion = i.Descripcion ?? string.Empty,
-                        FechaRegistro = i.FechaRegistro ?? DateTime.Now,
-                        Activa = i.Activa ?? false,
-                        Type = i.Type ?? string.Empty,
-                        Order = i.Order,
-                        EmpresaID = i.EmpresaID ?? Guid.Empty
-                    }).ToList(),
-                    ImagenPrincipal = imagenes.FirstOrDefault()?.URLImagen ?? string.Empty
-                };
-            }
+                        var imgDto = new ImagenProductoDto
+                        {
+                            ImagenID = i.ImagenID,
+                            ExternalId = i.ExternalId ?? 0,
+                            URLImagen = i.URLImagen ?? string.Empty,
+                            Descripcion = i.Descripcion ?? string.Empty,
+                            FechaRegistro = i.FechaRegistro ?? DateTime.Now,
+                            Activa = i.Activa ?? false,
+                            Type = i.Type ?? string.Empty,
+                            Order = i.Order,
+                            EmpresaID = i.EmpresaID ?? Guid.Empty
+                        };
+
+                        if (!string.IsNullOrEmpty(imgDto.URLImagen))
+                        {
+                            imgDto.URLImagen = await _imageProcessingService.GetImageUrlAsync(imgDto.URLImagen);
+                        }
+                        dto.Imagenes.Add(imgDto);
+                    }
+
+                    dto.ImagenPrincipal = dto.Imagenes.OrderBy(i => i.Order).FirstOrDefault()?.URLImagen ?? string.Empty;
+
+                    return dto;
+                }
             catch (ValidationException)
             {
                 throw; // Re-lanzar excepciones de validación sin modificar

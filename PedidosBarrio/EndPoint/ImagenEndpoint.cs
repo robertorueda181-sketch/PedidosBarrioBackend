@@ -1,8 +1,10 @@
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PedidosBarrio.Application.Commands.CreateImagen;
 using PedidosBarrio.Application.Commands.DeleteImagen;
 using PedidosBarrio.Application.Commands.UpdateImagen;
+using PedidosBarrio.Application.Commands.UploadImage;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Queries.GetAllImagenes;
 using PedidosBarrio.Application.Queries.GetImagenById;
@@ -52,6 +54,28 @@ namespace PedidosBarrio.Api.EndPoint
             })
             .WithName("CreateImagen")
             .WithOpenApi();
+
+            // POST /api/Imagenes/upload
+            group.MapPost("/upload", async (
+                IFormFile file,
+                [FromForm] int productoId,
+                [FromForm] string? descripcion,
+                [FromForm] bool setAsPrincipal,
+                IMediator mediator) =>
+            {
+                if (file == null || file.Length == 0)
+                    return Results.BadRequest("No se ha proporcionado ningún archivo.");
+
+                using var stream = file.OpenReadStream();
+                var command = new UploadImageCommand(productoId, descripcion, setAsPrincipal, stream, file.FileName);
+                var result = await mediator.Send(command);
+                return Results.Created($"/api/Imagenes/{result.ImagenID}", result);
+            })
+            .DisableAntiforgery()
+            .WithName("UploadImage")
+            .WithOpenApi()
+            .WithSummary("📤 Subir una imagen de producto")
+            .WithDescription("Sube una imagen, la optimiza (convierte a WebP y comprime) y la asocia a un producto.");
 
             // PUT /api/Imagenes/{id}
             group.MapPut("/{id:int}", async (int id, [FromBody] ImagenDto updateDto, IMediator mediator) =>
