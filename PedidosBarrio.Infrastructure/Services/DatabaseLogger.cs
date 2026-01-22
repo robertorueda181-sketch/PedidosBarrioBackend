@@ -96,11 +96,30 @@ namespace PedidosBarrio.Infrastructure.Services
                         Environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Unknown"
                     };
 
-                    logEntry.Properties = JsonSerializer.Serialize(properties);
-                }
+                            logEntry.Properties = JsonSerializer.Serialize(properties);
+                        }
 
-                await _logRepository.AddLogAsync(logEntry);
-            }
+                        // Mapear LogEntry a la entidad Log
+                        var log = new Log
+                        {
+                            Timestamp = logEntry.Timestamp,
+                            Level = logEntry.Level,
+                            Logger = logEntry.Logger,
+                            Message = logEntry.Message,
+                            Exception = logEntry.Exception,
+                            Properties = logEntry.Properties,
+                            MachineName = logEntry.MachineName,
+                            ProcessId = logEntry.ProcessId,
+                            ThreadId = logEntry.ThreadId,
+                            UserId = logEntry.UserId,
+                            RequestId = logEntry.RequestId,
+                            RequestPath = logEntry.RequestPath,
+                            EmpresaID = logEntry.EmpresaID,
+                            Category = logEntry.Category
+                        };
+
+                        await _logRepository.AddLogAsync(log);
+                    }
             catch (Exception ex)
             {
                 // Si falla el logging a BD, escribir a archivo o consola como fallback

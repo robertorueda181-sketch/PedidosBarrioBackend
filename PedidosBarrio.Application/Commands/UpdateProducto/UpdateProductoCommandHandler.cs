@@ -46,7 +46,8 @@ namespace PedidosBarrio.Application.Commands.UpdateProducto
                     Stock = request.Stock,
                     StockMinimo = request.StockMinimo,
                     Inventario = request.Inventario,
-                    NuevoPrecio = request.NuevoPrecio
+                    Visible = request.Visible,
+                    Precios = request.Precios
                 };
 
                 var validationResult = await _validator.ValidateAsync(updateDto, cancellationToken);
@@ -82,21 +83,43 @@ namespace PedidosBarrio.Application.Commands.UpdateProducto
                     throw new ApplicationException("La categoría no pertenece a su empresa");
                 }
 
-                // Actualizar producto
+                // Actualizar producto usando Entity Framework
                 producto.CategoriaID = request.CategoriaID;
                 producto.Nombre = request.Nombre;
                 producto.Descripcion = request.Descripcion;
                 producto.Stock = request.Stock;
                 producto.StockMinimo = request.StockMinimo;
                 producto.Inventario = request.Inventario;
+                producto.Visible = request.Visible;
 
                 await _productoRepository.UpdateAsync(producto);
 
-                // Si se proporciona un nuevo precio, agregarlo
-                if (request.NuevoPrecio.HasValue)
+                // Manejar lista de precios
+                if (request.Precios != null && request.Precios.Any())
                 {
-                    var nuevoPrecio = new Precio(request.NuevoPrecio.Value, producto.ProductoID, empresaId);
-                    await _precioRepository.AddAsync(nuevoPrecio);
+                    foreach (var precioDto in request.Precios)
+                    {
+                        if (precioDto.IdPrecio == 0)
+                        {
+                            // Nuevo precio
+                            var nuevoPrecio = new Precio(precioDto.PrecioValor, producto.ProductoID, empresaId)
+                            {
+                                Principal = precioDto.EsPrincipal
+                            };
+                            await _precioRepository.AddAsync(nuevoPrecio);
+                        }
+                        else
+                        {
+                            // Actualizar precio existente
+                            var existingPrecio = await _precioRepository.GetByIdAsync(precioDto.IdPrecio);
+                            if (existingPrecio != null && existingPrecio.EmpresaID == empresaId)
+                            {
+                                existingPrecio.PrecioValor = precioDto.PrecioValor;
+                                existingPrecio.Principal = precioDto.EsPrincipal;
+                                await _precioRepository.UpdateAsync(existingPrecio);
+                            }
+                        }
+                    }
                 }
 
                 await _logger.LogInformationAsync(
@@ -110,17 +133,17 @@ namespace PedidosBarrio.Application.Commands.UpdateProducto
                 return new ProductoDto
                 {
                     ProductoID = producto.ProductoID,
-                    EmpresaID = producto.EmpresaID,
-                    CategoriaID = producto.CategoriaID,
+                    EmpresaID = producto.EmpresaID ?? Guid.Empty,
+                    CategoriaID = producto.CategoriaID ?? 0,
                     Nombre = producto.Nombre,
-                    Descripcion = producto.Descripcion,
-                    FechaRegistro = producto.FechaRegistro,
+                    Descripcion = producto.Descripcion ?? string.Empty,
+                    FechaRegistro = producto.FechaRegistro ?? DateTime.Now,
                     Stock = producto.Stock,
-                    StockMinimo = producto.StockMinimo,
+                    StockMinimo = producto.StockMinimo ?? 0,
                     Activa = producto.Activa,
                     Inventario = producto.Inventario,
                     CategoriaNombre = categoria.Descripcion,
-                    CategoriaColor = categoria.Color,
+                    CategoriaColor = categoria.Color ?? string.Empty,
                     Precios = precios.Select(p => new PrecioDto
                     {
                         IdPrecio = p.IdPrecio,

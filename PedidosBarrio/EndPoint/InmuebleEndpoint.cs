@@ -36,7 +36,7 @@ namespace PedidosBarrio.Api.EndPoint
             .WithOpenApi();
 
             // GET /api/Inmuebles/empresa/{empresaId}
-            group.MapGet("/empresa/{empresaId:int}", async (int empresaId, IMediator mediator) =>
+            group.MapGet("/empresa/{empresaId:int}", async (Guid empresaId, IMediator mediator) =>
             {
                 var inmuebles = await mediator.Send(new GetInmueblesByEmpresaQuery(empresaId));
                 return Results.Ok(inmuebles);

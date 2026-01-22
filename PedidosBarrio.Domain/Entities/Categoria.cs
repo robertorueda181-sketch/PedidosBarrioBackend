@@ -1,36 +1,49 @@
-namespace PedidosBarrio.Domain.Entities
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
+
+namespace PedidosBarrio.Domain.Entities;
+
+public partial class Categoria
 {
-    public class Categoria
+    public Categoria() { }
+
+    public Categoria(Guid empresaId, string descripcion, string color)
     {
-        public short CategoriaID { get; set; }
-        public Guid EmpresaID { get; set; }
-        public string Descripcion { get; set; }
-        public string Color { get; set; }
-        public bool Activo { get; set; }
-
-        public Categoria(Guid empresaId, string descripcion, string color)
-        {
-            EmpresaID = empresaId;
-            Descripcion = descripcion;
-            Color = color;
-            Activo = true; // Default true as requested
-        }
-        public Categoria(string descripcion, string color)
-        {
-            Descripcion = descripcion;
-            Color = color;
-            Activo = true; // Default true as requested
-        }
-        // Constructor for mapping from database
-        public Categoria(short categoriaId, Guid empresaId, string descripcion, string color, bool activo)
-        {
-            CategoriaID = categoriaId;
-            EmpresaID = empresaId;
-            Descripcion = descripcion;
-            Color = color;
-            Activo = activo;
-        }
-
-        private Categoria() { }
+        EmpresaID = empresaId;
+        Descripcion = descripcion;
+        Color = color;
+        Activa = true;
     }
+
+    public Categoria(short id, Guid empresaId, string descripcion, string color, bool? activa)
+    {
+        CategoriaID = id;
+        EmpresaID = empresaId;
+        Descripcion = descripcion;
+        Color = color;
+        Activa = activa;
+    }
+
+    [Key]
+    [Column("CategoriaID")]
+    public short CategoriaID { get; set; }
+
+    [NotMapped]
+    public bool Activo { get => Activa ?? false; set => Activa = value; }
+
+    [Column("EmpresaID")]
+    public Guid EmpresaID { get; set; }
+
+    [StringLength(50)]
+    public string Descripcion { get; set; } = null!;
+
+    public bool? Activa { get; set; }
+
+    [StringLength(15)]
+    public string? Color { get; set; }
 }
+
+

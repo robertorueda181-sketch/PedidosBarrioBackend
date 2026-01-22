@@ -1,122 +1,82 @@
-using Dapper;
+using Microsoft.EntityFrameworkCore;
 using PedidosBarrio.Domain.Entities;
 using PedidosBarrio.Domain.Repositories;
-using PedidosBarrio.Infrastructure.Data.Common;
-using System.Data;
+using PedidosBarrio.Infrastructure.Data.Contexts;
+using PedidosBarrio.Infrastructure.Data.Repositories.Base;
 
 namespace PedidosBarrio.Infrastructure.Data.Repositories
 {
-    public class CategoriaRepository : GenericRepository, ICategoriaRepository
+    public class CategoriaRepository : EfCoreRepository<Categoria>, ICategoriaRepository
     {
-        public CategoriaRepository(IDbConnectionProvider connectionProvider) : base(connectionProvider)
+        public CategoriaRepository(PedidosBarrioDbContext context) : base(context)
         {
         }
 
         public async Task<Categoria> GetByIdAsync(short categoriaId)
         {
-            using (var connection = CreateConnection())
-            {
-                return await QuerySingleOrDefaultAsync<Categoria>(
-                    connection,
-                    "SELECT * FROM fn_GetCategoriaById(@p_categoriaId)",
-                    new { p_categoriaId = categoriaId },
-                    CommandType.Text);
-            }
+            return await GetByIdAsync<short>(categoriaId);
         }
 
         public async Task<IEnumerable<Categoria>> GetAllAsync(Guid empresaId)
         {
-            using (var connection = CreateConnection())
-            {
-                return await QueryAsync<Categoria>(
-                    connection,
-                    "SELECT * FROM fn_GetCategoriasByEmpresa(@p_empresa_id)",
-                    new { p_empresa_id = empresaId },
-                    CommandType.Text);
-            }
+            return await _context.Categorias
+                .Where(c => c.EmpresaID == empresaId)
+                .OrderBy(c => c.Descripcion)
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<Categoria>> GetActiveAsync()
         {
-            using (var connection = CreateConnection())
-            {
-                return await QueryAsync<Categoria>(
-                    connection,
-                    "SELECT * FROM fn_GetActiveCategories()",
-                    commandType: CommandType.Text);
-            }
+            return await _context.Categorias
+                .Where(c => c.Activa.HasValue && c.Activa.Value)
+                .OrderBy(c => c.Descripcion)
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<Categoria>> GetByEmpresaIdAsync(Guid empresaId)
         {
-            using (var connection = CreateConnection())
-            {
-                return await QueryAsync<Categoria>(
-                    connection,
-                    "SELECT * FROM fn_GetCategoriasByEmpresa(@p_empresa_id)",
-                    new { p_empresa_id = empresaId },
-                    CommandType.Text);
-            }
+            return await GetAllAsync(empresaId);
         }
 
         public async Task<IEnumerable<Categoria>> GetByEmpresaIdMostrandoAsync(Guid empresaId)
         {
-            using (var connection = CreateConnection())
-            {
-                return await QueryAsync<Categoria>(
-                    connection,
-                    "SELECT * FROM public.fn_getcategoriasbyempresa(@p_empresa_id)",
-                    new { p_empresa_id = empresaId },
-                    CommandType.Text);
-            }
+            return await _context.Categorias
+                .Where(c => c.EmpresaID == empresaId && c.Activa.HasValue && c.Activa.Value)
+                .OrderBy(c => c.Descripcion)
+                .ToListAsync();
         }
 
         public async Task<short> AddAsync(Categoria categoria)
         {
-            using (var connection = CreateConnection())
-            {
-                var categoriaId = await QuerySingleOrDefaultAsync<short>(
-                    connection,
-                    "SELECT fn_CreateCategoria(@p_empresaID, @p_descripcion, @p_color)",
-                    new 
-                    { 
-                        p_empresaID = categoria.EmpresaID,
-                        p_descripcion = categoria.Descripcion,
-                        p_color = categoria.Color
-                    },
-                    CommandType.Text);
+            if (string.IsNullOrEmpty(categoria.Color)) categoria.Color = "#007bff";
+            if (!categoria.Activa.HasValue) categoria.Activa = true;
 
-                categoria.CategoriaID = categoriaId;
-                return categoriaId;
-            }
+            await base.AddAsync(categoria);
+            return categoria.CategoriaID;
         }
 
         public async Task UpdateAsync(Categoria categoria)
         {
-            using (var connection = CreateConnection())
+            var existing = await _context.Categorias.FindAsync(categoria.CategoriaID);
+            if (existing != null)
             {
-                await ExecuteAsync(
-                    connection,
-                    "SELECT sp_updatecategoria(@p_categoriaId, @p_descripcion, @p_color)",
-                    new 
-                    { 
-                        p_categoriaId = categoria.CategoriaID,
-                        p_descripcion = categoria.Descripcion,
-                        p_color = categoria.Color
-                    },
-                    CommandType.Text);
+                existing.Descripcion = categoria.Descripcion;
+                existing.Color = categoria.Color;
+                await _context.SaveChangesAsync();
+            }
+            else
+            {
+                 throw new KeyNotFoundException($"Categoria con ID {categoria.CategoriaID} no encontrada");
             }
         }
 
         public async Task SoftDeleteAsync(short categoriaId)
         {
-            using (var connection = CreateConnection())
+            var categoria = await _context.Categorias.FindAsync(categoriaId);
+            if (categoria != null)
             {
-                await ExecuteAsync(
-                    connection,
-                    "SELECT sp_softdeletecategoria(@p_categoriaId)",
-                    new { p_categoriaId = categoriaId },
-                    CommandType.Text);
+                categoria.Activa = false;
+                await _context.SaveChangesAsync();
             }
         }
     }

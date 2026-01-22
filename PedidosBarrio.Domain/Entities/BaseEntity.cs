@@ -1,4 +1,4 @@
-﻿namespace PedidosBarrio.Domain.Entities
+namespace PedidosBarrio.Domain.Entities
 {
     public class BaseEntity
     {
@@ -8,3 +8,4 @@
         public bool Activa { get; set; }
     }
 }
+

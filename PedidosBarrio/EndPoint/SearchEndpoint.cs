@@ -1,6 +1,5 @@
 using MediatR;
 using PedidosBarrio.Application.Queries.Search;
-using PedidosBarrio.Application.DTOs;
 
 namespace PedidosBarrio.Api.EndPoint
 {

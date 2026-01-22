@@ -63,20 +63,20 @@ namespace PedidosBarrio.Application.Queries.GetCombinedData
                 var productoDtos = productos.Select(p => new ProductoDto
                 {
                     ProductoID = p.ProductoID,
-                    EmpresaID = p.EmpresaID,
-                    CategoriaID = p.CategoriaID,
+                    EmpresaID = p.EmpresaID ?? Guid.Empty,
+                    CategoriaID = p.CategoriaID ?? 0,
                     Nombre = p.Nombre,
-                    Descripcion = p.Descripcion,
-                    FechaRegistro = p.FechaRegistro,
+                    Descripcion = p.Descripcion ?? string.Empty,
+                    FechaRegistro = p.FechaRegistro ?? DateTime.Now,
                     Stock = p.Stock,
-                    StockMinimo = p.StockMinimo,
+                    StockMinimo = p.StockMinimo ?? 0,
                     Inventario = p.Inventario,
-                    Visible = p.Visible,
-                    CategoriaNombre = categoriaLookup.ContainsKey(p.CategoriaID) 
-                        ? categoriaLookup[p.CategoriaID].Descripcion 
+                    Visible = p.Visible ?? false,
+                    CategoriaNombre = (p.CategoriaID.HasValue && categoriaLookup.ContainsKey((int)p.CategoriaID.Value)) 
+                        ? categoriaLookup[(int)p.CategoriaID.Value].Descripcion 
                         : "Sin categoría",
-                    CategoriaColor = categoriaLookup.ContainsKey(p.CategoriaID) 
-                        ? categoriaLookup[p.CategoriaID].Color 
+                    CategoriaColor = (p.CategoriaID.HasValue && categoriaLookup.ContainsKey((int)p.CategoriaID.Value)) 
+                        ? categoriaLookup[(int)p.CategoriaID.Value].Color 
                         : "#CCCCCC",
                     Precios = preciosPorProducto.ContainsKey(p.ProductoID)
                         ? preciosPorProducto[p.ProductoID].Select(precio => new PrecioDto

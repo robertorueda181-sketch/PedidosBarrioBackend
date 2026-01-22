@@ -13,21 +13,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="15.1.0" />
+    <PackageReference Include="AutoMapper" Version="14.0.0" />
     <PackageReference Include="MediatR" Version="13.1.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.14.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.2" />
     <PackageReference Include="FluentValidation" Version="12.1.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\PedidosBarrio.Domain\PedidosBarrio.Domain.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Commands\AuthUnified\" />
   </ItemGroup>
 
 </Project>

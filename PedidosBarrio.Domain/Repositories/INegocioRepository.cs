@@ -5,7 +5,7 @@ namespace PedidosBarrio.Domain.Repositories
     public interface INegocioRepository
     {
         Task<Negocio> GetByIdAsync(string id);
-        Task<EmpresaNegocio> GetByCodigoEmpresaAsync(string id);
+        Task<Empresa> GetByCodigoEmpresaAsync(string id);
         Task<IEnumerable<Negocio>> GetAllAsync();
         Task<IEnumerable<Negocio>> GetByEmpresaIdAsync(Guid empresaId);
         Task<int> AddAsync(Negocio negocio);

@@ -78,12 +78,7 @@ app.MapControllers();
 app.MapRegisterEndpoints();
 app.MapLoginEndpoints();
 app.MapEmpresaEndpoints();
-app.MapSuscripcionEndpoints();
 app.MapCategoriaEndpoints(); // Incluye endpoints de categorías Y productos
-app.MapImageModerationEndpoints(); // Nuevo endpoint de moderación de imágenes
-app.MapTextModerationEndpoints(); // Nuevo endpoint de moderación de texto
-app.MapEmailEndpoints(); // Nuevo endpoint para emails
-app.MapAdvancedAuthorizationExamples(); // Ejemplos de autorización
 app.MapImagenEndpoints();
 app.MapTipoEndpoints();
 app.MapInmuebleEndpoints();

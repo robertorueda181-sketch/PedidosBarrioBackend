@@ -1,30 +1,70 @@
-namespace PedidosBarrio.Domain.Entities
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
+
+namespace PedidosBarrio.Domain.Entities;
+
+public partial class Precio
 {
-    public class Precio
+    public Precio() { }
+
+    public Precio(int idPrecio, int productoId, Guid empresaId, string descripcion, string tipo, decimal valor, bool principal)
     {
-        public int IdPrecio { get; set; }
-        public decimal PrecioValor { get; set; }
-        public int ExternalId { get; set; } // ProductoID
-        public Guid EmpresaID { get; set; }
-        public DateTime FechaCreacion { get; set; }
-        public bool Activo { get; set; }
-
-        public bool EsPrincipal { get; set; } = false;
-
-        // Navigation property
-        public Producto Producto { get; set; }
-
-        public Precio(decimal precioValor, int productoId, Guid empresaId, string descripcion = "", 
-                     string modalidad = "GENERAL", int? cantidadMinima = null, bool esPrincipal = false)
-        {
-            PrecioValor = precioValor;
-            ExternalId = productoId;
-            EmpresaID = empresaId;
-            EsPrincipal = esPrincipal;
-            FechaCreacion = DateTime.UtcNow;
-            Activo = true;
-        }
-
-        private Precio() { }
+        IdPrecio = idPrecio;
+        ExternalId = productoId;
+        EmpresaID = empresaId;
+        PrecioValor = valor;
+        Principal = principal;
+        Tipo = tipo;
+        Descripcion = descripcion;
+        FechaCreacion = DateTime.Now;
+        Activo = true;
     }
+
+    public Precio(decimal valor, int productoId, Guid empresaId)
+    {
+        PrecioValor = valor;
+        ExternalId = productoId;
+        EmpresaID = empresaId;
+        Principal = true;
+        FechaCreacion = DateTime.Now;
+        Activo = true;
+    }
+
+    [Key]
+    public int IdPrecio { get; set; }
+
+    [NotMapped]
+    public bool EsPrincipal { get => Principal; set => Principal = value; }
+
+    [NotMapped]
+    public bool Activo { get; set; } = true;
+
+    [NotMapped]
+    public DateTime FechaCreacion { get; set; } = DateTime.Now;
+
+    [NotMapped]
+    public string? Tipo { get; set; }
+
+    [NotMapped]
+    public string? Descripcion { get; set; }
+
+    [Column("Precio")]
+    [Precision(12, 2)]
+    public decimal PrecioValor { get; set; }
+
+    public int ExternalId { get; set; }
+
+    [Column("EmpresaID")]
+    public Guid EmpresaID { get; set; }
+
+    public bool Principal { get; set; }
+
+    [ForeignKey("ExternalId")]
+    [InverseProperty("Precios")]
+    public virtual Producto External { get; set; } = null!;
 }
+
+

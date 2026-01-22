@@ -25,17 +25,17 @@ namespace PedidosBarrio.Application.Queries.GetAllInmuebles
             var result = inmuebles.Select(inmueble => new InmuebleDto
             {
                 InmuebleID = inmueble.InmuebleID,
-                EmpresaID = inmueble.EmpresaID,
-                TiposID = inmueble.TiposID,
-                Tipo = inmueble.Tipo,                                    // ✅ Viene de la FUNCTION
-                Precio = inmueble.Precio,
-                Medidas = inmueble.Medidas,
-                Ubicacion = inmueble.Ubicacion,
-                Dormitorios = inmueble.Dormitorios,
-                Banos = inmueble.Banos,
-                Descripcion = inmueble.Descripcion,
-                URLImagen = inmueble.Imagen?.URLImagen,                 // ✅ Viene de la FUNCTION
-                Operacion = inmueble.Operacion?.Descripcion             // ✅ Viene de la FUNCTION
+                EmpresaID = inmueble.EmpresaID ?? Guid.Empty,
+                TiposID = inmueble.TiposId ?? 0,
+                Tipo = inmueble.Tipo ?? string.Empty,                                    // ✅ Viene de la FUNCTION
+                Precio = inmueble.Precio ?? 0,
+                Medidas = inmueble.Medidas ?? string.Empty,
+                Ubicacion = inmueble.Ubicacion ?? string.Empty,
+                Dormitorios = inmueble.Dormitorios ?? 0,
+                Banos = inmueble.Banos ?? 0,
+                Descripcion = inmueble.Descripcion ?? string.Empty,
+                URLImagen = inmueble.Imagen?.URLImagen ?? string.Empty,                 // ✅ Viene de la FUNCTION
+                Operacion = inmueble.Operacion?.Descripcion ?? string.Empty             // ✅ Viene de la FUNCTION
             }).ToList();
 
             return result;

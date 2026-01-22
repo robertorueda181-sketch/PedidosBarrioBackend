@@ -90,14 +90,9 @@ namespace PedidosBarrio.Application.Validator
                 .WithMessage("El stock debe ser mayor o igual a 0");
 
             RuleFor(x => x.StockMinimo)
-                .GreaterThanOrEqualTo(0)
-                .WithMessage("El stock mínimo debe ser mayor o igual a 0")
-                .When(x => x.StockMinimo.HasValue);
-
-            RuleFor(x => x.NuevoPrecio)
-                .GreaterThan(0)
-                .WithMessage("El nuevo precio debe ser mayor a 0")
-                .When(x => x.NuevoPrecio.HasValue);
-        }
-    }
-}
+                                .GreaterThanOrEqualTo(0)
+                                .WithMessage("El stock mínimo debe ser mayor o igual a 0")
+                                .When(x => x.StockMinimo.HasValue);
+                        }
+                    }
+                }

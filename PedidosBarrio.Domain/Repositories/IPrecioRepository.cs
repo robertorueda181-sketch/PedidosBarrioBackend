@@ -6,7 +6,7 @@ namespace PedidosBarrio.Domain.Repositories
     {
         Task<Precio?> GetByIdAsync(int id);
         Task<IEnumerable<Precio>> GetByProductoIdAsync(int productoId);
-        Task<IEnumerable<Precio>> GetByEmpresaIdAsync(Guid emoresaId);
+        Task<IEnumerable<Precio>> GetByEmpresaIdAsync(Guid empresaId);
         Task<Precio?> GetPrecioActualByProductoIdAsync(int productoId);
         Task<int> AddAsync(Precio precio);
         Task UpdateAsync(Precio precio);

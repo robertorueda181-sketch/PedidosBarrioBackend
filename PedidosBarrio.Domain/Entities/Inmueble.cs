@@ -1,41 +1,85 @@
-namespace PedidosBarrio.Domain.Entities
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
+
+namespace PedidosBarrio.Domain.Entities;
+
+[Index("EmpresaID", Name = "idx_inmuebles_empresaid")]
+[Index("TiposId", Name = "idx_inmuebles_tiposid")]
+public partial class Inmueble
 {
-    public class Inmueble
+    public Inmueble() { }
+
+    public Inmueble(Guid empresaID, int tiposID, decimal precio, string medidas, string ubicacion, int dormitorios, int banos, string descripcion)
     {
-        public int InmuebleID { get; set; }
-        public Guid EmpresaID { get; set; }
-        public int TiposID { get; set; }
-        public string Tipo{ get; set; }
-        public int? OperacionID { get; set; }
-        public decimal Precio { get; set; }
-        public string Medidas { get; set; }
-        public string Ubicacion { get; set; }
-        public int Dormitorios { get; set; }
-        public int Banos { get; set; }
-        public string Descripcion { get; set; }
-        public DateTime FechaRegistro { get; set; }
-        public bool Activa { get; set; }
-
-        public Imagen Imagen { get; set; } = new Imagen();
-        public Tipo Operacion { get; set; } = new();
-        public string Latitud { get; set; }
-        public string Longitud { get; set; } 
-
-        public Inmueble(Guid empresaID, int tiposID, decimal precio, string medidas, string ubicacion, int dormitorios, int banos, string descripcion, int? operacionID = null)
-        {
-            EmpresaID = empresaID;
-            TiposID = tiposID;
-            OperacionID = operacionID;
-            Precio = precio;
-            Medidas = medidas;
-            Ubicacion = ubicacion;
-            Dormitorios = dormitorios;
-            Banos = banos;
-            Descripcion = descripcion;
-            FechaRegistro = DateTime.UtcNow;
-            Activa = true;
-        }
-
-        private Inmueble() { }
+        EmpresaID = empresaID;
+        TiposId = tiposID;
+        Precio = precio;
+        Medidas = medidas;
+        Ubicacion = ubicacion;
+        Dormitorios = dormitorios;
+        Banos = banos;
+        Descripcion = descripcion;
     }
+
+    [Key]
+    [Column("InmuebleID")]
+    public int InmuebleID { get; set; }
+
+    [Column("EmpresaID")]
+    public Guid? EmpresaID { get; set; }
+
+    [Column("TiposID")]
+    public int? TiposId { get; set; }
+
+    [Precision(10, 2)]
+    public decimal? Precio { get; set; }
+
+    [StringLength(100)]
+    public string? Medidas { get; set; }
+
+    [StringLength(255)]
+    public string? Ubicacion { get; set; }
+
+    public int? Dormitorios { get; set; }
+
+    public int? Banos { get; set; }
+
+    public string? Descripcion { get; set; }
+
+    [NotMapped]
+    public string? Tipo { get; set; }
+
+    [NotMapped]
+    public Imagen? Imagen { get; set; }
+
+    public DateTime? FechaRegistro { get; set; }
+
+    public bool? Activa { get; set; }
+
+    [Column("Operacion")]
+    public short? OperacionID { get; set; }
+
+    [NotMapped]
+    public Tipo? Operacion { get; set; }
+
+    [Column("latitud")]
+    [Precision(10, 8)]
+    public decimal? Latitud { get; set; }
+
+    [Column("longitud")]
+    [Precision(11, 8)]
+    public decimal? Longitud { get; set; }
+
+    [ForeignKey("EmpresaID")]
+    [InverseProperty("Inmuebles")]
+    public virtual Empresa? Empresa { get; set; }
+
+    [ForeignKey("TiposId")]
+    [InverseProperty("Inmuebles")]
+    public virtual Tipo? Tipos { get; set; }
 }
+
+

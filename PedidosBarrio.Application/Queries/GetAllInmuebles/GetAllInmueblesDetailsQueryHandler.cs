@@ -31,15 +31,15 @@ namespace PedidosBarrio.Application.Queries.GetAllInmuebles
             return inmuebles.Select(i => new InmuebleDetailsDto
             {
                 InmuebleID = i.InmuebleID,
-                EmpresaID = i.EmpresaID,
-                TiposID = i.TiposID,
-                OperacionID = i.OperacionID,
-                Precio = i.Precio,
-                Medidas = i.Medidas,
-                Ubicacion = i.Ubicacion,
-                Dormitorios = i.Dormitorios,
-                Banos = i.Banos,
-                Descripcion = i.Descripcion
+                EmpresaID = i.EmpresaID ?? Guid.Empty,
+                TiposID = i.TiposId ?? 0,
+                OperacionID = i.OperacionID ?? 0,
+                Precio = i.Precio ?? 0,
+                Medidas = i.Medidas ?? string.Empty,
+                Ubicacion = i.Ubicacion ?? string.Empty,
+                Dormitorios = i.Dormitorios ?? 0,
+                Banos = i.Banos ?? 0,
+                Descripcion = i.Descripcion ?? string.Empty
             }).ToList();
         }
     }

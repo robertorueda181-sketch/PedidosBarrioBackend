@@ -35,36 +35,36 @@ namespace PedidosBarrio.Application.Queries.GetNegocioByCodigoEmpresa
                 return null;
 
             // Obtener productos de la empresa
-            var productos = await _productoRepository.GetByEmpresaIdAsync(empresa.EmpresaID);
+            var productos = await _productoRepository.GetByEmpresaIdAsync(empresa.ID);
 
             // Obtener categorías que deben mostrarse (Mostrar = true y Activo = true)
-            var categorias = await _categoriaRepository.GetByEmpresaIdMostrandoAsync(empresa.EmpresaID);
+            var categorias = await _categoriaRepository.GetByEmpresaIdMostrandoAsync(empresa.ID);
 
             var negocioDetalle = new NegocioDetalleDto
             {
-                EmpresaID = empresa.EmpresaID,
+                EmpresaID = empresa.ID,
                 Nombre = empresa.Nombre,
                 Descripcion = empresa.Descripcion,
                 Email = empresa.Email,
                 Telefono = empresa.Telefono,
                 Direccion = empresa.Direccion,
-                Referencia = empresa.Referencia,
+                Referencia = empresa.Referencia ?? string.Empty,
                 Categorias = categorias.Select(c => new CategoriaDetalleDto
                 {
                     CategoriaID = c.CategoriaID,
                     Descripcion = c.Descripcion,
-                    Codigo = c.Color, // Usamos Color en lugar de Codigo
-                    Mostrar = c.Activo // Usamos Activo en lugar de Mostrar
+                    Codigo = c.Color ?? string.Empty, // Usamos Color en lugar de Codigo
+                    Mostrar = c.Activa ?? false // Usamos Activa en lugar de Mostrar
                 }).ToList(),
                 Productos = productos.Select(p => new ProductoDetalleDto
                 {
                     ProductoID = p.ProductoID,
-                    EmpresaID = empresa.EmpresaID,
-                    CategoriaID = p.CategoriaID,
+                    EmpresaID = empresa.ID,
+                    CategoriaID = p.CategoriaID ?? 0,
                     Nombre = p.Nombre,
-                    Descripcion = p.Descripcion,
+                    Descripcion = p.Descripcion ?? string.Empty,
                     Stock = p.Stock,
-                    URLImagen = p.Imagen // Campo imagen ya no existe en la nueva estructura
+                    URLImagen = p.Imagen ?? string.Empty // Campo imagen ya no existe en la nueva estructura
                 }).ToList()
             };
 
@@ -72,6 +72,7 @@ namespace PedidosBarrio.Application.Queries.GetNegocioByCodigoEmpresa
         }
     }
 }
+
 
 
 

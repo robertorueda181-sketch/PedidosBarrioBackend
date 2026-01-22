@@ -31,19 +31,19 @@ namespace PedidosBarrio.Application.Queries.GetInmuebleById
             var result = new InmuebleDetailsDto
             {
                 InmuebleID = inmueble.InmuebleID,
-                EmpresaID = inmueble.EmpresaID,
-                TiposID = inmueble.TiposID,
-                TipoInmueble = inmueble.Tipo,                         
-                OperacionID = inmueble.OperacionID,
-                TipoOperacion = inmueble.Operacion?.Descripcion,       
-                Precio = inmueble.Precio,
-                Medidas = inmueble.Medidas,
-                Ubicacion = inmueble.Ubicacion,
-                Dormitorios = inmueble.Dormitorios,
-                Banos = inmueble.Banos,
-                Descripcion = inmueble.Descripcion,
-                Latitud = inmueble.Latitud,
-                Longitud = inmueble.Longitud,
+                EmpresaID = inmueble.EmpresaID ?? Guid.Empty,
+                TiposID = inmueble.TiposId ?? 0,
+                TipoInmueble = inmueble.Tipo ?? string.Empty,                         
+                OperacionID = inmueble.OperacionID ?? 0,
+                TipoOperacion = inmueble.Operacion?.Descripcion ?? string.Empty,       
+                Precio = inmueble.Precio ?? 0,
+                Medidas = inmueble.Medidas ?? string.Empty,
+                Ubicacion = inmueble.Ubicacion ?? string.Empty,
+                Dormitorios = inmueble.Dormitorios ?? 0,
+                Banos = inmueble.Banos ?? 0,
+                Descripcion = inmueble.Descripcion ?? string.Empty,
+                Latitud = inmueble.Latitud?.ToString() ?? string.Empty,
+                Longitud = inmueble.Longitud?.ToString() ?? string.Empty,
                 Imagenes = _mapper.Map<List<ImagenUrlDto>>(
                     await _imagenRepository.GetByProductoIdAsync(query.InmuebleID, "inm"))
             };
@@ -52,4 +52,5 @@ namespace PedidosBarrio.Application.Queries.GetInmuebleById
         }
     }
 }
+
 

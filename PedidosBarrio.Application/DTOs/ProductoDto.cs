@@ -10,7 +10,7 @@ namespace PedidosBarrio.Application.DTOs
         public DateTime FechaRegistro { get; set; }
         public int Stock { get; set; }
         public int? StockMinimo { get; set; }
-        public bool Activa { get; set; }
+        public bool? Activa { get; set; }
         public bool Inventario { get; set; }
         public bool Visible { get; set; }
 

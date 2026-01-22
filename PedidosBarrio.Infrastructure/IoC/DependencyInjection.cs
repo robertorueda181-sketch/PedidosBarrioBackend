@@ -1,8 +1,10 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using PedidosBarrio.Application.Commands.ModerateText;
 using PedidosBarrio.Application.Commands.RegisterSocial;
@@ -17,6 +19,7 @@ using PedidosBarrio.Domain.Enums;
 using PedidosBarrio.Domain.Repositories;
 using PedidosBarrio.Infrastructure.Authorization;
 using PedidosBarrio.Infrastructure.Data.Common;
+using PedidosBarrio.Infrastructure.Data.Contexts;
 using PedidosBarrio.Infrastructure.Data.Repositories;
 using PedidosBarrio.Infrastructure.Services;
 using System.Text;
@@ -27,7 +30,29 @@ namespace PedidosBarrio.Infrastructure.IoC
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
+            // ===== ENTITY FRAMEWORK CORE =====
             var connectionString = configuration.GetConnectionString("DefaultConnection");
+            services.AddDbContext<PedidosBarrioDbContext>(options =>
+            {
+                options.UseNpgsql(connectionString, npgsqlOptions =>
+                {
+                    npgsqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 3,
+                        maxRetryDelay: TimeSpan.FromSeconds(5),
+                        errorCodesToAdd: null);
+                    npgsqlOptions.CommandTimeout(30);
+                });
+
+                // Configuraciones adicionales para desarrollo
+                if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+                {
+                    options.EnableSensitiveDataLogging();
+                    options.EnableDetailedErrors();
+                    options.LogTo(Console.WriteLine, LogLevel.Information);
+                }
+            });
+
+            // ===== CONFIGURACIÓN DE BASE DE DATOS (DAPPER - LEGACY) =====
             var databaseProvider = configuration.GetSection("Database:Provider").Value ?? "SqlServer";
 
             // Crear el proveedor de base de datos según la configuración
