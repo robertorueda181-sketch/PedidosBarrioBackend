@@ -18,7 +18,7 @@ namespace PedidosBarrio.Application.Queries.GetAllTipos
 
         public async Task<IEnumerable<TipoDto>> Handle(GetAllTiposQuery query, CancellationToken cancellationToken)
         {
-            var tipos = await _tipoRepository.GetByCategoriaAsync(query.Tipo,query.Param);
+            var tipos = await _tipoRepository.GetByCategoriaAsync(query.Param);
             return _mapper.Map<IEnumerable<TipoDto>>(tipos);
         }
     }

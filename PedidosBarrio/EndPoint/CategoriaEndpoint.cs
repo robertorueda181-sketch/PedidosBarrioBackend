@@ -7,6 +7,7 @@ using PedidosBarrio.Application.Commands.DeleteCategoria;
 using PedidosBarrio.Application.Commands.DeleteProducto;
 using PedidosBarrio.Application.Commands.UpdateCategoria;
 using PedidosBarrio.Application.Commands.UpdateProducto;
+using PedidosBarrio.Application.Commands.UpdateProductoVisible;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Queries.GetAllCategorias;
 using PedidosBarrio.Application.Queries.GetCategoriaById;
@@ -127,6 +128,19 @@ namespace PedidosBarrio.Api.EndPoint
             .WithOpenApi()
             .WithSummary("🗑️ Eliminar producto")
             .WithDescription("Elimina un producto verificando que pertenezca a la empresa");
+
+            group.MapPatch("/productos/visible", async (
+                [FromBody] UpdateProductoVisibleDto dto,
+                IMediator mediator) =>
+            {
+                var command = new UpdateProductoVisibleCommand(dto.ProductoID, dto.Visible);
+                var result = await mediator.Send(command);
+                return Results.Ok(new { success = result, message = "Visibilidad del producto actualizada" });
+            })
+            .WithName("UpdateProductoVisible")
+            .WithOpenApi()
+            .WithSummary("👁️ Cambiar visibilidad de producto")
+            .WithDescription("Permite activar o desactivar la visibilidad de un producto de la empresa");
         }
     }
 }

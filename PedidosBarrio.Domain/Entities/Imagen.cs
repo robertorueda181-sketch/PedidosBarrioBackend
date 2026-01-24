@@ -37,7 +37,7 @@ public partial class Imagen
 
     public DateTime? FechaRegistro { get; set; }
 
-    public bool? Activa { get; set; }
+    public bool Activa { get; set; }
 
     [StringLength(10)]
     public string? Type { get; set; }

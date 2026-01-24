@@ -100,7 +100,25 @@ namespace PedidosBarrio.Infrastructure.Data.EntityConfigurations
             builder.Property(i => i.Type).HasColumnName("Type").HasMaxLength(10);
             builder.Property(i => i.Order).HasColumnName("order").HasDefaultValue(1);
             builder.Property(i => i.FechaRegistro).HasColumnName("FechaRegistro").HasColumnType("timestamp with time zone");
-            builder.Property(i => i.Activa).HasColumnName("Activa").HasDefaultValue(true);
-        }
-    }
-}
+                        builder.Property(i => i.Activa).HasColumnName("Activa").HasDefaultValue(true);
+                    }
+                }
+
+                public class VerificarCorreoConfiguration : IEntityTypeConfiguration<VerificarCorreo>
+                {
+                    public void Configure(EntityTypeBuilder<VerificarCorreo> builder)
+                    {
+                        builder.ToTable("VerificarCorreo");
+                        builder.HasKey(v => v.VerifID);
+
+                        builder.Property(v => v.VerifID)
+                               .HasColumnName("VerifID")
+                               .UseIdentityAlwaysColumn();
+
+                        builder.Property(v => v.Correo).HasColumnName("Correo").IsRequired();
+                        builder.Property(v => v.CodigoVerif).HasColumnName("CodigoVerif").HasMaxLength(6).IsRequired();
+                        builder.Property(v => v.FechaVecimiento).HasColumnName("FechaVecimiento").IsRequired();
+                        builder.Property(v => v.FechaCreacion).HasColumnName("FechaCreacion").IsRequired();
+                    }
+                }
+            }

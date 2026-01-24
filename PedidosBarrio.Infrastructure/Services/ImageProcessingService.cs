@@ -18,7 +18,14 @@ namespace PedidosBarrio.Infrastructure.Services
         {
             _environment = environment;
             _baseImagePath = Path.Combine(_environment.WebRootPath, "images", "productos");
-            _baseImageUrl = configuration["BaseUrl"] ?? "https://localhost:7045";
+            var baseUrl = configuration["BaseUrl"] ?? "https://localhost:7045";
+            _baseImageUrl = baseUrl.TrimEnd('/');
+
+            // Si la URL base termina en /api, la quitamos para las rutas de imágenes ya que static files se sirven de la raíz
+            if (_baseImageUrl.EndsWith("/api", StringComparison.OrdinalIgnoreCase))
+            {
+                _baseImageUrl = _baseImageUrl.Substring(0, _baseImageUrl.Length - 4);
+            }
 
             // Crear directorio si no existe
             if (!Directory.Exists(_baseImagePath))
@@ -144,8 +151,11 @@ namespace PedidosBarrio.Infrastructure.Services
             if (filePath.StartsWith("http"))
                 return Task.FromResult(filePath);
 
+            // Normalizar el path: asegurar que empiece con / y no tenga dobles slashes
+            var normalizedPath = "/" + filePath.TrimStart('/').Replace("//", "/");
+
             // Si es un path relativo, construir URL completa
-            var fullUrl = $"{_baseImageUrl.TrimEnd('/')}{filePath}";
+            var fullUrl = $"{_baseImageUrl.TrimEnd('/')}{normalizedPath}";
             return Task.FromResult(fullUrl);
         }
     }

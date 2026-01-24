@@ -54,4 +54,11 @@ namespace PedidosBarrio.Application.DTOs
         public short Order { get; set; }
         public Guid EmpresaID { get; set; }
     }
+
+    public class UpdateProductoVisibleDto
+    {
+        public int ProductoID { get; set; }
+        public bool Visible { get; set; }
+    }
 }
+

@@ -114,7 +114,8 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<ICategoriaRepository, CategoriaRepository>();
             services.AddScoped<ISearchRepository, SearchRepository>();
             services.AddScoped<IMenuRepository, MenuRepository>();
-            
+            services.AddScoped<IVerificarCorreoRepository, VerificarCorreoRepository>();
+
             // Unit of Work para transacciones
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 

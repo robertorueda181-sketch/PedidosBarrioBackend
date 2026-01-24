@@ -40,6 +40,8 @@ public partial class PedidosBarrioDbContext : DbContext
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
 
+    public virtual DbSet<VerificarCorreo> VerificarCorreos { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -53,6 +55,7 @@ public partial class PedidosBarrioDbContext : DbContext
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.PrecioConfiguration());
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.ConfiguracionConfiguration());
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.ImagenConfiguration());
+        modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.VerificarCorreoConfiguration());
 
         // Configuraciones de otras entidades se manejan por Data Annotations en el Dominio
 

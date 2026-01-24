@@ -35,6 +35,7 @@ namespace PedidosBarrio.Application.Queries.GetAllNegocios
             {
                 var imagenes = await _imagenRepository.GetByProductoIdAsync(dto.NegocioID, "NEG");
                 var principal = imagenes.FirstOrDefault();
+
                 if (principal != null && !string.IsNullOrEmpty(principal.URLImagen))
                 {
                     dto.UrlImagen = await _imageProcessingService.GetImageUrlAsync(principal.URLImagen);

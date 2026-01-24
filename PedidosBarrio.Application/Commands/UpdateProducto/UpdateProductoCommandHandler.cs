@@ -173,7 +173,7 @@ namespace PedidosBarrio.Application.Commands.UpdateProducto
                             URLImagen = i.URLImagen ?? string.Empty,
                             Descripcion = i.Descripcion ?? string.Empty,
                             FechaRegistro = i.FechaRegistro ?? DateTime.Now,
-                            Activa = i.Activa ?? false,
+                            Activa = i.Activa,
                             Type = i.Type ?? string.Empty,
                             Order = i.Order,
                             EmpresaID = i.EmpresaID ?? Guid.Empty

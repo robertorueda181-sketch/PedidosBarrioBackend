@@ -52,10 +52,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Servir archivos estáticos desde wwwroot (default)
-app.UseStaticFiles();
-
-// Opcional: Servir también desde una carpeta 'images' en el root si existe
+// 1. Servir primero desde la carpeta 'images' del root si el path empieza con /images
 var externalImagesPath = Path.Combine(builder.Environment.ContentRootPath, "images");
 if (Directory.Exists(externalImagesPath))
 {
@@ -65,6 +62,9 @@ if (Directory.Exists(externalImagesPath))
         RequestPath = "/images"
     });
 }
+
+// 2. Servir archivos estáticos desde wwwroot (default) para el resto (incluye wwwroot/images)
+app.UseStaticFiles();
 
 // Usar CORS
 app.UseCors("AllowAngular");
@@ -91,5 +91,6 @@ app.MapInmuebleEndpoints();
 app.MapNegocioEndpoints();
 app.MapSearchEndpoints();
 app.MapConfiguracionEndpoints();
+app.MapVerificacionEndpoints();
 
 app.Run();

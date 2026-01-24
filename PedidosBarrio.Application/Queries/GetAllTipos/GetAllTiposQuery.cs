@@ -5,7 +5,6 @@ namespace PedidosBarrio.Application.Queries.GetAllTipos
 {
     public class GetAllTiposQuery : IRequest<IEnumerable<TipoDto>>
     {
-        public string Tipo { get; set; }
         public string Param { get; set; }
     }
 }

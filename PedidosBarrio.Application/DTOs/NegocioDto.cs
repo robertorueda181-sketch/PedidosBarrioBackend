@@ -7,6 +7,11 @@ namespace PedidosBarrio.Application.DTOs
         public int TiposID { get; set; }
         public string URLNegocio { get; set; }
         public string Descripcion { get; set; }
-        public string UrlImagen { get; set; }
-    }
-}
+                public string UrlImagen { get; set; }
+
+                public override string ToString()
+                {
+                    return $"NegocioID: {NegocioID}, EmpresaID: {EmpresaID}, TiposID: {TiposID}, URLNegocio: {URLNegocio}, Descripcion: {Descripcion}, UrlImagen: {UrlImagen}";
+                }
+            }
+        }

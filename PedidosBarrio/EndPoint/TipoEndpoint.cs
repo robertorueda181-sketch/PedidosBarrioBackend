@@ -34,12 +34,10 @@ namespace PedidosBarrio.Api.EndPoint
 
         private static async Task<IResult> GetAllTipos(
             IMediator mediator,
-            [Microsoft.AspNetCore.Mvc.FromQuery] string? tipo = null,
             [Microsoft.AspNetCore.Mvc.FromQuery] string? param = null)
         {
             var query = new GetAllTiposQuery
             {
-                Tipo = tipo,
                 Param = param
             };
             var tipos = await mediator.Send(query);

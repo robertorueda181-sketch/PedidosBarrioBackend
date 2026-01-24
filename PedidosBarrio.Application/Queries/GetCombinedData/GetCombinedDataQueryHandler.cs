@@ -120,7 +120,7 @@ namespace PedidosBarrio.Application.Queries.GetCombinedData
                                 URLImagen = img.Urlimagen,
                                 Descripcion = img.Descripcion ?? string.Empty,
                                 FechaRegistro = img.FechaRegistro ?? DateTime.Now,
-                                Activa = img.Activa ?? true,
+                                Activa = img.Activa,
                                 Type = img.Type ?? "PRODUCT",
                                 Order = img.Order,
                                 EmpresaID = img.EmpresaID ?? Guid.Empty

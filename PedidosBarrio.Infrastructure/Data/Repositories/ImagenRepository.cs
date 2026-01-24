@@ -20,7 +20,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         public async Task<IEnumerable<Imagen>> GetByEmpresaIdAsync(Guid empresaId)
         {
             return await _context.Imagenes
-                .Where(i => i.EmpresaID == empresaId && (i.Activa ?? true))
+                .Where(i => i.EmpresaID == empresaId && i.Activa)
                 .OrderBy(i => i.Order)
                 .ToListAsync();
         }
@@ -32,8 +32,10 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
 
         public async Task<IEnumerable<Imagen>> GetByProductoIdAsync(int productoId, string tipo = "PRODUCT")
         {
+            Console.WriteLine($"el tipo es {tipo}");
+            Console.WriteLine(tipo);
             return await _context.Imagenes
-                .Where(i => i.ExternalId == productoId && i.Type == tipo && (i.Activa ?? true))
+                .Where(i => i.ExternalId == productoId && i.Type == tipo && (i.Activa))
                 .OrderBy(i => i.Order)
                 .ToListAsync();
         }
@@ -41,7 +43,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         public async Task<Imagen> GetPrincipalByProductoIdAsync(int productoId)
         {
             return await _context.Imagenes
-                .Where(i => i.ExternalId == productoId && i.Type == "PRODUCT" && (i.Activa ?? true))
+                .Where(i => i.ExternalId == productoId && i.Type == "PRODUCT" && i.Activa)
                 .OrderBy(i => i.Order)
                 .FirstOrDefaultAsync();
         }
@@ -69,7 +71,6 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             if (!imagen.FechaRegistro.HasValue || imagen.FechaRegistro.Value.Kind != DateTimeKind.Utc) 
                 imagen.FechaRegistro = DateTime.UtcNow;
 
-            if (!imagen.Activa.HasValue) imagen.Activa = true;
             if (string.IsNullOrEmpty(imagen.Type)) imagen.Type = "PRODUCT"; // Default if needed
 
             await base.AddAsync(imagen);
