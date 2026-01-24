@@ -22,6 +22,8 @@ public partial class PedidosBarrioDbContext : DbContext
 
     public virtual DbSet<Inmueble> Inmuebles { get; set; }
 
+    public virtual DbSet<IaModeracionLog> IaModeracionLogs { get; set; }
+
     public virtual DbSet<Log> Logs { get; set; }
 
     public virtual DbSet<Menu> Menus { get; set; }

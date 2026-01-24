@@ -3,13 +3,17 @@ using PedidosBarrio.Domain.Entities;
 using PedidosBarrio.Domain.Repositories;
 using PedidosBarrio.Infrastructure.Data.Contexts;
 using PedidosBarrio.Infrastructure.Data.Repositories.Base;
+using PedidosBarrio.Application.Services;
 
 namespace PedidosBarrio.Infrastructure.Data.Repositories
 {
     public class EmpresaRepository : EfCoreRepository<Empresa>, IEmpresaRepository
     {
-        public EmpresaRepository(PedidosBarrioDbContext context) : base(context)
+        private readonly IPiiEncryptionService _encryptionService;
+
+        public EmpresaRepository(PedidosBarrioDbContext context, IPiiEncryptionService encryptionService) : base(context)
         {
+            _encryptionService = encryptionService;
         }
 
         public async Task<Empresa> GetByIdAsync(Guid id)
@@ -19,10 +23,12 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
 
         public async Task<Empresa> GetByEmailAsync(string email)
         {
-            // Join con Usuarios porque Empresa no tiene Email mapeado directamente
+            var encryptedEmail = _encryptionService.Encrypt(email);
+
+            // Join con Usuarios por el email encriptado
             var query = from e in _context.Empresas
-                        join u in _context.Usuarios on e.UsuarioID equals u.UsuarioId
-                        where u.Email == email
+                        join u in _context.Usuarios on e.UsuarioID equals u.ID
+                        where u.Email == encryptedEmail
                         select e;
 
             return await query.FirstOrDefaultAsync();

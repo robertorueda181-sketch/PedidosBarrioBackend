@@ -22,10 +22,7 @@ namespace PedidosBarrio.Application.Validator
             // Validar nombre de usuario solo si no es Google
             When(x => string.IsNullOrEmpty(x.Provider), () =>
             {
-                RuleFor(x => x.NombreUsuario)
-                    .NotEmpty().WithMessage("Nombre de usuario requerido para registro sin Google")
-                    .MinimumLength(3).WithMessage("Nombre de usuario debe tener al menos 3 caracteres")
-                    .MaximumLength(50).WithMessage("Nombre de usuario no puede exceder 50 caracteres");
+
 
                 RuleFor(x => x.Contrasena)
                     .NotEmpty().WithMessage("Contraseña requerida para registro sin Google")

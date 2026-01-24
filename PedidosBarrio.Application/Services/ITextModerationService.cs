@@ -4,6 +4,6 @@ namespace PedidosBarrio.Application.Services
 {
     public interface ITextModerationService
     {
-        Task<TextModerationResponseDto> ModerateTextAsync(string text, string model = "text-moderation-latest");
+        Task<TextModerationResponseDto> ModerateTextAsync(string text, string model = "omni-moderation-latest");
     }
 }

@@ -97,6 +97,9 @@ namespace PedidosBarrio.Infrastructure.IoC
             // Email Service
             services.AddScoped<IEmailService, SmtpEmailService>();
 
+            // PII Encryption Service
+            services.AddScoped<IPiiEncryptionService, AesPiiEncryptionService>();
+
             // Subscription Authorization Service (temporal sin ISuscripcionRepository)
             services.AddScoped<ISubscriptionAuthorizationService, SubscriptionAuthorizationService>();
 
@@ -115,6 +118,7 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<ISearchRepository, SearchRepository>();
             services.AddScoped<IMenuRepository, MenuRepository>();
             services.AddScoped<IVerificarCorreoRepository, VerificarCorreoRepository>();
+            services.AddScoped<IIaModeracionLogRepository, IaModeracionLogRepository>();
 
             // Unit of Work para transacciones
             services.AddScoped<IUnitOfWork, UnitOfWork>();

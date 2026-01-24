@@ -3,6 +3,8 @@ using MediatR;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Logging;
 using PedidosBarrio.Application.Services;
+using PedidosBarrio.Domain.Entities;
+using PedidosBarrio.Domain.Repositories;
 
 namespace PedidosBarrio.Application.Commands.ModerateText
 {
@@ -11,15 +13,21 @@ namespace PedidosBarrio.Application.Commands.ModerateText
         private readonly ITextModerationService _textModerationService;
         private readonly IApplicationLogger _logger;
         private readonly IValidator<ModerateTextCommand> _validator;
+        private readonly IIaModeracionLogRepository _iaModeracionLogRepository;
+        private readonly ICurrentUserService _currentUserService;
 
         public ModerateTextCommandHandler(
             ITextModerationService textModerationService,
             IApplicationLogger logger,
-            IValidator<ModerateTextCommand> validator)
+            IValidator<ModerateTextCommand> validator,
+            IIaModeracionLogRepository iaModeracionLogRepository,
+            ICurrentUserService currentUserService)
         {
             _textModerationService = textModerationService;
             _logger = logger;
             _validator = validator;
+            _iaModeracionLogRepository = iaModeracionLogRepository;
+            _currentUserService = currentUserService;
         }
 
         public async Task<TextModerationResponseDto> Handle(ModerateTextCommand command, CancellationToken cancellationToken)
@@ -46,6 +54,28 @@ namespace PedidosBarrio.Application.Commands.ModerateText
                 await _logger.LogInformationAsync(
                     $"Moderación completada - Apropiado: {result.IsAppropriate}, Flagged: {result.Flagged}, Score: {result.HighestScore:F3}",
                     "ModerateTextCommand");
+
+                // ===== GUARDAR LOG DE IA SI HAY UNA EMPRESA ASOCIADA =====
+                try
+                {
+                    var empresaId = _currentUserService.GetEmpresaId();
+                    if (empresaId != Guid.Empty)
+                    {
+                        var iaLog = new IaModeracionLog
+                        {
+                            EmpresaID = empresaId,
+                            EsTexto = true,
+                            Apropiado = result.IsAppropriate,
+                            Evaluacion = result.IsAppropriate ? "Contenido apropiado" : $"Marcado: {string.Join(", ", result.ViolationCategories)}",
+                            FechaRegistro = DateTime.UtcNow
+                        };
+                        await _iaModeracionLogRepository.AddAsync(iaLog);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await _logger.LogWarningAsync($"Error al guardar log de IA en base de datos: {ex.Message}", "ModerateTextCommand");
+                }
 
                 return result;
             }

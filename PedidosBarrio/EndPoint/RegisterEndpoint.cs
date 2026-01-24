@@ -32,7 +32,6 @@ namespace PedidosBarrio.Api.EndPoint
                 email: request.Email,
                 nombre: request.Nombre,
                 apellido: request.Apellido,
-                nombreUsuario: request.NombreUsuario,
                 contrasena: request.Contrasena,
                 nombreEmpresa: request.NombreEmpresa,
                 tipoEmpresa: request.TipoEmpresa,

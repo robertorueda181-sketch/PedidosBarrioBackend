@@ -23,6 +23,7 @@ namespace PedidosBarrio.Application.Commands.Login
         private readonly IJwtTokenService _jwtTokenService;
         private readonly IApplicationLogger _logger;
         private readonly IConfiguration _configuration;
+        private readonly IPiiEncryptionService _encryptionService;
         private readonly LoginDtoValidator _validator;
 
         public LoginCommandHandler(
@@ -30,13 +31,15 @@ namespace PedidosBarrio.Application.Commands.Login
             IEmpresaRepository empresaRepository,
             IJwtTokenService jwtTokenService,
             IApplicationLogger logger,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IPiiEncryptionService encryptionService)
         {
             _usuarioRepository = usuarioRepository;
             _empresaRepository = empresaRepository;
             _jwtTokenService = jwtTokenService;
             _logger = logger;
             _configuration = configuration;
+            _encryptionService = encryptionService;
             _validator = new LoginDtoValidator();
         }
 
@@ -45,7 +48,7 @@ namespace PedidosBarrio.Application.Commands.Login
             try
             {
                 await _logger.LogInformationAsync(
-                    $"Intento de login: {command.Email} - Provider: {command.Provider ?? "usuario/contraseña"}",
+                    $"Intento de login: {_encryptionService.Encrypt(command.Email)} - Provider: {command.Provider ?? "usuario/contraseña"}",
                     "LoginCommand");
 
                 // ===== 1. BUSCAR USUARIO POR EMAIL =====
@@ -64,7 +67,7 @@ namespace PedidosBarrio.Application.Commands.Login
                         throw new ApplicationException("No se ha registrado");
                     }
                     await _logger.LogWarningAsync(
-                    $"Intento de login fallido - Usuario no encontrado: {command.Email}",
+                    $"Intento de login fallido - Usuario no encontrado: {_encryptionService.Encrypt(command.Email)}",
                     "LoginCommand");
                     throw new ApplicationException("Email o contraseña inválidos.");
                 }
@@ -75,7 +78,7 @@ namespace PedidosBarrio.Application.Commands.Login
                     // Login por usuario/contraseña
                     await ValidarCredencialesUsuarioContrasena(usuario, command.Contrasena);
                     await _logger.LogInformationAsync(
-                        $"Login exitoso por usuario/contraseña: {usuario.Email}",
+                        $"Login exitoso por usuario/contraseña: {_encryptionService.Encrypt(usuario.Email)}",
                         "LoginCommand");
                 }
                 else if (command.Provider == "google")
@@ -89,7 +92,7 @@ namespace PedidosBarrio.Application.Commands.Login
                     // TODO: Validar IdToken con Google en producción
                     // Por ahora, solo verificamos que el usuario exista
                     await _logger.LogInformationAsync(
-                        $"Login exitoso por Google: {command.Email}",
+                        $"Login exitoso por Google: {_encryptionService.Encrypt(command.Email)}",
                         "LoginCommand");
                 }
                 else
@@ -196,3 +199,4 @@ namespace PedidosBarrio.Application.Commands.Login
         }
     }
 }
+

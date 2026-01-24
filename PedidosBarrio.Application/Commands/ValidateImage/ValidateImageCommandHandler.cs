@@ -4,6 +4,8 @@ using MediatR;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Logging;
 using PedidosBarrio.Application.Services;
+using PedidosBarrio.Domain.Entities;
+using PedidosBarrio.Domain.Repositories;
 
 namespace PedidosBarrio.Application.Commands.ValidateImage
 {
@@ -12,15 +14,21 @@ namespace PedidosBarrio.Application.Commands.ValidateImage
         private readonly IImageModerationService _imageModerationService;
         private readonly IApplicationLogger _logger;
         private readonly IValidator<ValidateImageCommand> _validator;
+        private readonly IIaModeracionLogRepository _iaModeracionLogRepository;
+        private readonly ICurrentUserService _currentUserService;
 
         public ValidateImageCommandHandler(
             IImageModerationService imageModerationService,
             IApplicationLogger logger,
-            IValidator<ValidateImageCommand> validator)
+            IValidator<ValidateImageCommand> validator,
+            IIaModeracionLogRepository iaModeracionLogRepository,
+            ICurrentUserService currentUserService)
         {
             _imageModerationService = imageModerationService;
             _logger = logger;
             _validator = validator;
+            _iaModeracionLogRepository = iaModeracionLogRepository;
+            _currentUserService = currentUserService;
         }
 
         public async Task<ImageValidationResponseDto> Handle(ValidateImageCommand command, CancellationToken cancellationToken)
@@ -59,6 +67,28 @@ namespace PedidosBarrio.Application.Commands.ValidateImage
                 await _logger.LogInformationAsync(
                     $"Validación completada - Apropiada: {result.IsAppropriate}, Confianza: {result.ConfidenceScore:P}",
                     "ValidateImageCommand");
+
+                // ===== GUARDAR LOG DE IA SI HAY UNA EMPRESA ASOCIADA =====
+                try
+                {
+                    var empresaId = _currentUserService.GetEmpresaId();
+                    if (empresaId != Guid.Empty)
+                    {
+                        var iaLog = new IaModeracionLog
+                        {
+                            EmpresaID = empresaId,
+                            EsTexto = false,
+                            Apropiado = result.IsAppropriate,
+                            Evaluacion = result.IsAppropriate ? $"Apropiada (Confianza: {result.ConfidenceScore:P})" : $"Marcada: {string.Join(", ", result.ViolationReasons)}",
+                            FechaRegistro = DateTime.UtcNow
+                        };
+                        await _iaModeracionLogRepository.AddAsync(iaLog);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await _logger.LogWarningAsync($"Error al guardar log de IA en base de datos: {ex.Message}", "ValidateImageCommand");
+                }
 
                 return result;
             }

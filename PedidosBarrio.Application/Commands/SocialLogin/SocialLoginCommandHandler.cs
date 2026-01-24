@@ -20,19 +20,22 @@ namespace PedidosBarrio.Application.Commands.SocialLogin
         private readonly IJwtTokenService _jwtTokenService;
         private readonly IApplicationLogger _logger;
         private readonly IConfiguration _configuration;
+        private readonly IPiiEncryptionService _encryptionService;
 
         public SocialLoginCommandHandler(
             IUsuarioRepository usuarioRepository,
             IEmpresaRepository empresaRepository,
             IJwtTokenService jwtTokenService,
             IApplicationLogger logger,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IPiiEncryptionService encryptionService)
         {
             _usuarioRepository = usuarioRepository;
             _empresaRepository = empresaRepository;
             _jwtTokenService = jwtTokenService;
             _logger = logger;
             _configuration = configuration;
+            _encryptionService = encryptionService;
         }
 
         public async Task<SocialLoginResponseDto> Handle(SocialLoginCommand request, CancellationToken cancellationToken)
@@ -40,7 +43,7 @@ namespace PedidosBarrio.Application.Commands.SocialLogin
             try
             {
                 await _logger.LogInformationAsync(
-                    $"Iniciando login social: {request.Provider} - {request.Email}",
+                    $"Iniciando login social: {request.Provider} - {_encryptionService.Encrypt(request.Email)}",
                     "SocialLoginCommand");
 
                 // Obtener minutos de expiración del token desde appsettings
@@ -57,14 +60,9 @@ namespace PedidosBarrio.Application.Commands.SocialLogin
                 {
                     // Usuario no existe, registrarlo
                     await _logger.LogInformationAsync(
-                        $"Nuevo usuario social: {request.Email} ({request.Provider})",
+                        $"Nuevo usuario social: {_encryptionService.Encrypt(request.Email)} ({request.Provider})",
                         "SocialLoginCommand");
 
-                    // Generar username basado en email
-                    var username = request.Email.Split('@')[0];
-                    var counter = 1;
-                    var originalUsername = username;
-                    
                     // Crear usuario sin contraseña (login social)
                     usuario = new Usuario(
                         email: request.Email,
@@ -79,14 +77,14 @@ namespace PedidosBarrio.Application.Commands.SocialLogin
                     esNuevoUsuario = true;
 
                     await _logger.LogInformationAsync(
-                        $"Usuario social registrado: {usuario.ID} - {request.Email}",
+                        $"Usuario social registrado: {usuario.ID} - {_encryptionService.Encrypt(request.Email)}",
                         "SocialLoginCommand");
                 }
                 else
                 {
                     // Usuario existe, solo loguear
                     await _logger.LogInformationAsync(
-                        $"Login social exitoso: {usuario.ID} - {request.Email}",
+                        $"Login social exitoso: {usuario.ID} - {_encryptionService.Encrypt(request.Email)}",
                         "SocialLoginCommand");
                 }
 

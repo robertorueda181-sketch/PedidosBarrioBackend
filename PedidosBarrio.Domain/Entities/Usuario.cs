@@ -10,15 +10,15 @@ public partial class Usuario
 {
     public Usuario() { }
 
-    public Usuario( string email, string contrasenaHash, string contrasenaSalt)
+    public Usuario(string email, string contrasenaHash, string contrasenaSalt)
     {
         ID = Guid.NewGuid();
         Email = email;
         ContrasenaHash = contrasenaHash;
-            ContrasenaSalt = contrasenaSalt;
-            FechaRegistro = DateTime.UtcNow;
-            Activa = true;
-        }
+        ContrasenaSalt = contrasenaSalt;
+        FechaRegistro = DateTime.UtcNow;
+        Activa = true;
+    }
 
     [Key]
     [Column("UsuarioID")]
@@ -33,7 +33,7 @@ public partial class Usuario
     [NotMapped]
     public bool Activo { get => Activa ?? false; set => Activa = value; }
 
-    [StringLength(255)]
+    [StringLength(512)]
     public string Email { get; set; } = null!;
 
     [StringLength(255)]
@@ -46,10 +46,10 @@ public partial class Usuario
 
     public bool? Activa { get; set; }
 
-    [StringLength(50)]
+    [StringLength(512)]
     public string? SocialId { get; set; }
 
-        [StringLength(50)]
+        [StringLength(8)]
         public string? Provider { get; set; }
 
         [InverseProperty("Usuario")]

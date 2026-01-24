@@ -24,6 +24,7 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
         private readonly IUsuarioRepository _usuarioRepository;
         private readonly IEmpresaRepository _empresaRepository;
         private readonly ISuscripcionRepository _suscripcionRepository;
+        private readonly IIaModeracionLogRepository _iaModeracionLogRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMediator _mediator;
         private readonly IJwtTokenService _jwtTokenService;
@@ -32,11 +33,13 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
         private readonly IEmailService _emailService;
         private readonly IValidator<RegisterSocialCommand> _validator;
         private readonly ITextModerationService _moderationService;
+        private readonly IPiiEncryptionService _encryptionService;
 
         public RegisterSocialCommandHandler(
             IUsuarioRepository usuarioRepository,
             IEmpresaRepository empresaRepository,
             ISuscripcionRepository suscripcionRepository,
+            IIaModeracionLogRepository iaModeracionLogRepository,
             IUnitOfWork unitOfWork,
             IMediator mediator,
             IJwtTokenService jwtTokenService,
@@ -44,11 +47,13 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
             IConfiguration configuration,
             IEmailService emailService,
             IValidator<RegisterSocialCommand> validator,
-            ITextModerationService moderationService)
+            ITextModerationService moderationService,
+            IPiiEncryptionService encryptionService)
         {
             _usuarioRepository = usuarioRepository;
             _empresaRepository = empresaRepository;
             _suscripcionRepository = suscripcionRepository;
+            _iaModeracionLogRepository = iaModeracionLogRepository;
             _unitOfWork = unitOfWork;
             _mediator = mediator;
             _jwtTokenService = jwtTokenService;
@@ -57,6 +62,7 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
             _emailService = emailService;
             _validator = validator;
             _moderationService = moderationService;
+            _encryptionService = encryptionService;
         }
 
         public async Task<LoginResponseDto> Handle(RegisterSocialCommand request, CancellationToken cancellationToken)
@@ -69,13 +75,13 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
                 {
                     var errors = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage));
                     await _logger.LogWarningAsync(
-                        $"Validación fallida en registro: {errors} - Email: {request.Email}",
+                        $"Validación fallida en registro: {errors} - Email: {_encryptionService.Encrypt(request.Email)}",
                         "RegisterSocialCommand");
                     throw new ValidationException(validationResult.Errors);
                 }
 
                 await _logger.LogInformationAsync(
-                    $"Iniciando registro: {request.Email} - Tipo: {request.TipoEmpresa} - {request.Provider ?? "usuario/contraseña"}",
+                    $"Iniciando registro: {_encryptionService.Encrypt(request.Email)} - Tipo: {request.TipoEmpresa} - {request.Provider ?? "usuario/contraseña"}",
                     "RegisterSocialCommand");
 
                 // ===== EJECUTAR EN TRANSACCIÓN =====
@@ -110,7 +116,7 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
             if (usuarioExistente != null)
             {
                 await _logger.LogWarningAsync(
-                    $"Email ya registrado en usuarios: {request.Email}",
+                    $"Email ya registrado en usuarios: {_encryptionService.Encrypt(request.Email)}",
                     "RegisterSocialCommand");
                 throw new ApplicationException($"El email {request.Email} ya está registrado.");
             }
@@ -128,43 +134,49 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
                 contrasenaSalt = salt;
             }
 
-                var usuario = new Usuario(
-                    email: request.Email,
-                    contrasenaHash: contrasenaHash,
-                    contrasenaSalt: contrasenaSalt)
-                {
-                    Activa = true,
-                    FechaRegistro = DateTime.UtcNow,
-                    Provider = request.Provider,
-                    SocialId = request.SocialId
-                };
+            var usuario = new Usuario(
+                email: request.Email,
+                contrasenaHash: contrasenaHash,
+                contrasenaSalt: contrasenaSalt)
+            {
+                Activa = true,
+                FechaRegistro = DateTime.UtcNow,
+                Provider = request.Provider,
+                SocialId = request.SocialId
+            };
 
             await _usuarioRepository.AddAsync(usuario);
 
             // ===== 3.1 EVALUAR CONTENIDO CON AI =====
             bool autoAprobado = false;
+            string evaluacionAi = "No se pudo realizar la moderación";
             try
             {
                 var textToModerate = $"{request.Email} {request.Nombre} {request.Apellido} {request.NombreEmpresa} {request.Descripcion} {request.Direccion} {request.Referencia}";
                 var moderationResult = await _moderationService.ModerateTextAsync(textToModerate);
                 autoAprobado = moderationResult.IsAppropriate;
+                
+                evaluacionAi = autoAprobado 
+                    ? "Contenido apropiado" 
+                    : $"Marcado por: {string.Join(", ", moderationResult.ViolationCategories)}";
 
                 if (autoAprobado)
                 {
                     await _logger.LogInformationAsync(
-                        $"Contenido validado por AI: El registro de {request.Email} ha sido auto-aprobado.",
+                        $"Contenido validado por AI: El registro de {_encryptionService.Encrypt(request.Email)} ha sido auto-aprobado.",
                         "RegisterSocialCommand");
                 }
                 else
                 {
                     await _logger.LogWarningAsync(
-                        $"Contenido marcado por AI para revisión: {string.Join(", ", moderationResult.ViolationCategories)}",
+                        $"Contenido marcado por AI para revisión: {evaluacionAi}",
                         "RegisterSocialCommand");
                 }
             }
             catch (Exception ex)
             {
                 await _logger.LogErrorAsync("Error al moderar texto con AI", ex, "RegisterSocialCommand");
+                evaluacionAi = $"Error en moderación: {ex.Message}";
             }
 
             // ===== 4. CREAR EMPRESA =====
@@ -175,7 +187,26 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
             await _empresaRepository.AddAsync(empresa);
             usuario.EmpresaID = empresa.ID;
 
-            // ===== 4.1 CREAR SUSCRIPCIÓN GRATUITA (NIVEL 1) =====
+            // ===== 4.1 GUARDAR LOG DE IA =====
+            try
+            {
+                var iaLog = new IaModeracionLog
+                {
+                    EmpresaID = empresa.ID,
+                    EsTexto = true,
+                    Apropiado = autoAprobado,
+                    Evaluacion = evaluacionAi,
+                    FechaRegistro = DateTime.UtcNow
+                };
+                await _iaModeracionLogRepository.AddAsync(iaLog);
+            }
+            catch (Exception ex)
+            {
+                // No fallar el registro si el log de IA falla
+                await _logger.LogErrorAsync("Error al guardar log de moderación IA", ex, "RegisterSocialCommand");
+            }
+
+            // ===== 4.2 CREAR SUSCRIPCIÓN GRATUITA (NIVEL 1) =====
             var suscripcion = new Suscripcion(empresa.ID, 0, null)
             {
                 NivelSuscripcion = 1, // Free
@@ -266,7 +297,7 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
             };
 
             await _logger.LogInformationAsync(
-                $"Registro completado exitosamente: {usuario.Email} - Tipo: {tipoEmpresaStr}",
+                $"Registro completado exitosamente: {_encryptionService.Encrypt(usuario.Email)} - Tipo: {tipoEmpresaStr}",
                 "RegisterSocialCommand");
 
             // ===== 9. ENVIAR EMAIL DE BIENVENIDA Y EVALUACIÓN =====
@@ -282,13 +313,13 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
                 if (emailEnviado)
                 {
                     await _logger.LogInformationAsync(
-                        $"Email de bienvenida enviado exitosamente a: {usuario.Email}",
+                        $"Email de bienvenida enviado exitosamente a: {_encryptionService.Encrypt(usuario.Email)}",
                         "RegisterSocialCommand");
                 }
                 else
                 {
                     await _logger.LogWarningAsync(
-                        $"No se pudo enviar email de bienvenida a: {usuario.Email}",
+                        $"No se pudo enviar email de bienvenida a: {_encryptionService.Encrypt(usuario.Email)}",
                         "RegisterSocialCommand");
                 }
             }
@@ -296,7 +327,7 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
             {
                 // No fallar el registro si el email falla
                 await _logger.LogErrorAsync(
-                    $"Error al enviar email de bienvenida a {usuario.Email}: {emailEx.Message}",
+                    $"Error al enviar email de bienvenida a {_encryptionService.Encrypt(usuario.Email)}: {emailEx.Message}",
                     emailEx,
                     "RegisterSocialCommand");
             }
@@ -305,3 +336,4 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
         }
     }
 }
+

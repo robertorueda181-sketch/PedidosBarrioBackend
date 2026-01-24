@@ -35,7 +35,6 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
             string email,
             string nombre,
             string apellido,
-            string nombreUsuario,
             string contrasena,
             string nombreEmpresa,
             short tipoEmpresa,

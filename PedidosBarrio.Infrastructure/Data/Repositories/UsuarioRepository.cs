@@ -3,13 +3,31 @@ using PedidosBarrio.Domain.Entities;
 using PedidosBarrio.Domain.Repositories;
 using PedidosBarrio.Infrastructure.Data.Contexts;
 using PedidosBarrio.Infrastructure.Data.Repositories.Base;
+using PedidosBarrio.Application.Services;
 
 namespace PedidosBarrio.Infrastructure.Data.Repositories
 {
     public class UsuarioRepository : EfCoreRepository<Usuario>, IUsuarioRepository
     {
-        public UsuarioRepository(PedidosBarrioDbContext context) : base(context)
+        private readonly IPiiEncryptionService _encryptionService;
+
+        public UsuarioRepository(PedidosBarrioDbContext context, IPiiEncryptionService encryptionService) : base(context)
         {
+            _encryptionService = encryptionService;
+        }
+
+        private void EncryptUser(Usuario user)
+        {
+            if (user == null) return;
+            user.Email = _encryptionService.Encrypt(user.Email);
+            user.SocialId = _encryptionService.Encrypt(user.SocialId);
+        }
+
+        private void DecryptUser(Usuario user)
+        {
+            if (user == null) return;
+            user.Email = _encryptionService.Decrypt(user.Email);
+            user.SocialId = _encryptionService.Decrypt(user.SocialId);
         }
 
         public async Task<Usuario?> GetByIdAsync(Guid id)
@@ -18,9 +36,13 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                 .Include(u => u.Empresas)
                 .FirstOrDefaultAsync(u => u.ID == id);
 
-            if (user != null && user.Empresas.Any())
+            if (user != null)
             {
-                user.EmpresaID = user.Empresas.First().ID;
+                DecryptUser(user);
+                if (user.Empresas.Any())
+                {
+                    user.EmpresaID = user.Empresas.First().ID;
+                }
             }
 
             return user;
@@ -28,20 +50,31 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
 
         public async Task<Usuario> GetByEmailAsync(string email)
         {
+            var encryptedEmail = _encryptionService.Encrypt(email);
             var user = await _context.Usuarios
                 .Include(u => u.Empresas)
-                .FirstOrDefaultAsync(u => u.Email == email);
+                .FirstOrDefaultAsync(u => u.Email == encryptedEmail);
 
-            if (user != null && user.Empresas.Any())
+            if (user != null)
             {
-                user.EmpresaID = user.Empresas.First().ID;
+                DecryptUser(user);
+                if (user.Empresas.Any())
+                {
+                    user.EmpresaID = user.Empresas.First().ID;
+                }
             }
 
             return user;
         }
-        public async Task<IEnumerable<Usuario>> GetAllAsync()
+
+        public new async Task<IEnumerable<Usuario>> GetAllAsync()
         {
-            return await base.GetAllAsync();
+            var users = await _context.Usuarios.ToListAsync();
+            foreach (var user in users)
+            {
+                DecryptUser(user);
+            }
+            return users;
         }
 
         public async Task<IEnumerable<Usuario>> GetByEmpresaIdAsync(Guid empresaID)
@@ -64,33 +97,47 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
 
         public async Task AddAsync(Usuario usuario)
         {
-            if (usuario.UsuarioId == Guid.Empty) usuario.UsuarioId = Guid.NewGuid();
+            if (usuario.ID == Guid.Empty) usuario.ID = Guid.NewGuid();
             if (!usuario.FechaRegistro.HasValue) usuario.FechaRegistro = DateTime.UtcNow;
 
-            // Usuario tiene campo Activa? Check Usuario.cs
-            // No vi campo Activa en Turn 20 output.
-            // Wait, output in Turn 20 showed ONLY properties until FechaRegistro.
-            // I'll assume Activa is not there or I should check.
-            // Error log didn't complain about Activa in Usuario.
-            // But I will safeguard.
+            var emailPlain = usuario.Email;
+            var socialIdPlain = usuario.SocialId;
 
-            await base.AddAsync(usuario);
+            // Encrypt for saving
+            usuario.Email = _encryptionService.Encrypt(emailPlain);
+            usuario.SocialId = _encryptionService.Encrypt(socialIdPlain);
+
+            await _context.Usuarios.AddAsync(usuario);
+            await _context.SaveChangesAsync();
+
+            // Restore in-memory values for continued use in the transaction/app
+            usuario.Email = emailPlain;
+            usuario.SocialId = socialIdPlain;
+
+            // IMPORTANT: Tell EF the state in memory is what matches the DB (vía snapshot)
+            // or just detach/mark unchanged so subsequent SaveChanges don't overwrite DB with plain text.
+            _context.Entry(usuario).State = EntityState.Unchanged;
         }
 
         public async Task UpdateAsync(Usuario usuario)
         {
-            var existing = await GetByIdAsync(usuario.ID);
+            var existing = await _context.Usuarios.FirstOrDefaultAsync(u => u.ID == usuario.ID);
             if (existing != null)
             {
-                existing.Email = usuario.Email;
+                existing.Email = _encryptionService.Encrypt(usuario.Email);
+                existing.SocialId = _encryptionService.Encrypt(usuario.SocialId);
                 existing.Activa = usuario.Activa;
                 await _context.SaveChangesAsync();
+
+                // Decrypt existing so it stays usable if tracked
+                DecryptUser(existing);
+                _context.Entry(existing).State = EntityState.Unchanged;
             }
         }
 
         public async Task DeleteAsync(Guid id)
         {
-            var usuario = await GetByIdAsync(id);
+            var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.ID == id);
             if (usuario != null)
             {
                 usuario.Activa = false;
