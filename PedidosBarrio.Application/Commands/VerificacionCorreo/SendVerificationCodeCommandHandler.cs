@@ -34,24 +34,29 @@ namespace PedidosBarrio.Application.Commands.VerificacionCorreo
 
             await _repository.AddAsync(verif);
 
+            // Obtener template de correo
+            var template = await _emailService.GetTemplateAsync("VerificationCode");
+            string emailBody;
+
+            if (!string.IsNullOrEmpty(template))
+            {
+                emailBody = template
+                    .Replace("{{CODE}}", code)
+                    .Replace("{{YEAR}}", DateTime.Now.Year.ToString());
+            }
+            else
+            {
+                // Fallback en caso de que no se encuentre el archivo
+                emailBody = $"Su código de verificación es: {code}";
+            }
+
             // Enviar correo
             var emailRequest = new EmailRequestDto
             {
                 To = request.Correo,
                 ToName = "Usuario",
-                Subject = "Código de verificación - Espacio Online",
-                Body = $@"
-                    <div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #ddd; padding: 20px;'>
-                        <h2 style='color: #007bff; text-align: center;'>Espacio Online</h2>
-                        <p>Hola,</p>
-                        <p>Has solicitado un código de verificación para tu cuenta. Por favor, utiliza el siguiente código para completar el proceso:</p>
-                        <div style='background-color: #f8f9fa; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; border-radius: 5px; margin: 20px 0;'>
-                            {code}
-                        </div>
-                        <p style='color: #666; font-size: 14px;'>Este código es válido por 15 minutos.</p>
-                        <hr style='border: 0; border-top: 1px solid #eee; margin: 20px 0;'>
-                        <p style='text-align: center; color: #999; font-size: 12px;'>Este es un mensaje automático, por favor no respondas a este correo.</p>
-                    </div>",
+                Subject = "🔐 Código de verificación - Espacio Online",
+                Body = emailBody,
                 IsHtml = true
             };
 

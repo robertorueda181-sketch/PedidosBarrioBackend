@@ -17,7 +17,6 @@ namespace PedidosBarrio.Application.Validator
                 .MaximumLength(100).WithMessage("El nombre no puede exceder 100 caracteres");
 
             RuleFor(x => x.Apellido)
-                .NotEmpty().WithMessage("Apellido requerido")
                 .MaximumLength(100).WithMessage("El apellido no puede exceder 100 caracteres");
 
             // Validar nombre de usuario solo si no es Google
@@ -31,8 +30,7 @@ namespace PedidosBarrio.Application.Validator
                 RuleFor(x => x.Contrasena)
                     .NotEmpty().WithMessage("Contraseña requerida para registro sin Google")
                     .MinimumLength(6).WithMessage("Contraseña debe tener al menos 6 caracteres")
-                    .MaximumLength(100).WithMessage("Contraseña no puede exceder 100 caracteres")
-                    .Matches(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)").WithMessage("Contraseña debe contener mayúscula, minúscula y número");
+                    .MaximumLength(100).WithMessage("Contraseña no puede exceder 100 caracteres");
             });
 
             // DATOS DE EMPRESA
@@ -54,8 +52,8 @@ namespace PedidosBarrio.Application.Validator
             });
 
             RuleFor(x => x.Telefono)
-                .NotEmpty().WithMessage("Teléfono requerido")
-                .Matches(@"^\+?[0-9]{7,15}$").WithMessage("Teléfono inválido (7-15 dígitos, puede incluir +)");
+                .Matches(@"^\+?[0-9]{7,15}$").WithMessage("Teléfono inválido (7-15 dígitos, puede incluir +)")
+                .When(x => !string.IsNullOrEmpty(x.Telefono));
 
             RuleFor(x => x.Descripcion)
                 .MaximumLength(500).WithMessage("Descripción no puede exceder 500 caracteres");

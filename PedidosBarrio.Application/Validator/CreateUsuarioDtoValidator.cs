@@ -15,8 +15,7 @@ namespace PedidosBarrio.Application.Validator
             RuleFor(dto => dto.NombreUsuario)
                 .NotEmpty().WithMessage("El nombre de usuario no puede estar vacío.")
                 .MinimumLength(3).WithMessage("El nombre de usuario debe tener al menos 3 caracteres.")
-                .MaximumLength(50).WithMessage("El nombre de usuario no puede exceder los 50 caracteres.")
-                .MustAsync(NombreUsuarioNotExist).WithMessage("El nombre de usuario ya está registrado.");
+                .MaximumLength(50).WithMessage("El nombre de usuario no puede exceder los 50 caracteres.");
 
             RuleFor(dto => dto.Email)
                 .NotEmpty().WithMessage("El email es obligatorio.")
@@ -48,22 +47,6 @@ namespace PedidosBarrio.Application.Validator
         private bool ContainsSpecialCharacter(string password)
         {
             return password.Any(c => !char.IsLetterOrDigit(c));
-        }
-
-        private async Task<bool> NombreUsuarioNotExist(string nombreUsuario, CancellationToken cancellationToken)
-        {
-            if (string.IsNullOrWhiteSpace(nombreUsuario))
-                return true;
-
-            try
-            {
-                var usuario = await _usuarioRepository.GetByNombreUsuarioAsync(nombreUsuario);
-                return usuario == null;
-            }
-            catch
-            {
-                return true;
-            }
         }
 
         private async Task<bool> EmailNotExist(string email, CancellationToken cancellationToken)

@@ -123,8 +123,7 @@ namespace PedidosBarrio.Application.Commands.Login
                 {
                     UsuarioID = usuario.ID,
                     Email = usuario.Email,
-                    NombreUsuario = usuario.NombreUsuario,
-                    NombreCompleto = usuario.NombreUsuario,
+                    NombreCompleto = "",
                     EmpresaID = usuario.EmpresaID,
                     NombreEmpresa = "Sin empresa",
                     TipoEmpresa = tipoEmpresaStr,

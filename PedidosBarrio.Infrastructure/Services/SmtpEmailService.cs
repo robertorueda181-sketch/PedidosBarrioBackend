@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Logging;
@@ -12,11 +13,33 @@ namespace PedidosBarrio.Infrastructure.Services
     {
         private readonly IConfiguration _configuration;
         private readonly IApplicationLogger _logger;
+        private readonly IWebHostEnvironment _environment;
 
-        public SmtpEmailService(IConfiguration configuration, IApplicationLogger logger)
+        public SmtpEmailService(IConfiguration configuration, IApplicationLogger logger, IWebHostEnvironment environment)
         {
             _configuration = configuration;
             _logger = logger;
+            _environment = environment;
+        }
+
+        public async Task<string> GetTemplateAsync(string templateName)
+        {
+            try
+            {
+                var templatePath = Path.Combine(_environment.ContentRootPath, "Templates", $"{templateName}.html");
+                if (File.Exists(templatePath))
+                {
+                    return await File.ReadAllTextAsync(templatePath);
+                }
+                
+                await _logger.LogWarningAsync($"Template {templateName} not found at {templatePath}", "EmailService");
+                return string.Empty;
+            }
+            catch (Exception ex)
+            {
+                await _logger.LogErrorAsync($"Error reading template {templateName}: {ex.Message}", ex, "EmailService");
+                return string.Empty;
+            }
         }
 
         public async Task<bool> SendEmailAsync(EmailRequestDto emailRequest)
@@ -80,13 +103,27 @@ namespace PedidosBarrio.Infrastructure.Services
         {
             try
             {
-                var emailBody = GenerateWelcomeEmailTemplate(userName, businessName, businessType);
+                var template = await GetTemplateAsync("WelcomeEmail");
+                string emailBody;
+
+                if (!string.IsNullOrEmpty(template))
+                {
+                    emailBody = template
+                        .Replace("{{USER_NAME}}", userName)
+                        .Replace("{{BUSINESS_NAME}}", businessName)
+                        .Replace("{{BUSINESS_TYPE}}", businessType.ToLower())
+                        .Replace("{{YEAR}}", DateTime.Now.Year.ToString());
+                }
+                else
+                {
+                    emailBody = GenerateWelcomeEmailTemplate(userName, businessName, businessType);
+                }
 
                 var emailRequest = new EmailRequestDto
                 {
                     To = toEmail,
                     ToName = userName,
-                    Subject = "¡Bienvenido a PedidosBarrio! - Tu registro está siendo evaluado",
+                    Subject = "¡Bienvenido a Espacio Online! - Tu registro está siendo evaluado",
                     Body = emailBody,
                     IsHtml = true
                 };
@@ -105,13 +142,27 @@ namespace PedidosBarrio.Infrastructure.Services
 
         public async Task<bool> SendBusinessEvaluationEmailAsync(string toEmail, string userName, string businessName, string businessType)
         {
-            var emailBody = GenerateEvaluationEmailTemplate(userName, businessName, businessType);
-            
+            var template = await GetTemplateAsync("WelcomeEmail");
+            string emailBody;
+
+            if (!string.IsNullOrEmpty(template))
+            {
+                emailBody = template
+                    .Replace("{{USER_NAME}}", userName)
+                    .Replace("{{BUSINESS_NAME}}", businessName)
+                    .Replace("{{BUSINESS_TYPE}}", businessType.ToLower())
+                    .Replace("{{YEAR}}", DateTime.Now.Year.ToString());
+            }
+            else
+            {
+                emailBody = GenerateEvaluationEmailTemplate(userName, businessName, businessType);
+            }
+
             var emailRequest = new EmailRequestDto
             {
                 To = toEmail,
                 ToName = userName,
-                Subject = $"Tu {businessType.ToLower()} está siendo evaluado - PedidosBarrio",
+                Subject = $"Tu {businessType.ToLower()} está siendo evaluado - Espacio Online",
                 Body = emailBody,
                 IsHtml = true
             };
@@ -135,7 +186,7 @@ namespace PedidosBarrio.Infrastructure.Services
             html.AppendLine("<head>");
             html.AppendLine("    <meta charset='UTF-8'>");
             html.AppendLine("    <meta name='viewport' content='width=device-width, initial-scale=1.0'>");
-            html.AppendLine("    <title>Bienvenido a PedidosBarrio</title>");
+            html.AppendLine("    <title>Bienvenido a Espacio Online</title>");
             html.AppendLine("    <style>");
             html.AppendLine("        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }");
             html.AppendLine("        .header { background-color: #2196F3; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }");
@@ -149,14 +200,14 @@ namespace PedidosBarrio.Infrastructure.Services
             html.AppendLine("<body>");
 
             html.AppendLine("    <div class='header'>");
-            html.AppendLine("        <h1>🎉 ¡Bienvenido a PedidosBarrio!</h1>");
+            html.AppendLine("        <h1>🎉 ¡Bienvenido a Espacio Online!</h1>");
             html.AppendLine("        <p>Tu registro ha sido recibido exitosamente</p>");
             html.AppendLine("    </div>");
 
             html.AppendLine("    <div class='content'>");
             html.AppendLine($"        <h2>Hola {userName},</h2>");
-            html.AppendLine($"        <p>¡Gracias por registrar <strong>'{businessName}'</strong> en PedidosBarrio!</p>");
-            
+            html.AppendLine($"        <p>¡Gracias por registrar <strong>'{businessName}'</strong> en Espacio Online!</p>");
+
             html.AppendLine("        <div class='highlight'>");
             html.AppendLine("            <h3>📋 Proceso de Evaluación</h3>");
             html.AppendLine($"            <p>Tu {tipoNegocioTexto} está actualmente siendo evaluado por nuestro equipo siguiendo nuestras políticas de calidad y seguridad.</p>");
@@ -185,16 +236,16 @@ namespace PedidosBarrio.Infrastructure.Services
             html.AppendLine("        <h3>📞 ¿Necesitas ayuda?</h3>");
             html.AppendLine("        <p>Si tienes alguna pregunta, no dudes en contactarnos:</p>");
             html.AppendLine("        <ul>");
-            html.AppendLine("            <li>📧 Email: soporte@pedidosbarrio.com</li>");
-            html.AppendLine("            <li>📱 WhatsApp: +57 300 123 4567</li>");
+            html.AppendLine("            <li>📧 Email: soporte@espacioonline.net</li>");
+            html.AppendLine("            <li>📱 WhatsApp: +57 300 000 0000</li>");
             html.AppendLine("        </ul>");
 
-            html.AppendLine("        <p>¡Gracias por formar parte de la comunidad PedidosBarrio!</p>");
-            html.AppendLine("        <p><strong>El equipo de PedidosBarrio</strong></p>");
+            html.AppendLine("        <p>¡Gracias por formar parte de la comunidad Espacio Online!</p>");
+            html.AppendLine("        <p><strong>El equipo de Espacio Online</strong></p>");
             html.AppendLine("    </div>");
 
             html.AppendLine("    <div class='footer'>");
-            html.AppendLine("        <p>&copy; 2024 PedidosBarrio. Todos los derechos reservados.</p>");
+            html.AppendLine($"        <p>&copy; {DateTime.Now.Year} Espacio Online. Todos los derechos reservados.</p>");
             html.AppendLine("        <p>Este correo fue enviado automáticamente. Por favor, no respondas a este email.</p>");
             html.AppendLine("    </div>");
 

@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
@@ -12,10 +10,9 @@ public partial class Usuario
 {
     public Usuario() { }
 
-    public Usuario(string nombreUsuario, string email, string contrasenaHash, string contrasenaSalt)
+    public Usuario( string email, string contrasenaHash, string contrasenaSalt)
     {
         ID = Guid.NewGuid();
-        NombreUsuario = nombreUsuario;
         Email = email;
         ContrasenaHash = contrasenaHash;
             ContrasenaSalt = contrasenaSalt;
@@ -36,9 +33,6 @@ public partial class Usuario
     [NotMapped]
     public bool Activo { get => Activa ?? false; set => Activa = value; }
 
-    [StringLength(100)]
-    public string NombreUsuario { get; set; } = null!;
-
     [StringLength(255)]
     public string Email { get; set; } = null!;
 
@@ -55,7 +49,7 @@ public partial class Usuario
     [StringLength(50)]
     public string? SocialId { get; set; }
 
-        [StringLength(8)]
+        [StringLength(50)]
         public string? Provider { get; set; }
 
         [InverseProperty("Usuario")]

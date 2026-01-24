@@ -15,10 +15,12 @@ public partial class Suscripcion
     {
         EmpresaID = empresaID;
         Monto = monto;
-        FechaFin = fechaFin;
-        FechaInicio = DateTime.Now;
+        FechaFin = fechaFin?.Kind == DateTimeKind.Unspecified 
+            ? DateTime.SpecifyKind(fechaFin.Value, DateTimeKind.Utc) 
+            : fechaFin?.ToUniversalTime();
+        FechaInicio = DateTime.UtcNow;
         Activa = true;
-        FechaRegistro = DateTime.Now;
+        FechaRegistro = DateTime.UtcNow;
     }
 
     [Key]

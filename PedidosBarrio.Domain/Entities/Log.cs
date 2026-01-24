@@ -20,7 +20,7 @@ public partial class Log
 
     public DateTime? Timestamp { get; set; }
 
-    [StringLength(10)]
+    [StringLength(20)]
     public string Level { get; set; } = null!;
 
     [StringLength(255)]

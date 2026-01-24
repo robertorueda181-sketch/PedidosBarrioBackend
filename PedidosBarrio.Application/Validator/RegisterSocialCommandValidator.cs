@@ -25,16 +25,8 @@ namespace PedidosBarrio.Application.Validator
 
             // Validaciones de apellido
             RuleFor(x => x.Apellido)
-                .NotEmpty()
-                .WithMessage("El apellido es requerido")
                 .MaximumLength(100)
                 .WithMessage("El apellido no puede exceder los 100 caracteres");
-
-            // Validaciones de nombre de usuario
-            RuleFor(x => x.NombreUsuario)
-                .MaximumLength(50)
-                .WithMessage("El nombre de usuario no puede exceder los 50 caracteres")
-                .When(x => !string.IsNullOrEmpty(x.NombreUsuario));
 
             // Validaciones de nombre de empresa
             RuleFor(x => x.NombreEmpresa)
@@ -45,8 +37,6 @@ namespace PedidosBarrio.Application.Validator
 
             // Validaciones de descripción
             RuleFor(x => x.Descripcion)
-                .NotEmpty()
-                .WithMessage("La descripción es requerida")
                 .MaximumLength(1000)
                 .WithMessage("La descripción no puede exceder los 1000 caracteres");
 
@@ -59,17 +49,14 @@ namespace PedidosBarrio.Application.Validator
 
             // Validaciones de teléfono
             RuleFor(x => x.Telefono)
-                .NotEmpty()
-                .WithMessage("El teléfono es requerido")
                 .Matches(@"^[+]?[\d\s\-\(\)]+$")
                 .WithMessage("El teléfono debe tener un formato válido")
                 .MaximumLength(20)
-                .WithMessage("El teléfono no puede exceder los 20 caracteres");
+                .WithMessage("El teléfono no puede exceder los 20 caracteres")
+                .When(x => !string.IsNullOrEmpty(x.Telefono));
 
             // Validaciones de dirección
             RuleFor(x => x.Direccion)
-                .NotEmpty()
-                .WithMessage("La dirección es requerida")
                 .MaximumLength(300)
                 .WithMessage("La dirección no puede exceder los 300 caracteres");
 
@@ -91,12 +78,10 @@ namespace PedidosBarrio.Application.Validator
                 RuleFor(x => x.Contrasena)
                     .NotEmpty()
                     .WithMessage("La contraseña es requerida para registro sin Google")
-                    .MinimumLength(8)
-                    .WithMessage("La contraseña debe tener al menos 8 caracteres")
+                    .MinimumLength(6)
+                    .WithMessage("La contraseña debe tener al menos 6 caracteres")
                     .MaximumLength(100)
-                    .WithMessage("La contraseña no puede exceder los 100 caracteres")
-                    .Matches(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)")
-                    .WithMessage("La contraseña debe contener al menos una minúscula, una mayúscula y un número");
+                    .WithMessage("La contraseña no puede exceder los 100 caracteres");
             });
 
             // Validaciones para registro con Google

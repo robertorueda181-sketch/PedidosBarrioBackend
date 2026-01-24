@@ -1,76 +1,78 @@
 using System;
 using System.Data;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using PedidosBarrio.Domain.Repositories;
-using PedidosBarrio.Infrastructure.Data.Common;
+using PedidosBarrio.Infrastructure.Data.Contexts;
 
 namespace PedidosBarrio.Infrastructure.Data.Repositories
 {
     /// <summary>
-    /// Implementación del patrón Unit of Work para transacciones
+    /// Implementación del patrón Unit of Work para transacciones usando Entity Framework Core
     /// </summary>
     public class UnitOfWork : IUnitOfWork
     {
-        private readonly IDbConnectionProvider _connectionProvider;
+        private readonly PedidosBarrioDbContext _context;
 
-        public UnitOfWork(IDbConnectionProvider connectionProvider)
+        public UnitOfWork(PedidosBarrioDbContext context)
         {
-            _connectionProvider = connectionProvider;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         public async Task<T> ExecuteInTransactionAsync<T>(
             Func<Task<T>> operation,
             IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
         {
-            using (var connection = _connectionProvider.CreateConnection())
+            if (_context.Database.CurrentTransaction != null)
             {
-                connection.Open();
-                using (var transaction = connection.BeginTransaction(isolationLevel))
-                {
-                    try
-                    {
-                        var result = await operation();
-                        transaction.Commit();
-                        return result;
-                    }
-                    catch (Exception)
-                    {
-                        transaction.Rollback();
-                        throw;
-                    }
-                    finally
-                    {
-                        connection.Close();
-                    }
-                }
+                return await operation();
             }
+
+            var strategy = _context.Database.CreateExecutionStrategy();
+
+            return await strategy.ExecuteAsync(async () =>
+            {
+                using var transaction = await _context.Database.BeginTransactionAsync(isolationLevel);
+                try
+                {
+                    var result = await operation();
+                    await transaction.CommitAsync();
+                    return result;
+                }
+                catch (Exception)
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
         }
 
         public async Task ExecuteInTransactionAsync(
             Func<Task> operation,
             IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
         {
-            using (var connection = _connectionProvider.CreateConnection())
+            if (_context.Database.CurrentTransaction != null)
             {
-                connection.Open();
-                using (var transaction = connection.BeginTransaction(isolationLevel))
-                {
-                    try
-                    {
-                        await operation();
-                        transaction.Commit();
-                    }
-                    catch (Exception)
-                    {
-                        transaction.Rollback();
-                        throw;
-                    }
-                    finally
-                    {
-                        connection.Close();
-                    }
-                }
+                await operation();
+                return;
             }
+
+            var strategy = _context.Database.CreateExecutionStrategy();
+
+            await strategy.ExecuteAsync(async () =>
+            {
+                using var transaction = await _context.Database.BeginTransactionAsync(isolationLevel);
+                try
+                {
+                    await operation();
+                    await transaction.CommitAsync();
+                }
+                catch (Exception)
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
         }
     }
 }

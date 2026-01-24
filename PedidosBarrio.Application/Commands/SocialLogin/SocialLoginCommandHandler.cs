@@ -65,16 +65,8 @@ namespace PedidosBarrio.Application.Commands.SocialLogin
                     var counter = 1;
                     var originalUsername = username;
                     
-                    // Evitar duplicados de username
-                    while (await _usuarioRepository.GetByNombreUsuarioAsync(username) != null)
-                    {
-                        username = $"{originalUsername}{counter}";
-                        counter++;
-                    }
-
                     // Crear usuario sin contraseña (login social)
                     usuario = new Usuario(
-                        nombreUsuario: username,
                         email: request.Email,
                         contrasenaHash: "", // No hay contraseña para login social
                         contrasenaSalt: "") // Usuario sin empresa asociada inicialmente
@@ -109,7 +101,6 @@ namespace PedidosBarrio.Application.Commands.SocialLogin
                 {
                     UsuarioID = usuario.ID,
                     Email = usuario.Email,
-                    NombreUsuario = usuario.NombreUsuario,
                     NombreCompleto = $"{request.FirstName} {request.LastName}",
                     EmpresaID = usuario.EmpresaID,
                     Provider = request.Provider,

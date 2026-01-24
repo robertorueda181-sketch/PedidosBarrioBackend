@@ -45,7 +45,7 @@ if (app.Environment.IsDevelopment())
     {
         // Apunta al endpoint correcto de tu documento Swagger/OpenAPI
         // Si AddSwaggerGen usa "v1", entonces aquí también debe ser "v1"
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Mi API de Empresas v1");
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Espacio Online API v1");
         c.RoutePrefix = "swagger"; // La URL base para Swagger UI (ej. https://localhost:7045/swagger)
     });
 }

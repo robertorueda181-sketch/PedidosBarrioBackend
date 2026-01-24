@@ -5,9 +5,9 @@ namespace PedidosBarrio.Application.Queries.GetSuscripcionesByEmpresa
 {
     public class GetSuscripcionesByEmpresaQuery : IRequest<IEnumerable<SuscripcionDto>>
     {
-        public int EmpresaID { get; set; }
+        public Guid EmpresaID { get; set; }
 
-        public GetSuscripcionesByEmpresaQuery(int empresaID)
+        public GetSuscripcionesByEmpresaQuery(Guid empresaID)
         {
             EmpresaID = empresaID;
         }

@@ -23,6 +23,7 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
     {
         private readonly IUsuarioRepository _usuarioRepository;
         private readonly IEmpresaRepository _empresaRepository;
+        private readonly ISuscripcionRepository _suscripcionRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMediator _mediator;
         private readonly IJwtTokenService _jwtTokenService;
@@ -30,20 +31,24 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
         private readonly IConfiguration _configuration;
         private readonly IEmailService _emailService;
         private readonly IValidator<RegisterSocialCommand> _validator;
+        private readonly ITextModerationService _moderationService;
 
         public RegisterSocialCommandHandler(
             IUsuarioRepository usuarioRepository,
             IEmpresaRepository empresaRepository,
+            ISuscripcionRepository suscripcionRepository,
             IUnitOfWork unitOfWork,
             IMediator mediator,
             IJwtTokenService jwtTokenService,
             IApplicationLogger logger,
             IConfiguration configuration,
             IEmailService emailService,
-            IValidator<RegisterSocialCommand> validator)
+            IValidator<RegisterSocialCommand> validator,
+            ITextModerationService moderationService)
         {
             _usuarioRepository = usuarioRepository;
             _empresaRepository = empresaRepository;
+            _suscripcionRepository = suscripcionRepository;
             _unitOfWork = unitOfWork;
             _mediator = mediator;
             _jwtTokenService = jwtTokenService;
@@ -51,6 +56,7 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
             _configuration = configuration;
             _emailService = emailService;
             _validator = validator;
+            _moderationService = moderationService;
         }
 
         public async Task<LoginResponseDto> Handle(RegisterSocialCommand request, CancellationToken cancellationToken)
@@ -123,7 +129,6 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
             }
 
                 var usuario = new Usuario(
-                    nombreUsuario: request.NombreUsuario ?? request.Email.Split('@')[0],
                     email: request.Email,
                     contrasenaHash: contrasenaHash,
                     contrasenaSalt: contrasenaSalt)
@@ -136,10 +141,47 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
 
             await _usuarioRepository.AddAsync(usuario);
 
+            // ===== 3.1 EVALUAR CONTENIDO CON AI =====
+            bool autoAprobado = false;
+            try
+            {
+                var textToModerate = $"{request.Email} {request.Nombre} {request.Apellido} {request.NombreEmpresa} {request.Descripcion} {request.Direccion} {request.Referencia}";
+                var moderationResult = await _moderationService.ModerateTextAsync(textToModerate);
+                autoAprobado = moderationResult.IsAppropriate;
+
+                if (autoAprobado)
+                {
+                    await _logger.LogInformationAsync(
+                        $"Contenido validado por AI: El registro de {request.Email} ha sido auto-aprobado.",
+                        "RegisterSocialCommand");
+                }
+                else
+                {
+                    await _logger.LogWarningAsync(
+                        $"Contenido marcado por AI para revisión: {string.Join(", ", moderationResult.ViolationCategories)}",
+                        "RegisterSocialCommand");
+                }
+            }
+            catch (Exception ex)
+            {
+                await _logger.LogErrorAsync("Error al moderar texto con AI", ex, "RegisterSocialCommand");
+            }
+
             // ===== 4. CREAR EMPRESA =====
-            var empresa = new Empresa(usuario.ID, request.TipoEmpresa);
+            var empresa = new Empresa(usuario.ID, request.TipoEmpresa)
+            {
+                Aprobado = autoAprobado
+            };
             await _empresaRepository.AddAsync(empresa);
             usuario.EmpresaID = empresa.ID;
+
+            // ===== 4.1 CREAR SUSCRIPCIÓN GRATUITA (NIVEL 1) =====
+            var suscripcion = new Suscripcion(empresa.ID, 0, null)
+            {
+                NivelSuscripcion = 1, // Free
+                FechaFin = null // Sin vencimiento
+            };
+            await _suscripcionRepository.AddAsync(suscripcion);
 
             // ===== 5. CREAR REGISTRO ESPECÍFICO SEGÚN TIPO DE EMPRESA =====
             switch (request.TipoEmpresa)
@@ -211,7 +253,6 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
             {
                 UsuarioID = usuario.ID,
                 Email = usuario.Email,
-                NombreUsuario = usuario.NombreUsuario,
                 NombreCompleto = $"{request.Nombre} {request.Apellido}",
                 EmpresaID = empresa.ID,
                 NombreEmpresa = request.NombreEmpresa,

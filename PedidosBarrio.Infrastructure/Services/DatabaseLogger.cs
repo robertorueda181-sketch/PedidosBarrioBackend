@@ -24,14 +24,14 @@ namespace PedidosBarrio.Infrastructure.Services
             _currentUserService = currentUserService;
         }
 
-        public async Task LogInformationAsync(string message, string category = "Information")
+        public async Task LogInformationAsync(string message, string category = "Info")
         {
-            await LogAsync("Information", message, null, category);
+            await LogAsync("Info", message, null, category);
         }
 
-        public async Task LogWarningAsync(string message, string category = "Warning")
+        public async Task LogWarningAsync(string message, string category = "Warn")
         {
-            await LogAsync("Warning", message, null, category);
+            await LogAsync("Warn", message, null, category);
         }
 
         public async Task LogErrorAsync(string message, Exception exception = null, string category = "Error")

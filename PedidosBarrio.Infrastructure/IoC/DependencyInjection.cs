@@ -78,7 +78,7 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddHttpClient<OpenAITextModerationService>(client =>
             {
                 client.Timeout = TimeSpan.FromSeconds(30); // Timeout de 30 segundos
-                client.DefaultRequestHeaders.Add("User-Agent", "PedidosBarrio/1.0");
+                client.DefaultRequestHeaders.Add("User-Agent", "EspacioOnline/1.0");
             });
 
             // Registrar servicios en cadena: OpenAI -> Cache -> Hybrid

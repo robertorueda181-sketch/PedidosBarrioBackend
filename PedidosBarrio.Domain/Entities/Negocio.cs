@@ -20,6 +20,8 @@ public partial class Negocio
         Urlnegocio = urlNegocio;
         Descripcion = descripcion;
         Urlopcional = urlOpcional;
+        FechaRegistro = DateTime.UtcNow;
+        Activa = true;
     }
 
     [Key]

@@ -22,6 +22,8 @@ public partial class Inmueble
         Dormitorios = dormitorios;
         Banos = banos;
         Descripcion = descripcion;
+        FechaRegistro = DateTime.UtcNow;
+        Activa = true;
     }
 
     [Key]

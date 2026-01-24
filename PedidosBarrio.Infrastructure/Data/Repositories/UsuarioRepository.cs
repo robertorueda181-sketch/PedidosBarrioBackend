@@ -39,21 +39,6 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
 
             return user;
         }
-
-        public async Task<Usuario?> GetByNombreUsuarioAsync(string nombreUsuario)
-        {
-            var user = await _context.Usuarios
-                .Include(u => u.Empresas)
-                .FirstOrDefaultAsync(u => u.NombreUsuario == nombreUsuario);
-
-            if (user != null && user.Empresas.Any())
-            {
-                user.EmpresaID = user.Empresas.First().ID;
-            }
-
-            return user;
-        }
-
         public async Task<IEnumerable<Usuario>> GetAllAsync()
         {
             return await base.GetAllAsync();
@@ -97,7 +82,6 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             var existing = await GetByIdAsync(usuario.ID);
             if (existing != null)
             {
-                existing.NombreUsuario = usuario.NombreUsuario;
                 existing.Email = usuario.Email;
                 existing.Activa = usuario.Activa;
                 await _context.SaveChangesAsync();

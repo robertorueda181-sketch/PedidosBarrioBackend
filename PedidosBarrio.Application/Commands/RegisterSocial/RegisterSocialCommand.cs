@@ -13,7 +13,6 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
         public string Email { get; set; }
         public string Nombre { get; set; }
         public string Apellido { get; set; }
-        public string NombreUsuario { get; set; }
         public string Contrasena { get; set; } // Null/empty si es Google
         
         // ===== DATOS DE EMPRESA =====
@@ -52,7 +51,6 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
             Email = email;
             Nombre = nombre;
             Apellido = apellido;
-            NombreUsuario = nombreUsuario;
             Contrasena = contrasena;
             NombreEmpresa = nombreEmpresa;
             TipoEmpresa = tipoEmpresa;

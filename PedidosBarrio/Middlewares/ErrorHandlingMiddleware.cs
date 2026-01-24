@@ -121,30 +121,37 @@ namespace PedidosBarrio.Api.Middlewares
                     break;
             }
 
-            context.Response.StatusCode = (int)statusCode;
+                context.Response.StatusCode = (int)statusCode;
 
-            var responseBody = new
+                var responseBody = new
+                {
+                    error = message,
+                    status = (int)statusCode,
+                    timestamp = DateTime.UtcNow,
+                    path = context.Request.Path,
+                    method = context.Request.Method,
+                    exceptionType = exceptionType,
+                    detail = GetDeepestExceptionMessage(exception),
+                    errors
+                };
+
+                var result = JsonSerializer.Serialize(responseBody, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+
+                await context.Response.WriteAsync(result);
+            }
+
+            private string GetDeepestExceptionMessage(Exception ex)
             {
-                error = message,
-                status = (int)statusCode,
-                timestamp = DateTime.UtcNow,
-                path = context.Request.Path,
-                method = context.Request.Method,
-                exceptionType = exceptionType,
-                errors
-            };
+                if (ex.InnerException == null) return ex.Message;
+                return GetDeepestExceptionMessage(ex.InnerException);
+            }
 
-            var result = JsonSerializer.Serialize(responseBody, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
-
-            await context.Response.WriteAsync(result);
-        }
-
-        /// <summary>
-        /// Detecta si una excepción es relacionada con base de datos
-        /// </summary>
+            /// <summary>
+            /// Detecta si una excepción es relacionada con base de datos
+            /// </summary>
         private bool IsDataBaseException(ApplicationException appException)
         {
             if (appException.InnerException == null)
