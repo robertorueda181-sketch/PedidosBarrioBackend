@@ -17,6 +17,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         public async Task<IEnumerable<Tipo>> GetByCategoriaAsync(string param)
         {
             return await _context.Tipos
+                .AsNoTracking()
                 .Where(t => (param == null || t.Parametro == param) &&
                             t.Activa)
                 .OrderBy(t => t.Tipo1)
@@ -25,8 +26,19 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
 
         public async Task<IEnumerable<Tipo>> GetTiposPorParametroAsync()
         {
+            var searchParams = new List<string> { "Tipo_Ser", "Tipo_Neg" , "Tipo_Inm"};
+
             return await _context.Tipos
-                .FromSqlRaw("SELECT * from public.fn_get_tipos_por_parametro()")
+                .AsNoTracking()
+                .Where(t => searchParams.Contains(t.Parametro!))
+                .Select(t => new { t.Tipo1, t.Icono })
+                .Distinct()
+                .OrderBy(x => x.Tipo1)
+                .Select(x => new Tipo
+                {
+                    Tipo1 = x.Tipo1,
+                    Icono = x.Icono
+                })
                 .ToListAsync();
         }
     }

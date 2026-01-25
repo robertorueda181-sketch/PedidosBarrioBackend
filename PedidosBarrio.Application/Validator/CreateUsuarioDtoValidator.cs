@@ -12,11 +12,6 @@ namespace PedidosBarrio.Application.Validator
         {
             _usuarioRepository = usuarioRepository;
 
-            RuleFor(dto => dto.NombreUsuario)
-                .NotEmpty().WithMessage("El nombre de usuario no puede estar vacío.")
-                .MinimumLength(3).WithMessage("El nombre de usuario debe tener al menos 3 caracteres.")
-                .MaximumLength(50).WithMessage("El nombre de usuario no puede exceder los 50 caracteres.");
-
             RuleFor(dto => dto.Email)
                 .NotEmpty().WithMessage("El email es obligatorio.")
                 .EmailAddress().WithMessage("El email debe ser válido.")

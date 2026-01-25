@@ -13,7 +13,7 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
         public string Email { get; set; }
         public string Nombre { get; set; }
         public string Apellido { get; set; }
-        public string Contrasena { get; set; } // Null/empty si es Google
+        public string Contrasena { get; set; } = string.Empty; // Null/empty si es Google
         
         // ===== DATOS DE EMPRESA =====
         public string NombreEmpresa { get; set; }

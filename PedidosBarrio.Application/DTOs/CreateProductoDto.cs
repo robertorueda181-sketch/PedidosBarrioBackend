@@ -19,7 +19,7 @@ namespace PedidosBarrio.Application.DTOs
 
     public class PrecioCreateDto
     {
-        public decimal Precio { get; set; }
+        public decimal PrecioValor { get; set; }
         public string Descripcion { get; set; } = ""; // Ej: "Precio unitario", "Precio por mayor"
         public int? CantidadMinima { get; set; } // Cantidad mínima para aplicar este precio
         public string Modalidad { get; set; } = "GENERAL"; // GENERAL, DELIVERY, PICKUP, etc.

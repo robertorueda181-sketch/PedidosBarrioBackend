@@ -110,6 +110,7 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<ISuscripcionRepository, SuscripcionRepository>();
             services.AddScoped<IProductoRepository, ProductoRepository>();
             services.AddScoped<IPrecioRepository, PrecioRepository>();
+            services.AddScoped<IPresentacionRepository, PresentacionRepository>();
             services.AddScoped<IImagenRepository, ImagenRepository>();
             services.AddScoped<ITipoRepository, TipoRepository>();
             services.AddScoped<IInmuebleRepository, InmuebleRepository>();

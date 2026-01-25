@@ -23,7 +23,7 @@ namespace PedidosBarrio.Application.Commands.UpdateProductoVisible
             var empresaId = _currentUserService.GetEmpresaId();
             
             // Buscar el producto
-            var producto = await _productoRepository.GetByIdAsync(request.ProductoID);
+            var producto = await _productoRepository.GetByIdAsync(request.ProductoID, empresaId);
             
             if (producto == null)
             {

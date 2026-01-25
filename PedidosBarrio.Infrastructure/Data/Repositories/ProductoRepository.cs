@@ -18,11 +18,12 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public async Task<Producto> GetByIdAsync(int id)
+        public async Task<Producto> GetByIdAsync(int id, Guid empresaId)
         {
             var producto = await _context.Productos
-                .Include(p => p.Precios)
-                .FirstOrDefaultAsync(p => p.ProductoID == id && (p.Activa == true));
+                .Include(p => p.Presentaciones.Where(pr => pr.EmpresaID == empresaId))
+                    .ThenInclude(pr => pr.Precios.Where(pre => pre.EmpresaID == empresaId))
+                .FirstOrDefaultAsync(p => p.ProductoID == id && p.EmpresaID == empresaId && (p.Activa == true));
 
             if (producto == null)
             {
@@ -36,7 +37,8 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             return await _context.Productos
                 .Where(p => p.EmpresaID == empresaId && (p.Activa == true))
-                .Include(p => p.Precios)
+                .Include(p => p.Presentaciones.Where(pr => pr.EmpresaID == empresaId))
+                    .ThenInclude(pr => pr.Precios.Where(pre => pre.EmpresaID == empresaId))
                 .OrderByDescending(p => p.FechaRegistro)
                 .ToListAsync();
         }
@@ -123,7 +125,8 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             return await _context.Productos
                 .Where(p => p.EmpresaID == empresaId && p.Activa == true && p.Visible == true)
-                .Include(p => p.Precios)
+                .Include(p => p.Presentaciones.Where(pr => pr.EmpresaID == empresaId))
+                    .ThenInclude(pr => pr.Precios.Where(pre => pre.EmpresaID == empresaId))
                 .OrderBy(p => p.Nombre)
                 .ToListAsync();
         }
@@ -144,9 +147,10 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                 .Where(p => p.EmpresaID == empresaId && 
                            p.Activa == true && 
                            p.Visible == true &&
-                                      (p.Nombre.ToLower().Contains(term) || 
-                                       p.Descripcion.ToLower().Contains(term)))
-                           .Include(p => p.Precios)
+                                       (p.Nombre.ToLower().Contains(term) || 
+                                        p.Descripcion.ToLower().Contains(term)))
+                           .Include(p => p.Presentaciones.Where(pr => pr.EmpresaID == empresaId))
+                               .ThenInclude(pr => pr.Precios.Where(pre => pre.EmpresaID == empresaId))
                            .OrderBy(p => p.Nombre)
                            .ToListAsync();
         }
@@ -161,7 +165,8 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                                       p.CategoriaID == categoriaId && 
                                       p.Activa == true && 
                                       p.Visible == true)
-                           .Include(p => p.Precios)
+                           .Include(p => p.Presentaciones.Where(pr => pr.EmpresaID == empresaId))
+                               .ThenInclude(pr => pr.Precios.Where(pre => pre.EmpresaID == empresaId))
                            .OrderBy(p => p.Nombre)
                            .ToListAsync();
         }
@@ -263,7 +268,8 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                 .Where(p => p.ProductoID == productoId && 
                            p.EmpresaID == empresaId && 
                            p.Activa == true)
-                .Include(p => p.Precios)
+                .Include(p => p.Presentaciones.Where(pr => pr.EmpresaID == empresaId))
+                    .ThenInclude(pr => pr.Precios.Where(pre => pre.EmpresaID == empresaId))
                 .FirstOrDefaultAsync();
         }
 
@@ -324,7 +330,8 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             // Cuando implementes ventas, puedes cambiar la lógica
             return await _context.Productos
                 .Where(p => p.EmpresaID == empresaId && p.Activa == true && p.Visible == true)
-                .Include(p => p.Precios)
+                .Include(p => p.Presentaciones.Where(pr => pr.EmpresaID == empresaId))
+                    .ThenInclude(pr => pr.Precios.Where(pre => pre.EmpresaID == empresaId))
                 .OrderBy(p => p.Nombre)
                 .Take(top)
                 .ToListAsync();

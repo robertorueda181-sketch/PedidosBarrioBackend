@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +9,7 @@ public partial class MenusTipoEmpresa
 {
     public short? TipoEmpresa { get; set; }
 
+    [Column("MenuId")]
     public short? MenuID { get; set; }
 }
 

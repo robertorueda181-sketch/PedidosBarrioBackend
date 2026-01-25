@@ -3,32 +3,59 @@ using PedidosBarrio.Domain.Entities;
 using PedidosBarrio.Domain.Repositories;
 using PedidosBarrio.Infrastructure.Data.Contexts;
 using PedidosBarrio.Infrastructure.Data.Repositories.Base;
+using Microsoft.Extensions.Configuration;
 
 namespace PedidosBarrio.Infrastructure.Data.Repositories
 {
     public class NegocioRepository : EfCoreRepository<Negocio>, INegocioRepository
     {
-        public NegocioRepository(PedidosBarrioDbContext context) : base(context)
+        private readonly string _baseUrl;
+
+        public NegocioRepository(PedidosBarrioDbContext context, IConfiguration configuration) : base(context)
         {
+            var baseUrl = configuration["BaseUrl"] ?? "";
+            _baseUrl = baseUrl.TrimEnd('/');
+            if (_baseUrl.EndsWith("/api", StringComparison.OrdinalIgnoreCase))
+            {
+                _baseUrl = _baseUrl.Substring(0, _baseUrl.Length - 4);
+            }
+        }
+
+        private void SetFullUrl(Negocio? negocio)
+        {
+            if (negocio == null) return;
+            if (!string.IsNullOrEmpty(negocio.Urlnegocio) && !negocio.Urlnegocio.StartsWith("http"))
+            {
+                negocio.Urlnegocio = $"{_baseUrl}/{negocio.Urlnegocio.TrimStart('/')}";
+            }
         }
 
         public async Task<Negocio?> GetByIdAsync(string id)
         {
+            Negocio? negocio;
             if (int.TryParse(id, out int negocioId))
             {
-                return await _context.Negocios
+                negocio = await _context.Negocios
+                    .AsNoTracking()
                     .Include(n => n.Tipos)
                     .FirstOrDefaultAsync(n => n.NegocioID == negocioId);
             }
+            else
+            {
+                negocio = await _context.Negocios
+                    .AsNoTracking()
+                    .Include(n => n.Tipos)
+                    .FirstOrDefaultAsync(n => n.Codigo == id || n.Urlnegocio == id);
+            }
 
-            return await _context.Negocios
-                .Include(n => n.Tipos)
-                .FirstOrDefaultAsync(n => n.Codigo == id || n.Urlnegocio == id);
+            SetFullUrl(negocio);
+            return negocio;
         }
 
         public async Task<Empresa?> GetByCodigoEmpresaAsync(string id)
         {
             var negocio = await _context.Negocios
+                .AsNoTracking()
                 .Include(n => n.Empresa)
                 .FirstOrDefaultAsync(n => n.Codigo == id || n.Urlnegocio == id);
 
@@ -42,17 +69,25 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
 
         public new async Task<IEnumerable<Negocio>> GetAllAsync()
         {
-            return await _context.Negocios
+            var negocios = await _context.Negocios
+                .AsNoTracking()
                 .Include(n => n.Tipos)
                 .ToListAsync();
+
+            foreach (var n in negocios) SetFullUrl(n);
+            return negocios;
         }
 
         public async Task<IEnumerable<Negocio>> GetByEmpresaIdAsync(Guid empresaId)
         {
-            return await _context.Negocios
+            var negocios = await _context.Negocios
+                .AsNoTracking()
                 .Where(n => n.EmpresaID == empresaId)
                 .Include(n => n.Tipos)
                 .ToListAsync();
+
+            foreach (var n in negocios) SetFullUrl(n);
+            return negocios;
         }
 
         public async Task<int> AddAsync(Negocio negocio)
@@ -82,6 +117,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         }
     }
 }
+
 
 
 

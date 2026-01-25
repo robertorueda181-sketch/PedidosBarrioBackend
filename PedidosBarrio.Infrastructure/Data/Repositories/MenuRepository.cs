@@ -1,27 +1,49 @@
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Threading.Tasks;
-using Dapper;
+using Microsoft.EntityFrameworkCore;
 using PedidosBarrio.Domain.Entities;
 using PedidosBarrio.Domain.Repositories;
-using PedidosBarrio.Infrastructure.Data.Common;
+using PedidosBarrio.Infrastructure.Data.Contexts;
 
 namespace PedidosBarrio.Infrastructure.Data.Repositories
 {
-    public class MenuRepository : GenericRepository, IMenuRepository
+    public class MenuRepository : IMenuRepository
     {
-        public MenuRepository(IDbConnectionProvider connectionProvider) : base(connectionProvider)
+        private readonly PedidosBarrioDbContext _context;
+
+        public MenuRepository(PedidosBarrioDbContext context)
         {
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         public async Task<IEnumerable<MenuItem>> GetMenusByEmpresaAsync(Guid empresaId)
         {
-            using (var connection = CreateConnection())
+            // Obtener el tipo de empresa
+            var empresa = await _context.Empresas
+                .AsNoTracking()
+                .Where(e => e.ID == empresaId)
+                .Select(e => new { e.TipoEmpresa })
+                .FirstOrDefaultAsync();
+
+            if (empresa == null || !empresa.TipoEmpresa.HasValue)
             {
-                var sql = "SELECT * FROM public.fn_obtener_menus_por_empresa(@p_empresa_id)";
-                return await QueryAsync<MenuItem>(connection, sql, new { p_empresa_id = empresaId }, CommandType.Text);
+                return Enumerable.Empty<MenuItem>();
             }
+
+            // Obtener los menús asociados al tipo de empresa
+            var menus = await (from m in _context.Menus.AsNoTracking()
+                               join mte in _context.MenusTipoEmpresas.AsNoTracking() on m.MenuID equals mte.MenuID
+                               where mte.TipoEmpresa == empresa.TipoEmpresa.Value
+                               orderby m.Order
+                               select new MenuItem
+                               {
+                                   MenuID = m.MenuID,
+                                   Nombre = m.Nombre ?? string.Empty,
+                                   icon = m.Icon ?? string.Empty,
+                                   codigo = m.Codigo ?? string.Empty,
+                                   padre = m.Padre ?? string.Empty,
+                                   order = m.Order
+                               }).ToListAsync();
+
+            return menus;
         }
     }
 }

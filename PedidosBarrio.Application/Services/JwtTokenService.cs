@@ -12,7 +12,7 @@ namespace PedidosBarrio.Application.Services
     /// </summary>
     public interface IJwtTokenService
     {
-        string GenerateToken(Usuario usuario, int minutosExpiracion);
+        string GenerateToken(Usuario usuario, int minutosExpiracion, string? emailOverride = null);
         string GenerateRefreshToken();
         ClaimsPrincipal? GetPrincipalFromExpiredToken(string token);
     }
@@ -38,8 +38,9 @@ namespace PedidosBarrio.Application.Services
         /// <summary>
         /// Genera un JWT token para el usuario
         /// </summary>
-        public string GenerateToken(Usuario usuario, int minutosExpiracion)
+        public string GenerateToken(Usuario usuario, int minutosExpiracion, string? emailOverride = null)
         {
+            var email = emailOverride ?? usuario.Email;
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSecret));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
@@ -47,9 +48,9 @@ namespace PedidosBarrio.Application.Services
             {
                 new Claim(ClaimTypes.NameIdentifier, usuario.ID.ToString()),
                 new Claim("UsuarioID", usuario.ID.ToString()), // Claim adicional para consistencia
-                new Claim(ClaimTypes.Email, usuario.Email),
-                new Claim(ClaimTypes.Name, usuario.Email),
-                new Claim("NombreCompleto", usuario.Email),
+                new Claim(ClaimTypes.Email, email),
+                new Claim(ClaimTypes.Name, email),
+                new Claim("NombreCompleto", email),
                 new Claim("EmpresaID", usuario.EmpresaID.ToString())
             };
 

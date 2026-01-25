@@ -11,7 +11,7 @@ namespace PedidosBarrio.Application.Commands.Login
     {
         // ===== LOGIN POR USUARIO/CONTRASEÑA =====
         public string Email { get; set; }
-        public string Contrasena { get; set; }
+        public string Contrasena { get; set; } = string.Empty;
 
         // ===== LOGIN POR GOOGLE =====
         public string Provider { get; set; } // "google" o null

@@ -10,61 +10,43 @@ public partial class Precio
 {
     public Precio() { }
 
-    public Precio(int idPrecio, int productoId, Guid empresaId, string descripcion, string tipo, decimal valor, bool principal)
+    public Precio(decimal valor, int presentacionId, Guid empresaId, bool principal = false, string? descripcion = null)
     {
-        IdPrecio = idPrecio;
-        ExternalId = productoId;
-        EmpresaID = empresaId;
         PrecioValor = valor;
+        PresentacionID = presentacionId;
+        EmpresaID = empresaId;
         Principal = principal;
-        Tipo = tipo;
         Descripcion = descripcion;
-        FechaCreacion = DateTime.Now;
-        Activo = true;
-    }
-
-    public Precio(decimal valor, int productoId, Guid empresaId)
-    {
-        PrecioValor = valor;
-        ExternalId = productoId;
-        EmpresaID = empresaId;
-        Principal = true;
-        FechaCreacion = DateTime.Now;
-        Activo = true;
     }
 
     [Key]
+    [Column("IdPrecio")]
     public int IdPrecio { get; set; }
-
-    [NotMapped]
-    public bool EsPrincipal { get => Principal; set => Principal = value; }
-
-    [NotMapped]
-    public bool Activo { get; set; } = true;
-
-    [NotMapped]
-    public DateTime FechaCreacion { get; set; } = DateTime.Now;
-
-    [NotMapped]
-    public string? Tipo { get; set; }
-
-    [NotMapped]
-    public string? Descripcion { get; set; }
 
     [Column("Precio")]
     [Precision(12, 2)]
     public decimal PrecioValor { get; set; }
 
-    public int ExternalId { get; set; }
+    [Column("PresentacionID")]
+    public int PresentacionID { get; set; }
 
     [Column("EmpresaID")]
     public Guid EmpresaID { get; set; }
 
+    [Column("EsPrincipal")]
     public bool Principal { get; set; }
 
-    [ForeignKey("ExternalId")]
-    [InverseProperty("Precios")]
-    public virtual Producto External { get; set; } = null!;
+    [NotMapped]
+    public bool EsPrincipal { get => Principal; set => Principal = value; }
+
+    [StringLength(50)]
+    public string? Descripcion { get; set; }
+
+    [ForeignKey("PresentacionID")]
+    public virtual Presentacion Presentacion { get; set; } = null!;
+
+    [ForeignKey("EmpresaID")]
+    public virtual Empresa Empresa { get; set; } = null!;
 }
 
 

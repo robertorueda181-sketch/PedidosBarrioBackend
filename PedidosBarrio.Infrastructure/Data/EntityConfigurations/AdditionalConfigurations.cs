@@ -57,12 +57,40 @@ namespace PedidosBarrio.Infrastructure.Data.EntityConfigurations
             
             builder.Property(p => p.IdPrecio).HasColumnName("IdPrecio").ValueGeneratedOnAdd();
             builder.Property(p => p.PrecioValor).HasColumnName("Precio").HasColumnType("decimal(12,2)").IsRequired();
-            builder.Property(p => p.ExternalId).HasColumnName("ExternalId").IsRequired();
+            builder.Property(p => p.PresentacionID).HasColumnName("PresentacionID").IsRequired();
             builder.Property(p => p.EmpresaID).HasColumnName("EmpresaID").IsRequired();
             builder.Property(p => p.Principal).HasColumnName("EsPrincipal").HasDefaultValue(false);
+            builder.Property(p => p.Descripcion).HasColumnName("Descripcion").HasMaxLength(50);
 
-            builder.HasIndex(p => p.ExternalId).HasDatabaseName("IX_Precios_ExternalId");
+            builder.HasIndex(p => p.PresentacionID).HasDatabaseName("IX_Precios_PresentacionID");
             builder.HasIndex(p => p.EmpresaID).HasDatabaseName("IX_Precios_EmpresaID");
+
+            builder.HasOne(p => p.Presentacion)
+                .WithMany(pr => pr.Precios)
+                .HasForeignKey(p => p.PresentacionID)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
+    }
+
+    public class PresentacionConfiguration : IEntityTypeConfiguration<Presentacion>
+    {
+        public void Configure(EntityTypeBuilder<Presentacion> builder)
+        {
+            builder.ToTable("Presentacion");
+            builder.HasKey(p => p.PresentacionID);
+
+            builder.Property(p => p.PresentacionID).HasColumnName("PresentacionID").ValueGeneratedOnAdd();
+            builder.Property(p => p.Descripcion).HasColumnName("Descripcion").HasMaxLength(50).IsRequired();
+            builder.Property(p => p.EmpresaID).HasColumnName("EmpresaID").IsRequired();
+            builder.Property(p => p.ProductoID).HasColumnName("ProductoID").IsRequired();
+
+            builder.HasIndex(p => p.EmpresaID).HasDatabaseName("IX_Presentacion_EmpresaID");
+            builder.HasIndex(p => p.ProductoID).HasDatabaseName("IX_Presentacion_ProductoID");
+
+            builder.HasOne(p => p.Producto)
+                .WithMany(prod => prod.Presentaciones)
+                .HasForeignKey(p => p.ProductoID)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 

@@ -34,6 +34,8 @@ public partial class PedidosBarrioDbContext : DbContext
 
     public virtual DbSet<Precio> Precios { get; set; }
 
+    public virtual DbSet<Presentacion> Presentaciones { get; set; }
+
     public virtual DbSet<Producto> Productos { get; set; }
 
     public virtual DbSet<Suscripcion> Suscripciones { get; set; }
@@ -55,6 +57,7 @@ public partial class PedidosBarrioDbContext : DbContext
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.ProductoConfiguration());
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.CategoriaConfiguration());
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.PrecioConfiguration());
+        modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.PresentacionConfiguration());
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.ConfiguracionConfiguration());
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.ImagenConfiguration());
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.VerificarCorreoConfiguration());

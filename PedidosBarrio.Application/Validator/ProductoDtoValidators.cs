@@ -45,7 +45,7 @@ namespace PedidosBarrio.Application.Validator
             {
                 public PrecioCreateDtoValidator()
                 {
-                    RuleFor(x => x.Precio)
+                    RuleFor(x => x.PrecioValor)
                         .GreaterThan(0)
                         .WithMessage("El precio debe ser mayor a 0");
 

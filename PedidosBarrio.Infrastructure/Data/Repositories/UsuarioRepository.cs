@@ -26,8 +26,19 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         private void DecryptUser(Usuario user)
         {
             if (user == null) return;
+
+            var entry = _context.Entry(user);
+            bool isTracked = entry.State != EntityState.Detached;
+
             user.Email = _encryptionService.Decrypt(user.Email);
             user.SocialId = _encryptionService.Decrypt(user.SocialId);
+
+            // Si el objeto está siendo rastreado, avisamos a EF que no guarde estos cambios
+            if (isTracked)
+            {
+                entry.Property(u => u.Email).IsModified = false;
+                entry.Property(u => u.SocialId).IsModified = false;
+            }
         }
 
         public async Task<Usuario?> GetByIdAsync(Guid id)
@@ -57,7 +68,6 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
 
             if (user != null)
             {
-                DecryptUser(user);
                 if (user.Empresas.Any())
                 {
                     user.EmpresaID = user.Empresas.First().ID;
@@ -110,39 +120,42 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             await _context.Usuarios.AddAsync(usuario);
             await _context.SaveChangesAsync();
 
-            // Restore in-memory values for continued use in the transaction/app
+            // Restaurar valores en memoria para uso posterior en la ejecución pero marcarlos como no modificados
             usuario.Email = emailPlain;
             usuario.SocialId = socialIdPlain;
 
-            // IMPORTANT: Tell EF the state in memory is what matches the DB (vía snapshot)
-            // or just detach/mark unchanged so subsequent SaveChanges don't overwrite DB with plain text.
-            _context.Entry(usuario).State = EntityState.Unchanged;
+            var entry = _context.Entry(usuario);
+            entry.Property(u => u.Email).IsModified = false;
+            entry.Property(u => u.SocialId).IsModified = false;
         }
 
-        public async Task UpdateAsync(Usuario usuario)
-        {
-            var existing = await _context.Usuarios.FirstOrDefaultAsync(u => u.ID == usuario.ID);
-            if (existing != null)
-            {
-                existing.Email = _encryptionService.Encrypt(usuario.Email);
-                existing.SocialId = _encryptionService.Encrypt(usuario.SocialId);
-                existing.Activa = usuario.Activa;
-                await _context.SaveChangesAsync();
+                public override async Task UpdateAsync(Usuario usuario)
+                {
+                    var emailPlain = usuario.Email;
+                    var socialIdPlain = usuario.SocialId;
 
-                // Decrypt existing so it stays usable if tracked
-                DecryptUser(existing);
-                _context.Entry(existing).State = EntityState.Unchanged;
+                    // Encriptar antes de guardar
+                    usuario.Email = _encryptionService.Encrypt(emailPlain);
+                    usuario.SocialId = _encryptionService.Encrypt(socialIdPlain);
+
+                    await base.UpdateAsync(usuario);
+
+                    // Restaurar para uso en memoria
+                    usuario.Email = emailPlain;
+                    usuario.SocialId = socialIdPlain;
+
+                    var entry = _context.Entry(usuario);
+                    entry.Property(u => u.Email).IsModified = false;
+                    entry.Property(u => u.SocialId).IsModified = false;
+                }
+
+                public async Task DeleteAsync(Guid id)
+                {
+                    var user = await _context.Usuarios.FindAsync(id);
+                    if (user != null)
+                    {
+                        await base.DeleteAsync(user);
+                    }
+                }
             }
         }
-
-        public async Task DeleteAsync(Guid id)
-        {
-            var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.ID == id);
-            if (usuario != null)
-            {
-                usuario.Activa = false;
-                await _context.SaveChangesAsync();
-            }
-        }
-    }
-}

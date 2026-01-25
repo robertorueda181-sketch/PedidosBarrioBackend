@@ -12,6 +12,7 @@ using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Queries.GetAllCategorias;
 using PedidosBarrio.Application.Queries.GetCategoriaById;
 using PedidosBarrio.Application.Queries.GetCombinedData;
+using PedidosBarrio.Application.Queries.GetProductoById;
 
 namespace PedidosBarrio.Api.EndPoint
 {
@@ -91,6 +92,17 @@ namespace PedidosBarrio.Api.EndPoint
             .WithDescription("Elimina una categoría verificando que pertenezca a la empresa");
 
             // ===== ENDPOINTS DE PRODUCTOS =====
+            group.MapGet("/productos/{id:int}", async (int id, IMediator mediator) =>
+            {
+                var query = new GetProductoByIdQuery(id);
+                var result = await mediator.Send(query);
+                return result is not null ? Results.Ok(result) : Results.NotFound();
+            })
+            .WithName("GetProductoById")
+            .WithOpenApi()
+            .WithSummary("🛍️ Obtener producto por ID")
+            .WithDescription("Retorna los detalles de un producto específico incluyendo presentaciones y precios");
+
             group.MapPost("/productos", async (
                 [FromBody] CreateProductoDto productoDto,
                 IMediator mediator) =>

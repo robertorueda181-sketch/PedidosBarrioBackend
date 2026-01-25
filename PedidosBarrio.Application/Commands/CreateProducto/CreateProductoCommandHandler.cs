@@ -13,6 +13,7 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
         private readonly IProductoRepository _productoRepository;
         private readonly ICategoriaRepository _categoriaRepository;
         private readonly IPrecioRepository _precioRepository;
+        private readonly IPresentacionRepository _presentacionRepository;
         private readonly IImagenRepository _imagenRepository;
         private readonly IImageProcessingService _imageProcessingService;
         private readonly ICurrentUserService _currentUserService;
@@ -23,6 +24,7 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
             IProductoRepository productoRepository,
             ICategoriaRepository categoriaRepository,
             IPrecioRepository precioRepository,
+            IPresentacionRepository presentacionRepository,
             IImagenRepository imagenRepository,
             IImageProcessingService imageProcessingService,
             ICurrentUserService currentUserService,
@@ -32,6 +34,7 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
             _productoRepository = productoRepository;
             _categoriaRepository = categoriaRepository;
             _precioRepository = precioRepository;
+            _presentacionRepository = presentacionRepository;
             _imagenRepository = imagenRepository;
             _imageProcessingService = imageProcessingService;
             _currentUserService = currentUserService;
@@ -89,29 +92,40 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
 
                 var productoId = await _productoRepository.AddAsync(producto);
 
-                // Crear los precios asociados
+                // Crear los precios asociados (vía Presentaciones)
                 var preciosCreados = new List<Precio>();
                 if (request.Precios != null && request.Precios.Any())
                 {
                     foreach (var p in request.Precios)
                     {
-                        var precio = new Precio(
-                            0, // IdPrecio
-                            productoId,
+                        // 1. Crear la presentación
+                        var presentacion = new Presentacion(
+                            p.Descripcion ?? "General",
                             empresaId,
-                            p.Descripcion ?? "Precio base",
-                            p.Modalidad ?? "GENERAL",
-                            p.Precio,
-                            p.EsPrincipal
+                            productoId
                         );
+                        var presentacionId = await _presentacionRepository.AddAsync(presentacion);
+
+                        // 2. Crear el precio vinculado a la presentación
+                        var precio = new Precio(
+                            p.PrecioValor,
+                            presentacionId,
+                            empresaId,
+                            p.EsPrincipal,
+                            p.Descripcion
+                        );
+
                         await _precioRepository.AddAsync(precio);
                         preciosCreados.Add(precio);
                     }
                 }
                 else
                 {
-                    // Si no se envían precios, crear un precio por defecto
-                    var precioDefault = new Precio(0, productoId, empresaId, "Precio por definir", "GENERAL", 0, true);
+                    // Si no se envían precios, crear una presentación y un precio por defecto
+                    var presentacionDefault = new Presentacion("General", empresaId, productoId);
+                    var presId = await _presentacionRepository.AddAsync(presentacionDefault);
+
+                    var precioDefault = new Precio(0, presId, empresaId, true, "Precio por definir");
                     await _precioRepository.AddAsync(precioDefault);
                     preciosCreados.Add(precioDefault);
                 }
@@ -133,74 +147,22 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
                         }
                         catch
                         {
-                            // Ignorar error y usar URL original o dejar vacío
+                            await _logger.LogInformationAsync(
+                                $"Error de sanitizacion de imagen: ID={productoId}, Nombre={producto.Nombre}, EmpresaID={empresaId}, Precios={preciosCreados.Count}",
+                                "CreateProductoCommand");
                         }
                     }
 
-                    var imagen = new Imagen(productoId, imageUrl, empresaId, request.ImagenDescripcion ?? "");
-                    await _imagenRepository.AddAsync(imagen);
+                    //var imagen = new Imagen(productoId, imageUrl, empresaId, request.ImagenDescripcion ?? "");
+                    //await _imagenRepository.AddAsync(imagen);
                 }
 
                 await _logger.LogInformationAsync(
                     $"Producto creado: ID={productoId}, Nombre={producto.Nombre}, EmpresaID={empresaId}, Precios={preciosCreados.Count}",
                     "CreateProductoCommand");
 
-                // Obtener datos para la respuesta
-                var precios = await _precioRepository.GetByProductoIdAsync(productoId);
-                var imagenes = await _imagenRepository.GetByProductoIdAsync(productoId);
-
-                    var dto = new ProductoDto
-                    {
-                        ProductoID = productoId,
-                        EmpresaID = producto.EmpresaID ?? Guid.Empty,
-                        CategoriaID = producto.CategoriaID ?? 0,
-                        Nombre = producto.Nombre,
-                        Descripcion = producto.Descripcion ?? string.Empty,
-                        FechaRegistro = producto.FechaRegistro ?? DateTime.Now,
-                        Stock = producto.Stock,
-                        StockMinimo = producto.StockMinimo ?? 0,
-                        Inventario = producto.Inventario,
-                        CategoriaNombre = categoria.Descripcion,
-                        CategoriaColor = categoria.Color ?? string.Empty,
-                        Precios = precios.Select(p => new PrecioDto
-                        {
-                            IdPrecio = p.IdPrecio,
-                            PrecioValor = p.PrecioValor,
-                            ExternalId = p.ExternalId,
-                            EmpresaID = p.EmpresaID,
-                            FechaCreacion = p.FechaCreacion,
-                            Activo = p.Activo,
-                            EsPrincipal = p.EsPrincipal
-                        }).ToList(),
-                        PrecioActual = precios.FirstOrDefault(p => p.EsPrincipal)?.PrecioValor ?? precios.FirstOrDefault()?.PrecioValor,
-                        Imagenes = new List<ImagenProductoDto>()
-                    };
-
-                    foreach (var i in imagenes)
-                    {
-                        var imgDto = new ImagenProductoDto
-                        {
-                            ImagenID = i.ImagenID,
-                            ExternalId = i.ExternalId ?? 0,
-                            URLImagen = i.URLImagen ?? string.Empty,
-                            Descripcion = i.Descripcion ?? string.Empty,
-                            FechaRegistro = i.FechaRegistro ?? DateTime.Now,
-                            Activa = i.Activa,
-                            Type = i.Type ?? string.Empty,
-                            Order = i.Order,
-                            EmpresaID = i.EmpresaID ?? Guid.Empty
-                        };
-
-                        if (!string.IsNullOrEmpty(imgDto.URLImagen))
-                        {
-                            imgDto.URLImagen = await _imageProcessingService.GetImageUrlAsync(imgDto.URLImagen);
-                        }
-                        dto.Imagenes.Add(imgDto);
-                    }
-
-                    dto.ImagenPrincipal = dto.Imagenes.OrderBy(i => i.Order).FirstOrDefault()?.URLImagen ?? string.Empty;
-
-                    return dto;
+               
+               return new ProductoDto() { ProductoID = productoId };
                 }
             catch (ValidationException)
             {

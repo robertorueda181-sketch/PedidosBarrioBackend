@@ -20,6 +20,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         public async Task<IEnumerable<Categoria>> GetAllAsync(Guid empresaId)
         {
             return await _context.Categorias
+                .AsNoTracking()
                 .Where(c => c.EmpresaID == empresaId)
                 .OrderBy(c => c.Descripcion)
                 .ToListAsync();
@@ -28,6 +29,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         public async Task<IEnumerable<Categoria>> GetActiveAsync()
         {
             return await _context.Categorias
+                .AsNoTracking()
                 .Where(c => c.Activa.HasValue && c.Activa.Value)
                 .OrderBy(c => c.Descripcion)
                 .ToListAsync();
@@ -41,6 +43,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         public async Task<IEnumerable<Categoria>> GetByEmpresaIdMostrandoAsync(Guid empresaId)
         {
             return await _context.Categorias
+                .AsNoTracking()
                 .Where(c => c.EmpresaID == empresaId && c.Activa.HasValue && c.Activa.Value)
                 .OrderBy(c => c.Descripcion)
                 .ToListAsync();
@@ -81,4 +84,5 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         }
     }
 }
+
 

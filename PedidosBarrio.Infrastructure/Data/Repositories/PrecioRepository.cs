@@ -20,14 +20,16 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         public async Task<IEnumerable<Precio>> GetByProductoIdAsync(int productoId)
         {
             return await _context.Precios
-                .Where(p => p.ExternalId == productoId)
+                .AsNoTracking()
+                .Where(p => p.Presentacion.ProductoID == productoId)
                 .ToListAsync();
         }
 
         public async Task<Precio?> GetPrecioActualByProductoIdAsync(int productoId)
         {
             return await _context.Precios
-                .Where(p => p.ExternalId == productoId)
+                .AsNoTracking()
+                .Where(p => p.Presentacion.ProductoID == productoId)
                 // Logic: Principal first
                 .OrderByDescending(p => p.Principal) 
                 .FirstOrDefaultAsync();
@@ -36,6 +38,8 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         public async Task<IEnumerable<Precio>> GetByEmpresaIdAsync(Guid empresaId)
         {
             return await _context.Precios
+                .AsNoTracking()
+                .Include(p => p.Presentacion)
                 .Where(p => p.EmpresaID == empresaId)
                 .ToListAsync();
         }
@@ -55,8 +59,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             {
                 existing.PrecioValor = precio.PrecioValor;
                 existing.Descripcion = precio.Descripcion;
-                existing.Activo = precio.Activo;
-                existing.EsPrincipal = precio.EsPrincipal;
+                existing.Principal = precio.Principal;
                 await _context.SaveChangesAsync();
             }
         }
@@ -66,7 +69,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             var precio = await GetByIdAsync(id);
             if (precio != null)
             {
-                precio.Activo = false;
+                _context.Precios.Remove(precio);
                 await _context.SaveChangesAsync();
             }
         }

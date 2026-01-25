@@ -58,8 +58,8 @@ public partial class Producto
     [InverseProperty("Productos")]
     public virtual Empresa? Empresa { get; set; }
 
-    [InverseProperty("External")]
-    public virtual ICollection<Precio> Precios { get; set; } = new List<Precio>();
+    [InverseProperty("Producto")]
+    public virtual ICollection<Presentacion> Presentaciones { get; set; } = new List<Presentacion>();
 }
 
 

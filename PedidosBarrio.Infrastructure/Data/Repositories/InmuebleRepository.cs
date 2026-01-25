@@ -15,6 +15,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         public new async Task<Inmueble?> GetByIdAsync(int id)
         {
             return await _context.Inmuebles
+                .AsNoTracking()
                 .Include(i => i.Tipos)
                 .Include(i => i.Operacion)
                 .FirstOrDefaultAsync(i => i.InmuebleID == id);
@@ -23,6 +24,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         public new async Task<IEnumerable<Inmueble>> GetAllAsync()
         {
             return await _context.Inmuebles
+                .AsNoTracking()
                 .Include(i => i.Tipos)
                 .Include(i => i.Operacion)
                 .ToListAsync();
@@ -31,6 +33,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         public async Task<IEnumerable<Inmueble>> GetByEmpresaIdAsync(Guid empresaId)
         {
             return await _context.Inmuebles
+                .AsNoTracking()
                 .Where(i => i.EmpresaID == empresaId)
                 .Include(i => i.Tipos)
                 .Include(i => i.Operacion)

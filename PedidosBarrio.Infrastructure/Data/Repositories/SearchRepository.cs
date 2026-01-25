@@ -32,6 +32,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
 
             // 1. BUSCAR EN PRODUCTOS
             var productos = await _context.Productos
+                .AsNoTracking()
                 .Where(p => p.Activa == true && 
                            (p.Nombre.ToLower().Contains(lowerTerm) || 
                             (p.Descripcion != null && p.Descripcion.ToLower().Contains(lowerTerm))))
@@ -41,6 +42,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             foreach (var p in productos)
             {
                 var img = await _context.Imagenes
+                    .AsNoTracking()
                     .Where(img => img.ExternalId == p.ProductoID && img.Type == "PRODUCT" && img.Activa)
                     .OrderBy(img => img.Order)
                     .Select(img => img.Urlimagen)
@@ -59,6 +61,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
 
             // 2. BUSCAR EN NEGOCIOS
             var negocios = await _context.Negocios
+                .AsNoTracking()
                 .Include(n => n.Tipos)
                 .Where(n => (n.Activa ?? true) && 
                            ((n.Nombre != null && n.Nombre.ToLower().Contains(lowerTerm)) || 
@@ -70,6 +73,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             foreach (var n in negocios)
             {
                 var img = await _context.Imagenes
+                    .AsNoTracking()
                     .Where(img => img.ExternalId == n.NegocioID && img.Type == "NEG" && img.Activa == true)
                     .OrderBy(img => img.Order)
                     .Select(img => img.Urlimagen)
@@ -89,8 +93,9 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             }
 
             // 3. BUSCAR EN INMUEBLES (SERVICIOS/PROPIEDADES)
-            var allTypes = await _context.Tipos.ToDictionaryAsync(t => t.TipoID);
+            var allTypes = await _context.Tipos.AsNoTracking().ToDictionaryAsync(t => t.TipoID);
             var inmuebles = await _context.Inmuebles
+                .AsNoTracking()
                 .Include(i => i.Tipos)
                 .Where(prop => (prop.Activa ?? true) && 
                            ((prop.Descripcion != null && prop.Descripcion.ToLower().Contains(lowerTerm)) || 
@@ -101,6 +106,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             foreach (var prop in inmuebles)
             {
                 var img = await _context.Imagenes
+                    .AsNoTracking()
                     .Where(img => img.ExternalId == prop.InmuebleID && img.Type == "PRODUCT" && img.Activa == true)
                     .OrderBy(img => img.Order)
                     .Select(img => img.Urlimagen)

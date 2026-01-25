@@ -3,7 +3,6 @@ namespace PedidosBarrio.Application.DTOs
     public class ProductoDto
     {
         public int ProductoID { get; set; }
-        public Guid EmpresaID { get; set; }
         public short CategoriaID { get; set; }
         public string Nombre { get; set; }
         public string Descripcion { get; set; }
@@ -14,14 +13,13 @@ namespace PedidosBarrio.Application.DTOs
         public bool Inventario { get; set; }
         public bool Visible { get; set; }
 
-        // Datos adicionales para respuesta completa
-        public string CategoriaNombre { get; set; }
-        public string CategoriaColor { get; set; }
+        // Lista de presentaciones del producto (incluye sus precios)
+        public List<PresentacionDto> Presentaciones { get; set; } = new List<PresentacionDto>();
 
-        // Lista de precios del producto
+        // Lista de precios del producto (para compatibilidad o acceso rápido)
         public List<PrecioDto> Precios { get; set; } = new List<PrecioDto>();
 
-        // Precio actual (el más reciente)
+        // Precio actual (el más reciente o principal)
         public decimal? PrecioActual { get; set; }
 
         // Lista de imágenes del producto
@@ -35,11 +33,16 @@ namespace PedidosBarrio.Application.DTOs
     {
         public int IdPrecio { get; set; }
         public decimal PrecioValor { get; set; }
-        public int ExternalId { get; set; }
-        public Guid EmpresaID { get; set; }
-        public DateTime FechaCreacion { get; set; }
-        public bool Activo { get; set; }
         public bool EsPrincipal { get; set; }
+        public string? Descripcion { get; set; }
+    }
+
+    public class PresentacionDto
+    {
+        public int PresentacionID { get; set; }
+        public string Descripcion { get; set; }
+        public int ProductoID { get; set; }
+        public List<PrecioDto> Precios { get; set; } = new List<PrecioDto>();
     }
 
     public class ImagenProductoDto

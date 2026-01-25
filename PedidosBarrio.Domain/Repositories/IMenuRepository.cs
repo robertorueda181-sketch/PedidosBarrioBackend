@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using PedidosBarrio.Domain.Entities;
 
 namespace PedidosBarrio.Domain.Repositories

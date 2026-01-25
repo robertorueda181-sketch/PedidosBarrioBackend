@@ -62,10 +62,10 @@ public partial class Inmueble
     public bool? Activa { get; set; }
 
     [Column("Operacion")]
-    public short? OperacionID { get; set; }
+    public int? OperacionID { get; set; }
 
-    [NotMapped]
-    public Tipo? Operacion { get; set; }
+    [ForeignKey("OperacionID")]
+    public virtual Tipo? Operacion { get; set; }
 
     [Column("latitud")]
     [Precision(10, 8)]

@@ -63,7 +63,7 @@ namespace PedidosBarrio.Application.Queries.GetCombinedData
 
                 // Obtener precios para todos los productos
                 var todosLosPrecios = await _precioRepository.GetByEmpresaIdAsync(empresaId);
-                var preciosPorProducto = todosLosPrecios.GroupBy(p => p.ExternalId)
+                var preciosPorProducto = todosLosPrecios.GroupBy(p => p.Presentacion.ProductoID)
                     .ToDictionary(g => g.Key, g => g.OrderByDescending(p => p.IdPrecio).ToList());
 
                 // Obtener imágenes para todos los productos
@@ -77,7 +77,6 @@ namespace PedidosBarrio.Application.Queries.GetCombinedData
                     var dto = new ProductoDto
                     {
                         ProductoID = p.ProductoID,
-                        EmpresaID = p.EmpresaID ?? Guid.Empty,
                         CategoriaID = p.CategoriaID ?? 0,
                         Nombre = p.Nombre,
                         Descripcion = p.Descripcion ?? string.Empty,
@@ -86,23 +85,6 @@ namespace PedidosBarrio.Application.Queries.GetCombinedData
                         StockMinimo = p.StockMinimo ?? 0,
                         Inventario = p.Inventario,
                         Visible = p.Visible ?? false,
-                        CategoriaNombre = (p.CategoriaID.HasValue && categoriaLookup.ContainsKey((int)p.CategoriaID.Value)) 
-                            ? categoriaLookup[(int)p.CategoriaID.Value].Descripcion 
-                            : "Sin categoría",
-                        CategoriaColor = (p.CategoriaID.HasValue && categoriaLookup.ContainsKey((int)p.CategoriaID.Value)) 
-                            ? categoriaLookup[(int)p.CategoriaID.Value].Color 
-                            : "#CCCCCC",
-                        Precios = preciosPorProducto.ContainsKey(p.ProductoID)
-                            ? preciosPorProducto[p.ProductoID].Select(precio => new PrecioDto
-                            {
-                                IdPrecio = precio.IdPrecio,
-                                PrecioValor = precio.PrecioValor,
-                                ExternalId = precio.ExternalId,
-                                EmpresaID = precio.EmpresaID,
-                                FechaCreacion = precio.FechaCreacion,
-                                Activo = precio.Activo
-                            }).ToList()
-                            : new List<PrecioDto>(),
                         PrecioActual = preciosPorProducto.ContainsKey(p.ProductoID) && preciosPorProducto[p.ProductoID].Any()
                             ? preciosPorProducto[p.ProductoID].First().PrecioValor
                             : null

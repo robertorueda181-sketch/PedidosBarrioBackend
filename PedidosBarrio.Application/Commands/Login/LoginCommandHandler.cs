@@ -84,7 +84,7 @@ namespace PedidosBarrio.Application.Commands.Login
                 else if (command.Provider == "google")
                 {
                     // Login por Google
-                    if (!command.SocialId.Equals(usuario.SocialId))
+                    if (!_encryptionService.Encrypt(command.SocialId).Equals(usuario.SocialId))
                     {
                         throw new ApplicationException("IdToken de Google es incorrecto");
                     }
@@ -106,11 +106,9 @@ namespace PedidosBarrio.Application.Commands.Login
                 int minutosExpiracion = !string.IsNullOrEmpty(tokenExpirationMinutes) && int.TryParse(tokenExpirationMinutes, out int minutos)
                     ? minutos
                     : 30;
-                usuario.Email = command.Email;
-                var token = _jwtTokenService.GenerateToken(usuario, minutosExpiracion);
+
+                var token = _jwtTokenService.GenerateToken(usuario, minutosExpiracion, command.Email);
                 var refreshToken = _jwtTokenService.GenerateRefreshToken();
-
-
 
                 var tipoEmpresaStr = empresa.TipoEmpresa switch
                 {
@@ -125,7 +123,7 @@ namespace PedidosBarrio.Application.Commands.Login
                 var response = new LoginResponseDto
                 {
                     UsuarioID = usuario.ID,
-                    Email = usuario.Email,
+                    Email = command.Email,
                     NombreCompleto = "",
                     EmpresaID = usuario.EmpresaID,
                     NombreEmpresa = "Sin empresa",
