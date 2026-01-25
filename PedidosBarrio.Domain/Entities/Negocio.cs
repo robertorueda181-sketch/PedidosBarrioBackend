@@ -21,6 +21,7 @@ public partial class Negocio
         Descripcion = descripcion;
         Urlopcional = urlOpcional;
         FechaRegistro = DateTime.UtcNow;
+        Codigo = urlNegocio.ToString();
         Activa = true;
     }
 

@@ -33,13 +33,13 @@ namespace PedidosBarrio.Application.DTOs
     public class ProductoDetalleDto
     {
         public int ProductoID { get; set; }
-        public Guid EmpresaID { get; set; }
         public int CategoriaID { get; set; }
         public string Nombre { get; set; }
         public string Descripcion { get; set; }
-        public decimal Precio { get; set; }
+        public decimal Precio { get; set; } // Precio principal
         public int Stock { get; set; }
         public string URLImagen { get; set; }
+        public List<PrecioDto> Precios { get; set; } = new List<PrecioDto>();
     }
 }
 

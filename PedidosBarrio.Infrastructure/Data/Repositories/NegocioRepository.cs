@@ -10,15 +10,12 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
     public class NegocioRepository : EfCoreRepository<Negocio>, INegocioRepository
     {
         private readonly string _baseUrl;
+        private readonly string _negocioUrl = "negocio";
 
         public NegocioRepository(PedidosBarrioDbContext context, IConfiguration configuration) : base(context)
         {
-            var baseUrl = configuration["BaseUrl"] ?? "";
+            var baseUrl = configuration["BaseUrlFront"] ?? "";
             _baseUrl = baseUrl.TrimEnd('/');
-            if (_baseUrl.EndsWith("/api", StringComparison.OrdinalIgnoreCase))
-            {
-                _baseUrl = _baseUrl.Substring(0, _baseUrl.Length - 4);
-            }
         }
 
         private void SetFullUrl(Negocio? negocio)
@@ -26,7 +23,8 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             if (negocio == null) return;
             if (!string.IsNullOrEmpty(negocio.Urlnegocio) && !negocio.Urlnegocio.StartsWith("http"))
             {
-                negocio.Urlnegocio = $"{_baseUrl}/{negocio.Urlnegocio.TrimStart('/')}";
+                negocio.Urlnegocio = $"{_baseUrl}/{_negocioUrl}/{negocio.Urlnegocio.TrimStart('/')}";
+                negocio.BaseUrl = _baseUrl;
             }
         }
 
@@ -48,7 +46,6 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                     .FirstOrDefaultAsync(n => n.Codigo == id || n.Urlnegocio == id);
             }
 
-            SetFullUrl(negocio);
             return negocio;
         }
 
@@ -74,7 +71,6 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                 .Include(n => n.Tipos)
                 .ToListAsync();
 
-            foreach (var n in negocios) SetFullUrl(n);
             return negocios;
         }
 
@@ -92,6 +88,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
 
         public async Task<int> AddAsync(Negocio negocio)
         {
+            SetFullUrl(negocio);
             await base.AddAsync(negocio);
             return negocio.NegocioID;
         }
