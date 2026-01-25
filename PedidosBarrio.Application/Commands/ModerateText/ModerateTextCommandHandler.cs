@@ -63,12 +63,13 @@ namespace PedidosBarrio.Application.Commands.ModerateText
                     {
                         var iaLog = new IaModeracionLog
                         {
-                            EmpresaID = empresaId,
-                            EsTexto = true,
-                            Apropiado = result.IsAppropriate,
-                            Evaluacion = result.IsAppropriate ? "Contenido apropiado" : $"Marcado: {string.Join(", ", result.ViolationCategories)}",
-                            FechaRegistro = DateTime.UtcNow
-                        };
+                                EmpresaID = empresaId,
+                                EsTexto = true,
+                                Apropiado = result.IsAppropriate,
+                                Evaluacion = result.IsAppropriate ? "Contenido apropiado" : $"Marcado: {string.Join(", ", result.ViolationCategories)}",
+                                Contexto = command.Text,
+                                FechaRegistro = DateTime.UtcNow
+                            };
                         await _iaModeracionLogRepository.AddAsync(iaLog);
                     }
                 }

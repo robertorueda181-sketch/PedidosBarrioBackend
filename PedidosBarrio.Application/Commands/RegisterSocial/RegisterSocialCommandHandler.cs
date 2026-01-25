@@ -150,9 +150,9 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
             // ===== 3.1 EVALUAR CONTENIDO CON AI =====
             bool autoAprobado = false;
             string evaluacionAi = "No se pudo realizar la moderación";
+            var textToModerate = $"{request.Email} {request.Nombre} {request.Apellido} {request.NombreEmpresa} {request.Descripcion} {request.Direccion} {request.Referencia}";
             try
             {
-                var textToModerate = $"{request.Email} {request.Nombre} {request.Apellido} {request.NombreEmpresa} {request.Descripcion} {request.Direccion} {request.Referencia}";
                 var moderationResult = await _moderationService.ModerateTextAsync(textToModerate);
                 autoAprobado = moderationResult.IsAppropriate;
                 
@@ -193,11 +193,12 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
                 var iaLog = new IaModeracionLog
                 {
                     EmpresaID = empresa.ID,
-                    EsTexto = true,
-                    Apropiado = autoAprobado,
-                    Evaluacion = evaluacionAi,
-                    FechaRegistro = DateTime.UtcNow
-                };
+                        EsTexto = true,
+                        Apropiado = autoAprobado,
+                        Evaluacion = evaluacionAi,
+                        Contexto = textToModerate,
+                        FechaRegistro = DateTime.UtcNow
+                    };
                 await _iaModeracionLogRepository.AddAsync(iaLog);
             }
             catch (Exception ex)

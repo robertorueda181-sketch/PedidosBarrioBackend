@@ -18,12 +18,31 @@ namespace PedidosBarrio.Infrastructure.Services
         {
             _httpClient = httpClient;
             _configuration = configuration;
-            _apiKey = _configuration.GetSection("OpenAI:ApiKey").Value
-                     ?? throw new InvalidOperationException("OpenAI API Key not configured in OpenAI:ApiKey");
+
+            var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            if (env != "Development")
+            {
+                _apiKey = _configuration.GetSection("OpenAI:ApiKey").Value
+                         ?? throw new InvalidOperationException("OpenAI API Key not configured in OpenAI:ApiKey");
+            }
+            else
+            {
+                _apiKey = "";
+            }
         }
 
         public async Task<TextModerationResponseDto> ModerateTextAsync(string text, string model = "omni-moderation-latest")
         {
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                return new TextModerationResponseDto
+                {
+                    IsAppropriate = true,
+                    Flagged = false,
+                    Message = "✅ MODO DESARROLLO: Moderación de OpenAI omitida (auto-aprobado)"
+                };
+            }
+
             const int maxRetries = 3;
             const int baseDelayMs = 1000; // 1 segundo
 

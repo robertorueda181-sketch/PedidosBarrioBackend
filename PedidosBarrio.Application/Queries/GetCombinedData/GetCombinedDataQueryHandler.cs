@@ -85,6 +85,7 @@ namespace PedidosBarrio.Application.Queries.GetCombinedData
                         StockMinimo = p.StockMinimo ?? 0,
                         Inventario = p.Inventario,
                         Visible = p.Visible ?? false,
+                        Aprobado = p.Aprobado,
                         PrecioActual = preciosPorProducto.ContainsKey(p.ProductoID) && preciosPorProducto[p.ProductoID].Any()
                             ? preciosPorProducto[p.ProductoID].First().PrecioValor
                             : null

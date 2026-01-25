@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PedidosBarrio.Application.Commands.CreateImagen;
 using PedidosBarrio.Application.Commands.DeleteImagen;
-using PedidosBarrio.Application.Commands.UpdateImagen;
 using PedidosBarrio.Application.Commands.UploadImage;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Queries.GetAllImagenes;
@@ -76,16 +75,6 @@ namespace PedidosBarrio.Api.EndPoint
             .WithOpenApi()
             .WithSummary("📤 Subir una imagen de producto")
             .WithDescription("Sube una imagen, la optimiza (convierte a WebP y comprime) y la asocia a un producto.");
-
-            // PUT /api/Imagenes/{id}
-            group.MapPut("/{id:int}", async (int id, [FromBody] ImagenDto updateDto, IMediator mediator) =>
-            {
-                var command = new UpdateImagenCommand(id, updateDto.ProductoID, updateDto.URLImagen, updateDto.Descripcion);
-                await mediator.Send(command);
-                return Results.NoContent();
-            })
-            .WithName("UpdateImagen")
-            .WithOpenApi();
 
             // DELETE /api/Imagenes/{id}
             group.MapDelete("/{id:int}", async (int id, IMediator mediator) =>

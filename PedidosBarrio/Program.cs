@@ -92,5 +92,6 @@ app.MapNegocioEndpoints();
 app.MapSearchEndpoints();
 app.MapConfiguracionEndpoints();
 app.MapVerificacionEndpoints();
+app.MapUbigeoEndpoints();
 
 app.Run();

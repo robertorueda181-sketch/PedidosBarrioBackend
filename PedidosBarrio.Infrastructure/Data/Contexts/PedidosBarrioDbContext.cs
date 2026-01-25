@@ -44,6 +44,12 @@ public partial class PedidosBarrioDbContext : DbContext
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
 
+    public virtual DbSet<UbigeoPeruDepartment> UbigeoPeruDepartments { get; set; }
+
+    public virtual DbSet<UbigeoPeruProvince> UbigeoPeruProvinces { get; set; }
+
+    public virtual DbSet<UbigeoPeruDistrict> UbigeoPeruDistricts { get; set; }
+
     public virtual DbSet<VerificarCorreo> VerificarCorreos { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

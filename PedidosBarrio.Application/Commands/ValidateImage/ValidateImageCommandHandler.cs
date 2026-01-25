@@ -76,12 +76,13 @@ namespace PedidosBarrio.Application.Commands.ValidateImage
                     {
                         var iaLog = new IaModeracionLog
                         {
-                            EmpresaID = empresaId,
-                            EsTexto = false,
-                            Apropiado = result.IsAppropriate,
-                            Evaluacion = result.IsAppropriate ? $"Apropiada (Confianza: {result.ConfidenceScore:P})" : $"Marcada: {string.Join(", ", result.ViolationReasons)}",
-                            FechaRegistro = DateTime.UtcNow
-                        };
+                                EmpresaID = empresaId,
+                                EsTexto = false,
+                                Apropiado = result.IsAppropriate,
+                                Evaluacion = result.IsAppropriate ? $"Apropiada (Confianza: {result.ConfidenceScore:P})" : $"Marcada: {string.Join(", ", result.ViolationReasons)}",
+                                Contexto = command.ImageUrl ?? "Imagen en Base64",
+                                FechaRegistro = DateTime.UtcNow
+                            };
                         await _iaModeracionLogRepository.AddAsync(iaLog);
                     }
                 }

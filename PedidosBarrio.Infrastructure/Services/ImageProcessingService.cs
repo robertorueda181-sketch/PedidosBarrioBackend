@@ -44,7 +44,7 @@ namespace PedidosBarrio.Infrastructure.Services
                 throw new ArgumentException("El archivo es demasiado grande. Tamaño máximo: 10MB");
 
             // Generar nombre único con extensión .webp
-            var newFileName = $"{empresaId}_{productoId}_{DateTime.UtcNow:yyyyMMddHHmmss}.webp";
+            var newFileName = $"{productoId}_{DateTime.UtcNow:yyyyMMddHHmmss}.webp";
             var filePath = Path.Combine(_baseImagePath, newFileName);
 
             try
@@ -55,7 +55,7 @@ namespace PedidosBarrio.Infrastructure.Services
                 using (var image = await Image.LoadAsync(imageStream))
                 {
                     // Redimensionar a 200x200
-                    image.Mutate(x => x.Resize(200, 200));
+                    image.Mutate(x => x.Resize(300, 300));
 
                     // Configuramos el encoder de WebP para optimizar y comprimir
                     var encoder = new WebpEncoder

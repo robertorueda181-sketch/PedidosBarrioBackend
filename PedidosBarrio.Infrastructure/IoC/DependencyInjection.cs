@@ -120,6 +120,7 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<IMenuRepository, MenuRepository>();
             services.AddScoped<IVerificarCorreoRepository, VerificarCorreoRepository>();
             services.AddScoped<IIaModeracionLogRepository, IaModeracionLogRepository>();
+            services.AddScoped<IUbigeoRepository, UbigeoRepository>();
 
             // Unit of Work para transacciones
             services.AddScoped<IUnitOfWork, UnitOfWork>();

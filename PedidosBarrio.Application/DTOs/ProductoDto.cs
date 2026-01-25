@@ -12,6 +12,7 @@ namespace PedidosBarrio.Application.DTOs
         public bool? Activa { get; set; }
         public bool Inventario { get; set; }
         public bool Visible { get; set; }
+        public bool Aprobado { get; set; }
 
         // Lista de presentaciones del producto (incluye sus precios)
         public List<PresentacionDto> Presentaciones { get; set; } = new List<PresentacionDto>();

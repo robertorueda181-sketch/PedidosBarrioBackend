@@ -15,7 +15,12 @@ namespace PedidosBarrio.Infrastructure.Services
         {
             _httpClient = httpClient;
             _configuration = configuration;
-            
+
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                return;
+            }
+
             try
             {
                 // Configurar las credenciales
@@ -43,6 +48,16 @@ namespace PedidosBarrio.Infrastructure.Services
 
         public async Task<ImageValidationResponseDto> ValidateImageAsync(string imageUrl, string toleranceLevel = "MEDIUM")
         {
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                return new ImageValidationResponseDto
+                {
+                    IsAppropriate = true,
+                    ConfidenceScore = 1.0,
+                    Message = "✅ MODO DESARROLLO: Moderación de imagen omitida (auto-aprobada)"
+                };
+            }
+
             try
             {
                 // Descargar la imagen desde la URL
@@ -63,6 +78,16 @@ namespace PedidosBarrio.Infrastructure.Services
 
         public async Task<ImageValidationResponseDto> ValidateImageFromBase64Async(string base64Image, string toleranceLevel = "MEDIUM")
         {
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                return new ImageValidationResponseDto
+                {
+                    IsAppropriate = true,
+                    ConfidenceScore = 1.0,
+                    Message = "✅ MODO DESARROLLO: Moderación de imagen omitida (auto-aprobada)"
+                };
+            }
+
             try
             {
                 var imageBytes = Convert.FromBase64String(base64Image);
@@ -82,6 +107,11 @@ namespace PedidosBarrio.Infrastructure.Services
 
         private async Task<ImageValidationResponseDto> ValidateImageFromBytesAsync(byte[] imageBytes, string toleranceLevel)
         {
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                return new ImageValidationResponseDto { IsAppropriate = true, ConfidenceScore = 1.0 };
+            }
+
             try
             {
                 // Crear la imagen para Google Vision
