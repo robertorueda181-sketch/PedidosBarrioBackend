@@ -33,7 +33,7 @@ namespace PedidosBarrio.Application.Queries.GetAllNegocios
             // Para cada negocio, buscar su imagen asociada
             foreach (var dto in dtos)
             {
-                var imagenes = await _imagenRepository.GetByProductoIdAsync(dto.NegocioID, "NEG");
+                var imagenes = await _imagenRepository.GetByProductoIdAsync(dto.NegocioID, "LOGO");
                 var principal = imagenes.FirstOrDefault();
 
                 if (principal != null && !string.IsNullOrEmpty(principal.URLImagen))

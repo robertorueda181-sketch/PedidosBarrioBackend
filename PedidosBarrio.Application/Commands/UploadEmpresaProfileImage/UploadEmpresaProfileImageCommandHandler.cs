@@ -11,6 +11,8 @@ namespace PedidosBarrio.Application.Commands.UploadEmpresaProfileImage
     {
         private readonly IImageProcessingService _imageProcessingService;
         private readonly IImagenRepository _imagenRepository;
+        private readonly IEmpresaRepository _empresaRepository;
+        private readonly INegocioRepository _negocioRepository;
         private readonly IApplicationLogger _logger;
         private readonly string[] _allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
         private const long MaxFileSizeMB = 5;
@@ -18,10 +20,14 @@ namespace PedidosBarrio.Application.Commands.UploadEmpresaProfileImage
         public UploadEmpresaProfileImageCommandHandler(
             IImageProcessingService imageProcessingService,
             IImagenRepository imagenRepository,
+            IEmpresaRepository empresaRepository,
+            INegocioRepository negocioRepository,
             IApplicationLogger logger)
         {
             _imageProcessingService = imageProcessingService;
             _imagenRepository = imagenRepository;
+            _empresaRepository = empresaRepository;
+            _negocioRepository = negocioRepository;
             _logger = logger;
         }
 
@@ -59,14 +65,31 @@ namespace PedidosBarrio.Application.Commands.UploadEmpresaProfileImage
                     0, // ProductoId no se usa para imágenes de perfil
                     request.EmpresaId);
 
+                // Obtener la empresa para verificar su tipo
+                var empresa = await _empresaRepository.GetByIdAsync(request.EmpresaId);
+                int? productoId = null;
+
+                // Si TipoEmpresa == 1, es un negocio, traer el código del negocio
+                if (empresa?.TipoEmpresa == 1)
+                {
+                    var negocio = (await _negocioRepository.GetByEmpresaIdAsync(request.EmpresaId)).FirstOrDefault();
+                    if (negocio != null)
+                    {
+                        productoId = negocio.NegocioID;
+                    }
+                }
+
+                // Desactivar otras imágenes de perfil para esta empresa
+                await _imagenRepository.DeactivateOtherProfileImagesAsync(request.EmpresaId);
+
                 // Crear y guardar registro en base de datos
                 var imagen = new Imagen(
-                    productoID: null, // No hay producto para imagen de perfil
+                    productoID: productoId,
                     urlImagen: imagePath,
                     empresaID: request.EmpresaId,
                     descripcion: "Imagen de perfil de empresa")
                 {
-                    Type = "LOGO"
+                    Type = "PROFILE"
                 };
 
                 await _imagenRepository.AddAsync(imagen);

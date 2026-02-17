@@ -77,6 +77,23 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             return imagen.ImagenID;
         }
 
+        public async Task DeactivateOtherProfileImagesAsync(Guid empresaId)
+        {
+            var otherProfileImages = await _context.Imagenes
+                .Where(i => i.EmpresaID == empresaId && i.Type == "PROFILE" && i.Activa)
+                .ToListAsync();
+
+            foreach (var img in otherProfileImages)
+            {
+                img.Activa = false;
+            }
+
+            if (otherProfileImages.Any())
+            {
+                await _context.SaveChangesAsync();
+            }
+        }
+
         public async Task UpdateAsync(Imagen imagen)
         {
             var existing = await GetByIdAsync(imagen.ImagenID);

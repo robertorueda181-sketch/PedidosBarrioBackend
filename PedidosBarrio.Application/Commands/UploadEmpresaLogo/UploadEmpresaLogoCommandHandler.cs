@@ -11,6 +11,8 @@ namespace PedidosBarrio.Application.Commands.UploadEmpresaLogo
     {
         private readonly IImageProcessingService _imageProcessingService;
         private readonly IImagenRepository _imagenRepository;
+        private readonly IEmpresaRepository _empresaRepository;
+        private readonly INegocioRepository _negocioRepository;
         private readonly IApplicationLogger _logger;
         private readonly string[] _allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
         private const long MaxFileSizeMB = 5;
@@ -18,10 +20,14 @@ namespace PedidosBarrio.Application.Commands.UploadEmpresaLogo
         public UploadEmpresaLogoCommandHandler(
             IImageProcessingService imageProcessingService,
             IImagenRepository imagenRepository,
+            IEmpresaRepository empresaRepository,
+            INegocioRepository negocioRepository,
             IApplicationLogger logger)
         {
             _imageProcessingService = imageProcessingService;
             _imagenRepository = imagenRepository;
+            _empresaRepository = empresaRepository;
+            _negocioRepository = negocioRepository;
             _logger = logger;
         }
 
@@ -59,14 +65,46 @@ namespace PedidosBarrio.Application.Commands.UploadEmpresaLogo
                     0, // ProductoId no se usa para logos
                     request.EmpresaId);
 
+                // Obtener la empresa para verificar su tipo
+                var empresa = await _empresaRepository.GetByIdAsync(request.EmpresaId);
+                int? productoId = null;
+
+                // Si TipoEmpresa == 1, es un negocio, traer el código del negocio
+                if (empresa?.TipoEmpresa == 1)
+                {
+                    var negocio = (await _negocioRepository.GetByEmpresaIdAsync(request.EmpresaId)).FirstOrDefault();
+                    if (negocio != null && !string.IsNullOrEmpty(negocio.Codigo))
+                    {
+                        // Convertir código de negocio a int si es posible
+                        if (int.TryParse(negocio.Codigo, out var codigoInt))
+                        {
+                            productoId = codigoInt;
+                        }
+                    }
+                }
+
+                // Crear y guardar registro en base de datos
+                var imagen = new Imagen(
+                    productoID: productoId,
+                    urlImagen: imagePath,
+                    empresaID: request.EmpresaId,
+                    descripcion: "Logo de empresa")
+                {
+                    Type = "LOGO"
+                };
+
+                await _imagenRepository.AddAsync(imagen);
+
                 await _logger.LogInformationAsync($"Logo subido exitosamente para empresa {request.EmpresaId}: {imagePath}");
+
+                var imageUrl = await _imageProcessingService.GetImageUrlAsync(imagePath);
 
                 return new UploadEmpresaLogoResponseDto
                 {
                     Success = true,
                     Message = "Logo cargado y optimizado correctamente",
                     ImagePath = imagePath,
-                    ImageUrl = await _imageProcessingService.GetImageUrlAsync(imagePath)
+                    ImageUrl = imageUrl
                 };
             }
             catch (Exception ex)

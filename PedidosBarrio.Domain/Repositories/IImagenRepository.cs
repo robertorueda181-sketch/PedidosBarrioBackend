@@ -13,5 +13,6 @@ namespace PedidosBarrio.Domain.Repositories
         Task UpdateAsync(Imagen imagen);
         Task DeleteAsync(int id);
         Task SetPrincipalAsync(int imagenId, int productoId, Guid empresaId);
+        Task DeactivateOtherProfileImagesAsync(Guid empresaId);
     }
 }
