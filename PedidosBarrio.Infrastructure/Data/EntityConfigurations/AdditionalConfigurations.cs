@@ -94,6 +94,31 @@ namespace PedidosBarrio.Infrastructure.Data.EntityConfigurations
         }
     }
 
+    public class DireccionConfiguration : IEntityTypeConfiguration<Direccion>
+    {
+        public void Configure(EntityTypeBuilder<Direccion> builder)
+        {
+            builder.ToTable("Direccion");
+            builder.HasKey(d => d.DireccionID);
+
+            builder.Property(d => d.DireccionID).HasColumnName("DireccionID").ValueGeneratedOnAdd();
+            builder.Property(d => d.EmpresaID).HasColumnName("EmpresaID").IsRequired();
+            builder.Property(d => d.NombreLocal).HasColumnName("NombreLocal").HasMaxLength(50).IsRequired();
+            builder.Property(d => d.DireccionTexto).HasColumnName("Direccion").IsRequired();
+            builder.Property(d => d.Referencia).HasColumnName("Referencia");
+            builder.Property(d => d.Longitud).HasColumnName("Longitud").HasColumnType("numeric(9,6)").IsRequired();
+            builder.Property(d => d.Latitud).HasColumnName("Latitud").HasColumnType("numeric(9,6)").IsRequired();
+            builder.Property(d => d.Departamento).HasColumnName("Departamento").HasMaxLength(100);
+            builder.Property(d => d.Provincia).HasColumnName("Provincia").HasMaxLength(100);
+            builder.Property(d => d.Distrito).HasColumnName("Distrito").HasMaxLength(100);
+
+            builder.HasOne(d => d.Empresa)
+                .WithMany(e => e.Direcciones)
+                .HasForeignKey(d => d.EmpresaID)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
+    }
+
     public class ConfiguracionConfiguration : IEntityTypeConfiguration<Configuracion>
     {
         public void Configure(EntityTypeBuilder<Configuracion> builder)
@@ -129,6 +154,21 @@ namespace PedidosBarrio.Infrastructure.Data.EntityConfigurations
             builder.Property(i => i.Order).HasColumnName("order").HasDefaultValue(1);
             builder.Property(i => i.FechaRegistro).HasColumnName("FechaRegistro").HasColumnType("timestamp with time zone");
                         builder.Property(i => i.Activa).HasColumnName("Activa").HasDefaultValue(true);
+                    }
+                }
+
+                public class EmpresaConfiguration : IEntityTypeConfiguration<Empresa>
+                {
+                    public void Configure(EntityTypeBuilder<Empresa> builder)
+                    {
+                        builder.ToTable("Empresas");
+                        builder.HasKey(e => e.ID);
+
+                        builder.Property(e => e.ID).HasColumnName("EmpresaID");
+                        builder.Property(e => e.Instagram).HasColumnName("Instragram");
+                        builder.Property(e => e.Tiktok).HasColumnName("Tiktok");
+                        builder.Property(e => e.TelefonoPrincipal).HasColumnName("TelefonoPrincipal").HasMaxLength(50);
+                        builder.Property(e => e.TelefonoSec).HasColumnName("TelefonoSec").HasMaxLength(50);
                     }
                 }
 

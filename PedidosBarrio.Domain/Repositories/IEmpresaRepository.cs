@@ -8,6 +8,8 @@ namespace PedidosBarrio.Domain.Repositories
         Task<Empresa> GetByEmailAsync(string email);
         Task<IEnumerable<Empresa>> GetAllAsync();
         Task AddAsync(Empresa empresa);
+        Task UpdateAsync(Empresa empresa);
         Task DeleteAsync(Guid id);
     }
 }
+

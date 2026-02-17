@@ -18,7 +18,9 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
 
         public async Task<Empresa> GetByIdAsync(Guid id)
         {
-            return await GetByIdAsync<Guid>(id);
+            return await _context.Empresas
+                .Include(e => e.Usuario)
+                .FirstOrDefaultAsync(e => e.ID == id);
         }
 
         public async Task<Empresa> GetByEmailAsync(string email)

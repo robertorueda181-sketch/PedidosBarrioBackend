@@ -11,5 +11,10 @@ namespace PedidosBarrio.Application.DTOs
         public string Telefono { get; set; }
         public DateTime FechaRegistro { get; set; }
         public bool Activa { get; set; }
+        public string? Facebook { get; set; }
+        public string? Instagram { get; set; }
+        public string? Twitter { get; set; }
+        public string? Whatsapp { get; set; }
     }
 }
+

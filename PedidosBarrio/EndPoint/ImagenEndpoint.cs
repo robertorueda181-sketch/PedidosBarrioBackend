@@ -1,7 +1,5 @@
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using PedidosBarrio.Application.Commands.CreateImagen;
 using PedidosBarrio.Application.Commands.DeleteImagen;
 using PedidosBarrio.Application.Commands.UploadImage;
 using PedidosBarrio.Application.DTOs;
@@ -43,15 +41,6 @@ namespace PedidosBarrio.Api.EndPoint
                 return Results.Ok(imagenes);
             })
             .WithName("GetImagenesById")
-            .WithOpenApi();
-
-            // POST /api/Imagenes
-            group.MapPost("/", async ([FromBody] CreateImagenDto createDto, IMediator mediator) =>
-            {
-                var imagenDto = await mediator.Send(new CreateImagenCommand(createDto.ProductoID, createDto.URLImagen, createDto.Descripcion));
-                return Results.Created($"/api/Imagenes/{imagenDto.ImagenID}", imagenDto);
-            })
-            .WithName("CreateImagen")
             .WithOpenApi();
 
             // POST /api/Imagenes/upload

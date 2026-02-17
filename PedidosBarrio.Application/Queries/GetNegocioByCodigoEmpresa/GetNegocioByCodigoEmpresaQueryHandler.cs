@@ -36,18 +36,20 @@ namespace PedidosBarrio.Application.Queries.GetNegocioByCodigoEmpresa
 
         public async Task<NegocioDetalleDto> Handle(GetNegocioByCodigoEmpresaQuery query, CancellationToken cancellationToken)
         {
-            var empresa = await _negocioRepository.GetByCodigoEmpresaAsync(query.CodigoEmpresa);
+            var negocio = await _negocioRepository.GetByIdAsync(query.CodigoEmpresa);
 
-            if (empresa == null)
+            if (negocio == null || negocio.Empresa == null)
                 return null;
+
+            var empresa = negocio.Empresa;
 
             // Obtener productos de la empresa
             var productos = (await _productoRepository.GetByEmpresaIdAsync(empresa.ID)).ToList();
 
-            // Obtener categorías que deben mostrarse (Mostrar = true y Activo = true)
+            // Obtener categoras que deben mostrarse (Mostrar = true y Activo = true)
             var categorias = await _categoriaRepository.GetByEmpresaIdMostrandoAsync(empresa.ID);
 
-            // Obtener imágenes de la empresa para los productos
+            // Obtener imgenes de la empresa para los productos
             var todasLasImagenes = await _imagenRepository.GetByEmpresaIdAsync(empresa.ID);
             var imagenesPorProducto = todasLasImagenes.GroupBy(i => i.ExternalId ?? 0)
                 .ToDictionary(g => g.Key, g => g.OrderBy(i => i.Order).ToList());
@@ -86,12 +88,16 @@ namespace PedidosBarrio.Application.Queries.GetNegocioByCodigoEmpresa
             var negocioDetalle = new NegocioDetalleDto
             {
                 EmpresaID = empresa.ID,
-                Nombre = empresa.Nombre,
-                Descripcion = empresa.Descripcion,
-                Email = empresa.Email,
-                Telefono = empresa.Telefono,
-                Direccion = empresa.Direccion,
-                Referencia = empresa.Referencia ?? string.Empty,
+                Nombre = negocio.Nombre ?? "Sin nombre",
+                Descripcion = negocio.Descripcion ?? string.Empty,
+                Email = "", // Email est en Usuario, habra que incluirlo si se requiere
+                Telefono = negocio.Telefono ?? string.Empty,
+                Direccion = negocio.Direccion ?? string.Empty,
+                Referencia = negocio.Referencia ?? string.Empty,
+                Facebook = empresa.Facebook,
+                Instagram = empresa.Instagram,
+                Twitter = empresa.Twitter,
+                Whatsapp = empresa.Whatsapp,
                 Categorias = categorias.Select(c => new CategoriaDetalleDto
                 {
                     CategoriaID = c.CategoriaID,
@@ -106,6 +112,8 @@ namespace PedidosBarrio.Application.Queries.GetNegocioByCodigoEmpresa
         }
     }
 }
+
+
 
 
 

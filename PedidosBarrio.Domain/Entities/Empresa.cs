@@ -1,8 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
+
 
 namespace PedidosBarrio.Domain.Entities;
 
@@ -44,6 +42,23 @@ public partial class Empresa
 
     public bool Aprobado { get; set; }
 
+    public string? Facebook { get; set; }
+
+    [Column("Instragram")]
+    public string? Instagram { get; set; }
+
+    public string? Twitter { get; set; }
+
+    public string? Tiktok { get; set; }
+
+    public string? Whatsapp { get; set; }
+
+    [Column("TelefonoPrincipal")]
+    public string? TelefonoPrincipal { get; set; }
+
+    [Column("TelefonoSec")]
+    public string? TelefonoSec { get; set; }
+
     [ForeignKey("UsuarioID")]
     [InverseProperty("Empresas")]
     public virtual Usuario? Usuario { get; set; }
@@ -60,18 +75,13 @@ public partial class Empresa
     [InverseProperty("Empresa")]
     public virtual ICollection<Suscripcion> Suscripcions { get; set; } = new List<Suscripcion>();
 
-    // ===== PROPIEDADES COMPATIBILIDAD (No mapeadas) =====
-    [NotMapped]
-    public string Nombre { get; set; } = "";
-    [NotMapped]
-    public string Descripcion { get; set; } = "";
-    [NotMapped]
-    public string Email { get; set; } = "";
-    [NotMapped]
-    public string Telefono { get; set; } = "";
-    [NotMapped]
-    public string Direccion { get; set; } = "";
+    [InverseProperty("Empresa")]
+    public virtual ICollection<Direccion> Direcciones { get; set; } = new List<Direccion>();
 }
+
+
+
+
 
 
 

@@ -1,10 +1,11 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using PedidosBarrio.Application.Commands.DeleteEmpresa;
-using PedidosBarrio.Application.Commands.Login;
+using PedidosBarrio.Application.Commands.SaveEmpresaSede;
+using PedidosBarrio.Application.Commands.UploadEmpresaLogo;
+using PedidosBarrio.Application.Commands.UploadEmpresaProfileImage;
 using PedidosBarrio.Application.DTOs;
-using PedidosBarrio.Application.Queries.GetAllEmpresas;
-using PedidosBarrio.Application.Queries.GetEmpresaById;
+using PedidosBarrio.Application.Queries.GetEmpresaSedeDetalle;
+using PedidosBarrio.Application.Services;
 
 namespace PedidosBarrio.Api.EndPoint
 {
@@ -12,46 +13,87 @@ namespace PedidosBarrio.Api.EndPoint
     {
         public static void MapEmpresaEndpoints(this IEndpointRouteBuilder app)
         {
-            var group = app.MapGroup("/api/Empresas")
-                           .WithTags("Empresas");
+            var group = app.MapGroup("/api/Empresa")
+                           .WithTags("Empresa y Sede")
+                           .RequireAuthorization();
 
-            // GET /api/Empresas
-            group.MapGet("/", async (IMediator mediator) =>
+            // GET /api/Empresa/sede
+            group.MapGet("/sede", async (IMediator mediator, ICurrentUserService currentUserService) =>
             {
-                var empresas = await mediator.Send(new GetAllEmpresasQuery());
-                return Results.Ok(empresas);
+                var empresaId = currentUserService.GetEmpresaId();
+                var query = new GetEmpresaSedeDetalleQuery(empresaId);
+                var result = await mediator.Send(query);
+                return result is not null ? Results.Ok(result) : Results.NotFound();
             })
-            .WithName("GetAllEmpresas")
-            .WithOpenApi();
+            .WithName("GetEmpresaSedeDetalle")
+            .WithOpenApi()
+                        .WithSummary("🏢 Obtener detalles de la empresa y su sede principal")
+                        .WithDescription("Obtiene el nombre, descripción, logo, redes sociales, teléfonos y dirección de la empresa del usuario logueado.");
 
-            // GET /api/Empresas/{id}
-            group.MapGet("/{id:guid}", async (Guid id, IMediator mediator) =>
-            {
-                var empresa = await mediator.Send(new GetEmpresaByIdQuery(id));
-                return empresa is not null ? Results.Ok(empresa) : Results.NotFound();
-            })
-            .WithName("GetEmpresaById")
-            .WithOpenApi();
+                        // POST /api/Empresa/sede (Upsert)
+                        group.MapPost("/sede", async ([FromBody] SaveEmpresaSedeDto dto, IMediator mediator, ICurrentUserService currentUserService) =>
+                        {
+                            var empresaId = currentUserService.GetEmpresaId();
+                            var command = new SaveEmpresaSedeCommand(empresaId, dto);
+                            var result = await mediator.Send(command);
+                            return result ? Results.Ok(new { success = true, message = "Datos guardados correctamente" }) : Results.BadRequest();
+                        })
+                        .WithName("SaveEmpresaSede")
+                        .WithOpenApi()
+                        .WithSummary("💾 Guardar detalles de la empresa y sede")
+                        .WithDescription("Crea o actualiza los datos de la empresa (redes, teléfonos, descripción) y su sede (dirección, ubicación).");
 
+                                    // POST /api/Empresa/logo (Upload logo with validation and optimization)
+                                    group.MapPost("/logo", async (IFormFile file, IMediator mediator, ICurrentUserService currentUserService) =>
+                                    {
+                                        if (file == null || file.Length == 0)
+                                        {
+                                            return Results.BadRequest(new { success = false, message = "Archivo requerido" });
+                                        }
 
-            // DELETE /api/Empresas/{id}
-            group.MapDelete("/{id:guid}", async (Guid id, IMediator mediator) =>
-            {
-                await mediator.Send(new DeleteEmpresaCommand(id));
-                return Results.NoContent();
-            })
-            .WithName("DeleteEmpresa")
-            .WithOpenApi();
+                                        var empresaId = currentUserService.GetEmpresaId();
 
-            // POST /api/Empresas/Login
-            group.MapPost("/Login", async ([FromBody] LoginDto loginDto, IMediator mediator) =>
-            {
-                var loginResponse = await mediator.Send(new LoginCommand(loginDto.Email, loginDto.Contrasena));
-                return Results.Ok(loginResponse);
-            })
-            .WithName("Login")
-            .WithOpenApi();
+                                        using (var stream = file.OpenReadStream())
+                                        {
+                                            var command = new UploadEmpresaLogoCommand(empresaId, stream, file.FileName);
+                                            var result = await mediator.Send(command);
+                                            return result.Success ? Results.Ok(result) : Results.BadRequest(result);
+                                        }
+                                    })
+                                    .WithName("UploadEmpresaLogo")
+                                    .WithOpenApi()
+                                    .WithSummary("🖼️ Subir logo de empresa")
+                                    .WithDescription("Sube y optimiza el logo de la empresa. Valida la extensión, optimiza la imagen y devuelve la ruta. Formatos permitidos: JPG, JPEG, PNG, GIF, WebP. Máximo 5MB.")
+                                    .Accepts<IFormFile>("multipart/form-data")
+                                    .Produces<UploadEmpresaLogoResponseDto>(StatusCodes.Status200OK)
+                                    .Produces(StatusCodes.Status400BadRequest)
+                                    .DisableAntiforgery();
 
-        }
-    }
-}
+                                    // POST /api/Empresa/profile-image (Upload profile image with validation and optimization)
+                                    group.MapPost("/profile-image", async (IFormFile file, IMediator mediator, ICurrentUserService currentUserService) =>
+                                    {
+                                        if (file == null || file.Length == 0)
+                                        {
+                                            return Results.BadRequest(new { success = false, message = "Archivo requerido" });
+                                        }
+
+                                        var empresaId = currentUserService.GetEmpresaId();
+
+                                        using (var stream = file.OpenReadStream())
+                                        {
+                                            var command = new UploadEmpresaProfileImageCommand(empresaId, stream, file.FileName);
+                                            var result = await mediator.Send(command);
+                                            return result.Success ? Results.Ok(result) : Results.BadRequest(result);
+                                        }
+                                    })
+                                    .WithName("UploadEmpresaProfileImage")
+                                    .WithOpenApi()
+                                    .WithSummary("👤 Subir imagen de perfil de empresa")
+                                    .WithDescription("Sube y optimiza la imagen de perfil de la empresa. Valida la extensión, optimiza la imagen y devuelve la ruta. Formatos permitidos: JPG, JPEG, PNG, GIF, WebP. Máximo 5MB.")
+                                    .Accepts<IFormFile>("multipart/form-data")
+                                    .Produces<UploadEmpresaLogoResponseDto>(StatusCodes.Status200OK)
+                                    .Produces(StatusCodes.Status400BadRequest)
+                                    .DisableAntiforgery();
+                                }
+                            }
+                        }

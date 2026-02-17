@@ -36,6 +36,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                 negocio = await _context.Negocios
                     .AsNoTracking()
                     .Include(n => n.Tipos)
+                    .Include(n => n.Empresa)
                     .FirstOrDefaultAsync(n => n.NegocioID == negocioId);
             }
             else
@@ -43,6 +44,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                 negocio = await _context.Negocios
                     .AsNoTracking()
                     .Include(n => n.Tipos)
+                    .Include(n => n.Empresa)
                     .FirstOrDefaultAsync(n => n.Codigo == id || n.Urlnegocio == id);
             }
 
@@ -114,6 +116,8 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         }
     }
 }
+
+
 
 
 

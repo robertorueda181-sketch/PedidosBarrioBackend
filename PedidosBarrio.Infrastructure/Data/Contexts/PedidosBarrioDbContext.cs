@@ -14,6 +14,8 @@ public partial class PedidosBarrioDbContext : DbContext
 
     public virtual DbSet<Categoria> Categorias { get; set; }
 
+    public virtual DbSet<Direccion> Direcciones { get; set; }
+
     public virtual DbSet<Empresa> Empresas { get; set; }
 
     public virtual DbSet<EmpresasBaneada> EmpresasBaneadas { get; set; }
@@ -50,6 +52,8 @@ public partial class PedidosBarrioDbContext : DbContext
 
     public virtual DbSet<UbigeoPeruDistrict> UbigeoPeruDistricts { get; set; }
 
+    public virtual DbSet<NotificacionApp> NotificacionesApp { get; set; }
+
     public virtual DbSet<VerificarCorreo> VerificarCorreos { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -62,8 +66,10 @@ public partial class PedidosBarrioDbContext : DbContext
         // Aplicar configuraciones externas
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.ProductoConfiguration());
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.CategoriaConfiguration());
+        modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.EmpresaConfiguration());
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.PrecioConfiguration());
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.PresentacionConfiguration());
+        modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.DireccionConfiguration());
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.ConfiguracionConfiguration());
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.ImagenConfiguration());
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.VerificarCorreoConfiguration());

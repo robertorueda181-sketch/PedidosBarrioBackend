@@ -12,6 +12,10 @@ namespace PedidosBarrio.Application.DTOs
         public string Telefono { get; set; }
         public string Direccion { get; set; }
         public string Referencia { get; set; }
+        public string? Facebook { get; set; }
+        public string? Instagram { get; set; }
+        public string? Twitter { get; set; }
+        public string? Whatsapp { get; set; }
         public List<CategoriaDetalleDto> Categorias { get; set; } = new List<CategoriaDetalleDto>();
         public List<ProductoDetalleDto> Productos { get; set; } = new List<ProductoDetalleDto>();
     }

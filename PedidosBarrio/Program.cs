@@ -1,8 +1,6 @@
-using Microsoft.OpenApi;
 using PedidosBarrio.Api.EndPoint;
 using PedidosBarrio.Api.Middlewares;
 using PedidosBarrio.Infrastructure.IoC;
-using PedidosBarrio.Api;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -65,7 +63,7 @@ if (Directory.Exists(externalImagesPath))
 
 // 2. Servir archivos estáticos desde wwwroot (default) para el resto (incluye wwwroot/images)
 app.UseStaticFiles();
-
+app.UseRouting();
 // Usar CORS
 app.UseCors("AllowAngular");
 
@@ -91,7 +89,7 @@ app.MapInmuebleEndpoints();
 app.MapNegocioEndpoints();
 app.MapSearchEndpoints();
 app.MapConfiguracionEndpoints();
-app.MapVerificacionEndpoints();
 app.MapUbigeoEndpoints();
+app.MapNotificacionAppEndpoints();
 
 app.Run();

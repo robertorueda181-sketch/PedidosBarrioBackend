@@ -32,6 +32,11 @@ namespace PedidosBarrio.Infrastructure.IoC
         {
             // ===== ENTITY FRAMEWORK CORE =====
             var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new Exception("CONNECTION STRING ES NULL O VACÍA");
+            }
             services.AddDbContext<PedidosBarrioDbContext>(options =>
             {
                 options.UseNpgsql(connectionString, npgsqlOptions =>
@@ -106,6 +111,7 @@ namespace PedidosBarrio.Infrastructure.IoC
             // Repositorios
             services.AddScoped<ICompanyRepository, CompanyRepository>();
             services.AddScoped<IEmpresaRepository, EmpresaRepository>();
+            services.AddScoped<IDireccionRepository, DireccionRepository>();
             services.AddScoped<IUsuarioRepository, UsuarioRepository>();
             services.AddScoped<ISuscripcionRepository, SuscripcionRepository>();
             services.AddScoped<IProductoRepository, ProductoRepository>();
@@ -121,6 +127,8 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<IVerificarCorreoRepository, VerificarCorreoRepository>();
             services.AddScoped<IIaModeracionLogRepository, IaModeracionLogRepository>();
             services.AddScoped<IUbigeoRepository, UbigeoRepository>();
+            services.AddScoped<INotificacionAppRepository, NotificacionAppRepository>();
+            services.AddScoped<INotificacionAppRepository, NotificacionAppRepository>();
 
             // Unit of Work para transacciones
             services.AddScoped<IUnitOfWork, UnitOfWork>();

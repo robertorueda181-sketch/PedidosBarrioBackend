@@ -1,7 +1,5 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 using PedidosBarrio.Application.Queries.GetMenusByEmpresa;
 using PedidosBarrio.Application.DTOs;
 
