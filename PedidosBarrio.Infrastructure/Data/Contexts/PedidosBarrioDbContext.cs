@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using PedidosBarrio.Domain.Entities;
 
@@ -13,6 +11,8 @@ public partial class PedidosBarrioDbContext : DbContext
     }
 
     public virtual DbSet<Categoria> Categorias { get; set; }
+
+    public virtual DbSet<Banner> Banners { get; set; }
 
     public virtual DbSet<Direccion> Direcciones { get; set; }
 
@@ -55,6 +55,8 @@ public partial class PedidosBarrioDbContext : DbContext
     public virtual DbSet<NotificacionApp> NotificacionesApp { get; set; }
 
     public virtual DbSet<VerificarCorreo> VerificarCorreos { get; set; }
+
+    public virtual DbSet<PasoInicial> PasosIniciales { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -30,15 +30,20 @@ namespace PedidosBarrio.Application.Queries.GetAllNegocios
             var negocios = await _negocioRepository.GetAllAsync();
             var dtos = _mapper.Map<IEnumerable<NegocioDto>>(negocios).ToList();
 
+
             // Para cada negocio, buscar su imagen asociada
             foreach (var dto in dtos)
             {
-                var imagenes = await _imagenRepository.GetByProductoIdAsync(dto.NegocioID, "LOGO");
+                if (dto.URLOpcional != null)
+                {
+                    dto.URLNegocio = dto.URLOpcional;
+                }
+                var imagenes = await _imagenRepository.GetByProductoIdAsync(dto.NegocioID, "PROFILE");
                 var principal = imagenes.FirstOrDefault();
 
-                if (principal != null && !string.IsNullOrEmpty(principal.URLImagen))
+                if (principal != null && !string.IsNullOrEmpty(principal.Urlimagen))
                 {
-                    dto.UrlImagen = await _imageProcessingService.GetImageUrlAsync(principal.URLImagen);
+                    dto.UrlImagen = await _imageProcessingService.GetImageUrlAsync(principal.Urlimagen);
                 }
             }
 

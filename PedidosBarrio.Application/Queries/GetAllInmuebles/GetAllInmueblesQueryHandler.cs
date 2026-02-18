@@ -34,7 +34,7 @@ namespace PedidosBarrio.Application.Queries.GetAllInmuebles
                 Dormitorios = inmueble.Dormitorios ?? 0,
                 Banos = inmueble.Banos ?? 0,
                 Descripcion = inmueble.Descripcion ?? string.Empty,
-                URLImagen = inmueble.Imagen?.URLImagen ?? string.Empty,                 // ✅ Viene de la FUNCTION
+                URLImagen = inmueble.Imagen?.Urlimagen ?? string.Empty,                 // ✅ Viene de la FUNCTION
                 Operacion = inmueble.Operacion?.Descripcion ?? string.Empty             // ✅ Viene de la FUNCTION
             }).ToList();
 

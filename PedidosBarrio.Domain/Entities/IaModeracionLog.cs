@@ -22,10 +22,12 @@ namespace PedidosBarrio.Domain.Entities
         [Column("FechaRegistro")]
         public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
 
-                [Column("EmpresaID")]
-                public Guid EmpresaID { get; set; }
+        [Column("EmpresaID")]
+        public Guid EmpresaID { get; set; }
 
-                [Column("Contexto")]
-                public string? Contexto { get; set; }
-            }
-        }
+        [Column("Contexto")]
+        public string? Contexto { get; set; }
+        public int? IdExternal { get; set; }
+        public string? Tipo { get; set; }
+    }
+}

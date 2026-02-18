@@ -203,7 +203,7 @@ namespace PedidosBarrio.Application.Commands.UpdateProducto
                         {
                             ImagenID = i.ImagenID,
                             ExternalId = i.ExternalId ?? 0,
-                            URLImagen = i.URLImagen ?? string.Empty,
+                            URLImagen = i.Urlimagen ?? string.Empty,
                             Descripcion = i.Descripcion ?? string.Empty,
                             FechaRegistro = i.FechaRegistro ?? DateTime.Now,
                             Activa = i.Activa,

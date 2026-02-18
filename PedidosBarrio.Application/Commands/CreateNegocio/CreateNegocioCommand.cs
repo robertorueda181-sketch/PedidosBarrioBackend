@@ -10,14 +10,16 @@ namespace PedidosBarrio.Application.Commands.CreateNegocio
         public string URLNegocio { get; set; }
         public string Descripcion { get; set; }
         public string URLOpcional { get; set; }
+        public string Nombre { get; set; }
 
-        public CreateNegocioCommand(Guid empresaID, int tiposID, string urlNegocio, string descripcion, string urlOpcional = null)
+        public CreateNegocioCommand(Guid empresaID, int tiposID, string urlNegocio, string descripcion, string urlOpcional = null,string nombre = null)
         {
             EmpresaID = empresaID;
             TiposID = tiposID;
             URLNegocio = urlNegocio;
             Descripcion = descripcion;
             URLOpcional = urlOpcional;
+            Nombre = nombre;
         }
     }
 }

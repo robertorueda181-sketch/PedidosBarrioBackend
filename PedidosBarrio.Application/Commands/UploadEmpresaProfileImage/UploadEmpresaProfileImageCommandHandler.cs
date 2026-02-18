@@ -13,6 +13,7 @@ namespace PedidosBarrio.Application.Commands.UploadEmpresaProfileImage
         private readonly IImagenRepository _imagenRepository;
         private readonly IEmpresaRepository _empresaRepository;
         private readonly INegocioRepository _negocioRepository;
+        private readonly IPasoInicialRepository _pasoInicialRepository;
         private readonly IApplicationLogger _logger;
         private readonly string[] _allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
         private const long MaxFileSizeMB = 5;
@@ -22,12 +23,14 @@ namespace PedidosBarrio.Application.Commands.UploadEmpresaProfileImage
             IImagenRepository imagenRepository,
             IEmpresaRepository empresaRepository,
             INegocioRepository negocioRepository,
+            IPasoInicialRepository pasoInicialRepository,
             IApplicationLogger logger)
         {
             _imageProcessingService = imageProcessingService;
             _imagenRepository = imagenRepository;
             _empresaRepository = empresaRepository;
             _negocioRepository = negocioRepository;
+            _pasoInicialRepository = pasoInicialRepository;
             _logger = logger;
         }
 
@@ -95,6 +98,22 @@ namespace PedidosBarrio.Application.Commands.UploadEmpresaProfileImage
                 await _imagenRepository.AddAsync(imagen);
 
                 await _logger.LogInformationAsync($"Imagen de perfil subida exitosamente para empresa {request.EmpresaId}: {imagePath}");
+
+                // Auto-marcar paso "CAMBIAR_LOGO" como completado
+                try
+                {
+                    var pasoCambiarLogo = await _pasoInicialRepository.GetPasoPorCodigoAsync(request.EmpresaId, "CAMBIAR_LOGO");
+                    if (pasoCambiarLogo != null && !pasoCambiarLogo.Completado)
+                    {
+                        await _pasoInicialRepository.CompletarPasoAsync(pasoCambiarLogo.PasoID);
+                        await _logger.LogInformationAsync($"Paso 'CAMBIAR_LOGO' marcado como completado para empresa {request.EmpresaId}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // No fallar la subida de imagen si hay error al actualizar el paso
+                    await _logger.LogWarningAsync($"Error al marcar paso CAMBIAR_LOGO como completado: {ex.Message}");
+                }
 
                 var imageUrl = await _imageProcessingService.GetImageUrlAsync(imagePath);
 

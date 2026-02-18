@@ -88,7 +88,7 @@ namespace PedidosBarrio.Application.Queries.GetNegocioByCodigoEmpresa
             var negocioDetalle = new NegocioDetalleDto
             {
                 EmpresaID = empresa.ID,
-                Nombre = negocio.Nombre ?? "Sin nombre",
+                Nombre = negocio.Nombre ?? "",
                 Descripcion = negocio.Descripcion ?? string.Empty,
                 Email = "", // Email est en Usuario, habra que incluirlo si se requiere
                 Telefono = negocio.Telefono ?? string.Empty,

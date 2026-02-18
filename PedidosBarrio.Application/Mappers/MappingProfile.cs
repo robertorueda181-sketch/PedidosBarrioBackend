@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using System.Linq;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Domain.Entities;
 
@@ -42,7 +41,7 @@ namespace PedidosBarrio.Application.Mappers
             CreateMap<Producto, ProductoDto>()
                 .ForMember(dest => dest.Precios, opt => opt.MapFrom(src => src.Presentaciones.SelectMany(p => p.Precios)));
             CreateMap<CreateProductoDto, Producto>();
-            
+
             CreateMap<Presentacion, PresentacionDto>();
             CreateMap<Precio, PrecioDto>()
                 .ForMember(dest => dest.PrecioValor, opt => opt.MapFrom(src => src.PrecioValor))
@@ -51,7 +50,7 @@ namespace PedidosBarrio.Application.Mappers
             // ===================== IMAGEN MAPPINGS =====================
             CreateMap<Imagen, ImagenDto>();
             CreateMap<Imagen, ImagenUrlDto>()
-                .ForMember(dest => dest.URLImagen, opt => opt.MapFrom(src => src.URLImagen))
+                .ForMember(dest => dest.URLImagen, opt => opt.MapFrom(src => src.Urlimagen))
                 .ForMember(dest => dest.Descripcion, opt => opt.MapFrom(src => src.Descripcion));
             CreateMap<CreateImagenDto, Imagen>();
 
@@ -61,14 +60,17 @@ namespace PedidosBarrio.Application.Mappers
             // ===================== INMUEBLE MAPPINGS =====================
             CreateMap<Inmueble, InmuebleDto>();
             CreateMap<CreateInmuebleDto, Inmueble>();
-            
+
             // Mapping para DTO con detalles (includes Tipos e Imagenes)
             CreateMap<InmuebleDetailsDto, InmuebleDetailsDto>();
 
             // ===================== NEGOCIO MAPPINGS =====================
             CreateMap<Negocio, NegocioDto>()
-                .ForMember(dest => dest.UrlImagen, opt => opt.MapFrom(src => src.Imagenes.URLImagen));
+                .ForMember(dest => dest.UrlImagen, opt => opt.MapFrom(src => src.Imagenes.Urlimagen));
             CreateMap<CreateNegocioDto, Negocio>();
+
+            // ===================== PASO INICIAL MAPPINGS =====================
+            CreateMap<PasoInicial, PasoInicialDto>();
         }
     }
 }

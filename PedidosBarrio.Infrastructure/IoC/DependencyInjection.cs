@@ -118,6 +118,8 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<IPrecioRepository, PrecioRepository>();
             services.AddScoped<IPresentacionRepository, PresentacionRepository>();
             services.AddScoped<IImagenRepository, ImagenRepository>();
+            services.AddScoped<IBannerRepository, BannerRepository>();
+            services.AddScoped<IPasoInicialRepository, PasoInicialRepository>();
             services.AddScoped<ITipoRepository, TipoRepository>();
             services.AddScoped<IInmuebleRepository, InmuebleRepository>();
             services.AddScoped<INegocioRepository, NegocioRepository>();

@@ -82,6 +82,8 @@ app.MapControllers();
 app.MapRegisterEndpoints();
 app.MapLoginEndpoints();
 app.MapEmpresaEndpoints();
+app.MapBannerEndpoints();
+app.MapPasoInicialEndpoints();
 app.MapCategoriaEndpoints(); // Incluye endpoints de categorías Y productos
 app.MapImagenEndpoints();
 app.MapTipoEndpoints();

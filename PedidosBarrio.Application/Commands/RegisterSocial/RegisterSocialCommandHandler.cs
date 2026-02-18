@@ -25,6 +25,7 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
         private readonly IEmpresaRepository _empresaRepository;
         private readonly ISuscripcionRepository _suscripcionRepository;
         private readonly IIaModeracionLogRepository _iaModeracionLogRepository;
+        private readonly IPasoInicialRepository _pasoInicialRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMediator _mediator;
         private readonly IJwtTokenService _jwtTokenService;
@@ -40,6 +41,7 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
             IEmpresaRepository empresaRepository,
             ISuscripcionRepository suscripcionRepository,
             IIaModeracionLogRepository iaModeracionLogRepository,
+            IPasoInicialRepository pasoInicialRepository,
             IUnitOfWork unitOfWork,
             IMediator mediator,
             IJwtTokenService jwtTokenService,
@@ -54,6 +56,7 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
             _empresaRepository = empresaRepository;
             _suscripcionRepository = suscripcionRepository;
             _iaModeracionLogRepository = iaModeracionLogRepository;
+            _pasoInicialRepository = pasoInicialRepository;
             _unitOfWork = unitOfWork;
             _mediator = mediator;
             _jwtTokenService = jwtTokenService;
@@ -214,6 +217,9 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
                 FechaFin = null // Sin vencimiento
             };
             await _suscripcionRepository.AddAsync(suscripcion);
+
+            // ===== 4.3 AUTO-GENERAR PASOS INICIALES PARA LA EMPRESA =====
+            await _pasoInicialRepository.CrearPasosInicialesDefaultAsync(empresa.ID);
 
             // ===== 5. CREAR REGISTRO ESPECÍFICO SEGÚN TIPO DE EMPRESA =====
             switch (request.TipoEmpresa)

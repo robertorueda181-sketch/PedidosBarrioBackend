@@ -1,8 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
+
 
 namespace PedidosBarrio.Domain.Entities;
 
@@ -29,9 +27,6 @@ public partial class Imagen
     [Column("URLImagen")]
     [StringLength(500)]
     public string? Urlimagen { get; set; }
-
-    [NotMapped]
-    public string? URLImagen { get => Urlimagen; set => Urlimagen = value; }
 
     public string? Descripcion { get; set; }
 

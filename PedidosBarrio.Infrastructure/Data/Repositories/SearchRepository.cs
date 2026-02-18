@@ -74,7 +74,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             {
                 var img = await _context.Imagenes
                     .AsNoTracking()
-                    .Where(img => img.ExternalId == n.NegocioID && img.Type == "NEG" && img.Activa == true)
+                    .Where(img => img.ExternalId == n.NegocioID && img.Type == "PROFILE" && img.Activa == true)
                     .OrderBy(img => img.Order)
                     .Select(img => img.Urlimagen)
                     .FirstOrDefaultAsync();
@@ -88,7 +88,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                     Location = n.Direccion ?? "",
                     Category = n.Tipos?.Descripcion ?? "Comercio",
                     ImageUrl = !string.IsNullOrEmpty(img) ? await _imageProcessingService.GetImageUrlAsync(img) : "",
-                    Url = $"/negocio/{n.Urlnegocio ?? n.NegocioID.ToString()}"
+                    Url = $"{n.Urlopcional ?? n.Urlnegocio}"
                 });
             }
 

@@ -41,15 +41,12 @@ namespace PedidosBarrio.Application.Queries.GetEmpresaSedeDetalle
 
             // Obtener Logo
             var imagenes = await _imagenRepository.GetByEmpresaIdAsync(request.EmpresaID);
-            var logo = imagenes.FirstOrDefault(i => i.Type == "LOGO");
+            
             string? logoUrl = null;
-            if (logo != null && !string.IsNullOrEmpty(logo.Urlimagen))
-            {
-                logoUrl = await _imageProcessingService.GetImageUrlAsync(logo.Urlimagen);
-            }
+          
 
             // Obtener Imagen de Perfil
-            var profileImage = imagenes.FirstOrDefault(i => i.Type == "PROFILE" || i.Type == "PERFIL");
+            var profileImage = imagenes.FirstOrDefault(i => i.Type == "PROFILE");
             string? profileImageUrl = null;
             if (profileImage != null && !string.IsNullOrEmpty(profileImage.Urlimagen))
             {
@@ -59,7 +56,7 @@ namespace PedidosBarrio.Application.Queries.GetEmpresaSedeDetalle
             return new EmpresaSedeDetalleDto
             {
                 EmpresaID = empresa.ID,
-                Nombre = negocio?.Nombre ?? "Sin nombre",
+                Nombre = negocio?.Nombre ?? "",
                 Descripcion = negocio?.Descripcion ?? string.Empty,
                 Email = empresa.Usuario?.Email,
                 LogoUrl = logoUrl,
