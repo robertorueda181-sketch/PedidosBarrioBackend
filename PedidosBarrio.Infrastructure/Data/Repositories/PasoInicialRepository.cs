@@ -159,7 +159,7 @@ public class PasoInicialRepository : EfCoreRepository<PasoInicial>, IPasoInicial
                 Titulo = "Crea tu primer producto",
                 Descripcion = "Publica tu primer producto o servicio",
                 Icono = "plus-circle",
-                Ruta = "/productos/crear",
+                Ruta = "/empresa/productos",
                 Obligatorio = true,
                 Orden = 4,
                 Completado = false,

@@ -35,6 +35,10 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             {
                 negocio = await _context.Negocios
                     .AsNoTracking()
+                    .Where(n => n.Empresa != null && 
+                                n.Empresa.Activa == true && 
+                                n.Empresa.Visible && 
+                                n.Empresa.Aprobado)
                     .Include(n => n.Tipos)
                     .Include(n => n.Empresa)
                     .FirstOrDefaultAsync(n => n.NegocioID == negocioId);
@@ -43,11 +47,16 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             {
                 negocio = await _context.Negocios
                     .AsNoTracking()
+                    .Where(n => n.Empresa != null && 
+                                n.Empresa.Activa == true && 
+                                n.Empresa.Visible && 
+                                n.Empresa.Aprobado)
                     .Include(n => n.Tipos)
                     .Include(n => n.Empresa)
                     .FirstOrDefaultAsync(n => n.Codigo == id || n.Urlnegocio == id);
             }
 
+            SetFullUrl(negocio);
             return negocio;
         }
 
@@ -55,6 +64,10 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             var negocio = await _context.Negocios
                 .AsNoTracking()
+                .Where(n => n.Empresa != null && 
+                            n.Empresa.Activa == true && 
+                            n.Empresa.Visible && 
+                            n.Empresa.Aprobado)
                 .Include(n => n.Empresa)
                 .FirstOrDefaultAsync(n => n.Codigo == id || n.Urlnegocio == id);
 
@@ -65,9 +78,14 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             var negocios = await _context.Negocios
                 .AsNoTracking()
+                .Where(n => n.Empresa != null && 
+                            n.Empresa.Activa == true && 
+                            n.Empresa.Visible && 
+                            n.Empresa.Aprobado)
                 .Include(n => n.Tipos)
                 .ToListAsync();
 
+            foreach (var n in negocios) SetFullUrl(n);
             return negocios;
         }
 

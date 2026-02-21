@@ -275,7 +275,7 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
                 ? minutos
                 : 30;
 
-            var token = _jwtTokenService.GenerateToken(usuario, minutosExpiracion, request.Email);
+            var token = _jwtTokenService.GenerateToken(usuario, minutosExpiracion, request.Email, empresa.PasosIniciales);
             var refreshToken = _jwtTokenService.GenerateRefreshToken();
 
             // ===== 7. MAPEAR TIPO DE EMPRESA =====

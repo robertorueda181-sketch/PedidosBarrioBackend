@@ -46,5 +46,16 @@ namespace PedidosBarrio.Infrastructure.Services
         {
             return _httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
         }
+
+        public bool GetPasosIniciales()
+        {
+            var pasosClaim = _httpContextAccessor.HttpContext?.User?.FindFirst("PasosIniciales")?.Value;
+            if (string.IsNullOrEmpty(pasosClaim) || !bool.TryParse(pasosClaim, out var pasosIniciales))
+            {
+                // Por defecto, asumir true si no está en el token
+                return true;
+            }
+            return pasosIniciales;
+        }
     }
 }

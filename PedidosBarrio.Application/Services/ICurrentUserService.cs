@@ -6,5 +6,6 @@ namespace PedidosBarrio.Application.Services
         Guid GetUsuarioId();
         string GetUserEmail();
         bool IsAuthenticated();
+        bool GetPasosIniciales();
     }
 }

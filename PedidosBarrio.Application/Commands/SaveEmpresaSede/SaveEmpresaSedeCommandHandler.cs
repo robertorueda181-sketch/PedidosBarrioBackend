@@ -1,6 +1,7 @@
 using MediatR;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Logging;
+using PedidosBarrio.Application.Services;
 using PedidosBarrio.Domain.Entities;
 using PedidosBarrio.Domain.Repositories;
 using System;
@@ -15,6 +16,7 @@ namespace PedidosBarrio.Application.Commands.SaveEmpresaSede
         private readonly INegocioRepository _negocioRepository;
         private readonly IImagenRepository _imagenRepository;
         private readonly IPasoInicialRepository _pasoInicialRepository;
+        private readonly ICurrentUserService _currentUserService;
         private readonly IApplicationLogger _logger;
 
         public SaveEmpresaSedeCommandHandler(
@@ -23,6 +25,7 @@ namespace PedidosBarrio.Application.Commands.SaveEmpresaSede
             INegocioRepository negocioRepository,
             IImagenRepository imagenRepository,
             IPasoInicialRepository pasoInicialRepository,
+            ICurrentUserService currentUserService,
             IApplicationLogger logger)
         {
             _empresaRepository = empresaRepository;
@@ -30,6 +33,7 @@ namespace PedidosBarrio.Application.Commands.SaveEmpresaSede
             _negocioRepository = negocioRepository;
             _imagenRepository = imagenRepository;
             _pasoInicialRepository = pasoInicialRepository;
+            _currentUserService = currentUserService;
             _logger = logger;
         }
 
@@ -135,15 +139,15 @@ namespace PedidosBarrio.Application.Commands.SaveEmpresaSede
                     }
                 }
 
-                // 5. Auto-completar paso "COMPLETAR_PERFIL" si tiene descripción
-                if (!string.IsNullOrWhiteSpace(request.Data.Descripcion))
+                // 5. Auto-completar paso "COMPLETAR_PERFIL" si tiene descripción (solo si PasosIniciales es true en token)
+                if (_currentUserService.GetPasosIniciales() && !string.IsNullOrWhiteSpace(request.Data.Descripcion))
                 {
                     await CompletarPasoAsync(request.EmpresaID, "COMPLETAR_PERFIL", 
                         $"Perfil completado para empresa {request.EmpresaID}");
                 }
 
-                // 6. Auto-completar paso "COMPLETAR_DIRECCION" si tiene dirección completa
-                if (request.Data.Direccion != null && TieneDireccionCompleta(request.Data.Direccion))
+                // 6. Auto-completar paso "COMPLETAR_DIRECCION" si tiene dirección completa (solo si PasosIniciales es true en token)
+                if (_currentUserService.GetPasosIniciales() && request.Data.Direccion != null && TieneDireccionCompleta(request.Data.Direccion))
                 {
                     await CompletarPasoAsync(request.EmpresaID, "COMPLETAR_DIRECCION", 
                         $"Dirección completada para empresa {request.EmpresaID}");
@@ -165,23 +169,70 @@ namespace PedidosBarrio.Application.Commands.SaveEmpresaSede
                    (direccion.Latitud != 0 || direccion.Longitud != 0);
         }
 
-        private async Task CompletarPasoAsync(Guid empresaId, string codigoPaso, string logMessage)
-        {
-            try
-            {
-                var paso = await _pasoInicialRepository.GetPasoPorCodigoAsync(empresaId, codigoPaso);
-                if (paso != null && !paso.Completado)
+                private async Task CompletarPasoAsync(Guid empresaId, string codigoPaso, string logMessage)
                 {
-                    await _pasoInicialRepository.CompletarPasoAsync(paso.PasoID);
-                    await _logger.LogInformationAsync(logMessage);
+                    try
+                    {
+                        var paso = await _pasoInicialRepository.GetPasoPorCodigoAsync(empresaId, codigoPaso);
+                        if (paso != null && !paso.Completado)
+                        {
+                            await _pasoInicialRepository.CompletarPasoAsync(paso.PasoID);
+                            await _logger.LogInformationAsync(logMessage);
+
+                            // Verificar si TODOS los pasos iniciales están completos
+                            await VerificarYFinalizarPasosInicialesAsync(empresaId);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // No fallar el guardado si hay error al completar el paso
+                        await _logger.LogWarningAsync($"Error al marcar paso {codigoPaso} como completado: {ex.Message}");
+                    }
+                }
+
+                /// <summary>
+                /// Verifica si todos los pasos iniciales están completados
+                /// Si es así, marca la empresa como visible y desactiva PasosIniciales
+                /// </summary>
+                private async Task VerificarYFinalizarPasosInicialesAsync(Guid empresaId)
+                {
+                    try
+                    {
+                        // Obtener todos los pasos iniciales de la empresa
+                        var todosLosPasos = await _pasoInicialRepository.GetPasosPorEmpresaAsync(empresaId);
+
+                        if (todosLosPasos == null || !todosLosPasos.Any())
+                        {
+                            return;
+                        }
+
+                        // Verificar si TODOS los pasos están completados
+                        var todosCompletados = todosLosPasos.All(p => p.Completado);
+
+                        if (todosCompletados)
+                        {
+                            // Obtener la empresa
+                            var empresa = await _empresaRepository.GetByIdAsync(empresaId);
+                            if (empresa != null)
+                            {
+                                // Marcar como visible y desactivar evaluación de pasos iniciales
+                                empresa.Visible = true;
+                                empresa.PasosIniciales = false;
+
+                                await _empresaRepository.UpdateAsync(empresa);
+                                await _logger.LogInformationAsync(
+                                    $"Empresa {empresaId} finalizada: Visible=true, PasosIniciales=false. Todos los pasos iniciales completados.",
+                                    "SaveEmpresaSedeCommand");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // No fallar si hay error al finalizar pasos
+                        await _logger.LogWarningAsync(
+                            $"Error al verificar finalización de pasos para empresa {empresaId}: {ex.Message}");
+                    }
                 }
             }
-            catch (Exception ex)
-            {
-                // No fallar el guardado si hay error al completar el paso
-                await _logger.LogWarningAsync($"Error al marcar paso {codigoPaso} como completado: {ex.Message}");
-            }
         }
-    }
-}
 

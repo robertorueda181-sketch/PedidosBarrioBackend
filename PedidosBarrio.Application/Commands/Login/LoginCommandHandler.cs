@@ -107,7 +107,7 @@ namespace PedidosBarrio.Application.Commands.Login
                     ? minutos
                     : 30;
 
-                var token = _jwtTokenService.GenerateToken(usuario, minutosExpiracion, command.Email);
+                var token = _jwtTokenService.GenerateToken(usuario, minutosExpiracion, command.Email, empresa?.PasosIniciales ?? true);
                 var refreshToken = _jwtTokenService.GenerateRefreshToken();
 
                 var tipoEmpresaStr = empresa.TipoEmpresa switch
