@@ -18,6 +18,7 @@ using PedidosBarrio.Application.Validator;
 using PedidosBarrio.Domain.Enums;
 using PedidosBarrio.Domain.Repositories;
 using PedidosBarrio.Infrastructure.Authorization;
+using PedidosBarrio.Infrastructure.BackgroundServices;
 using PedidosBarrio.Infrastructure.Data.Common;
 using PedidosBarrio.Infrastructure.Data.Contexts;
 using PedidosBarrio.Infrastructure.Data.Repositories;
@@ -133,7 +134,11 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<IIaModeracionLogRepository, IaModeracionLogRepository>();
             services.AddScoped<IUbigeoRepository, UbigeoRepository>();
             services.AddScoped<INotificacionAppRepository, NotificacionAppRepository>();
-            services.AddScoped<INotificacionAppRepository, NotificacionAppRepository>();
+            services.AddScoped<IPageViewRepository, PageViewRepository>();
+
+            // PageView Services - Cola en memoria y Background Service
+            services.AddSingleton<IPageViewQueueService, PageViewQueueService>();
+            services.AddHostedService<PageViewProcessorBackgroundService>();
 
             // Unit of Work para transacciones
             services.AddScoped<IUnitOfWork, UnitOfWork>();

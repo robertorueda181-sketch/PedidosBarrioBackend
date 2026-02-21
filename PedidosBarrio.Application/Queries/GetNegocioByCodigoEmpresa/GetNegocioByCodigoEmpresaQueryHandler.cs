@@ -112,6 +112,7 @@ namespace PedidosBarrio.Application.Queries.GetNegocioByCodigoEmpresa
                 Facebook = empresa.Facebook,
                 Instagram = empresa.Instagram,
                 Twitter = empresa.Twitter,
+                Tiktok = empresa.Tiktok,
                 Whatsapp = empresa.Whatsapp,
                 Categorias = categorias.Select(c => new CategoriaDetalleDto
                 {

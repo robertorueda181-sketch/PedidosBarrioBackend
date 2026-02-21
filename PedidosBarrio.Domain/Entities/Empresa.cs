@@ -58,6 +58,14 @@ public partial class Empresa
     [Column("TelefonoSec")]
     public string? TelefonoSec { get; set; }
 
+    /// <summary>
+    /// Indica si se deben evaluar los pasos iniciales para esta empresa.
+    /// - true: Evalúa pasos iniciales (completar perfil, agregar producto, etc.)
+    /// - false: No evalúa pasos iniciales
+    /// Útil para empresas que ya están configuradas
+    /// </summary>
+    public bool PasosIniciales { get; set; } = true;
+
     [ForeignKey("UsuarioID")]
     [InverseProperty("Empresas")]
     public virtual Usuario? Usuario { get; set; }
@@ -76,6 +84,9 @@ public partial class Empresa
 
     [InverseProperty("Empresa")]
     public virtual ICollection<Direccion> Direcciones { get; set; } = new List<Direccion>();
+
+    [InverseProperty("Empresa")]
+    public virtual ICollection<PageView> PageViews { get; set; } = new List<PageView>();
 }
 
 

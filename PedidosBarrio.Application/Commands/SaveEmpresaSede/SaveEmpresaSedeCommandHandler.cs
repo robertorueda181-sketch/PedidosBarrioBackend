@@ -54,11 +54,6 @@ namespace PedidosBarrio.Application.Commands.SaveEmpresaSede
                 empresa.TelefonoPrincipal = request.Data.Telefono;
                 empresa.TelefonoSec = request.Data.Telefono2;
 
-                // Actualizar correo en Usuario si se proporciona
-                if (!string.IsNullOrEmpty(request.Data.Correo) && empresa.Usuario != null)
-                {
-                    empresa.Usuario.Email = request.Data.Correo;
-                }
 
                 await _empresaRepository.UpdateAsync(empresa);
                 await _logger.LogInformationAsync($"Redes sociales y teléfonos actualizados para empresa {request.EmpresaID}");
