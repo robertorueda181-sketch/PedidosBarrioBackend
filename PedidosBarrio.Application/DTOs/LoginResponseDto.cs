@@ -15,5 +15,6 @@ namespace PedidosBarrio.Application.DTOs
         public DateTime TokenExpiracion { get; set; }
         public bool EsNuevo { get; set; }
         public string Mensaje { get; set; }
+        public bool Aprobado { get; set; }
     }
 }

@@ -11,6 +11,30 @@ namespace PedidosBarrio.Api.EndPoint
     {
         public static void MapBannerEndpoints(this IEndpointRouteBuilder app)
         {
+            // Grupo SIN autenticación requerida
+            var publicGroup = app.MapGroup("/api/Banner")
+                           .WithTags("Banner");
+
+            // GET /api/Banner/publicos - Obtener todos los banners activos (públicos)
+            publicGroup.MapGet("/publicos", async (
+                IBannerRepository bannerRepository) =>
+            {
+                try
+                {
+                    var banners = await bannerRepository.GetAllActiveAsync();
+                    return Results.Ok(banners);
+                }
+                catch (Exception ex)
+                {
+                    return Results.BadRequest(new { success = false, message = ex.Message });
+                }
+            })
+            .WithName("GetAllActiveBanners")
+            .WithOpenApi()
+            .WithSummary("🌍 Obtener todos los banners activos")
+            .WithDescription("Obtiene todos los banners activos de todas las empresas, sin autenticación requerida. Ordenados por prioridad y estado de aprobación.");
+
+            // Grupo CON autenticación requerida
             var group = app.MapGroup("/api/Banner")
                            .WithTags("Banner")
                            .RequireAuthorization();
@@ -24,7 +48,6 @@ namespace PedidosBarrio.Api.EndPoint
                 [FromForm] string? redireccion,
                 [FromForm] DateTime fechaInicio,
                 [FromForm] DateTime fechaFin,
-                [FromForm] DateTime fechaExpiracion,
                 [FromForm] IFormFile? imagen,
                 IMediator mediator,
                 ICurrentUserService currentUserService) =>
@@ -36,7 +59,7 @@ namespace PedidosBarrio.Api.EndPoint
 
                     if (fechaInicio >= fechaFin)
                     {
-                        return Results.BadRequest(new { success = false, message = "FechaInicio debe ser menor a FechaFin" });
+                        return Results.BadRequest(new { success = false, message = "Fecha Inicio debe ser menor a Fecha Fin" });
                     }
 
                     Stream? imagenStream = null;
@@ -48,7 +71,7 @@ namespace PedidosBarrio.Api.EndPoint
                         imagenFileName = imagen.FileName;
                     }
 
-                    // Usar el nuevo comando con validación de IA, verificación de duplicados y prioridad por suscripción
+                    // Usar el nuevo comando con valiación de IA, verificación de duplicados y prioridad por suscripción
                     var command = new CreateBannerWithValidationCommand(
                         empresaId,
                         titulo,
@@ -58,7 +81,6 @@ namespace PedidosBarrio.Api.EndPoint
                         redireccion,
                         fechaInicio,
                         fechaFin,
-                        fechaExpiracion,
                         imagenStream,
                         imagenFileName);
 
@@ -96,7 +118,7 @@ namespace PedidosBarrio.Api.EndPoint
                 {
                     var empresaId = currentUserService.GetEmpresaId();
                     var banners = await bannerRepository.GetActiveByEmpresaIdAsync(empresaId);
-                    return banners.Any() ? Results.Ok(banners) : Results.NotFound(new { message = "No banners found" });
+                    return Results.Ok(banners);
                 }
                 catch (UnauthorizedAccessException)
                 {
@@ -109,9 +131,10 @@ namespace PedidosBarrio.Api.EndPoint
             .WithDescription("Obtiene todos los banners activos de la empresa del usuario autenticado, ordenados por prioridad.");
 
             // GET /api/Banner/{id} - Obtener un banner específico
-            group.MapGet("/{id}", async (
-                int id,
-                IBannerRepository bannerRepository) =>
+            group.MapGet("/{id:guid}", async (
+                Guid id,
+                IBannerRepository bannerRepository,
+                ICurrentUserService currentUserService) =>
             {
                 try
                 {
@@ -129,42 +152,84 @@ namespace PedidosBarrio.Api.EndPoint
             .WithDescription("Obtiene los detalles de un banner específico");
 
             // PUT /api/Banner/{id} - Actualizar banner
-            group.MapPut("/{id}", async (
-                int id,
-                [FromBody] CreateBannerDto dto,
-                IBannerRepository bannerRepository) =>
+            group.MapPut("/{id:guid}", async (
+                Guid id,
+                [FromForm] string? titulo,
+                [FromForm] string? descripcion,
+                [FromForm] string? textoBoton,
+                [FromForm] string? link,
+                [FromForm] string? redireccion,
+                [FromForm] DateTime fechaInicio,
+                [FromForm] DateTime fechaFin,
+                [FromForm] IFormFile? imagen,
+                IMediator mediator,
+                ICurrentUserService currentUserService) =>
             {
                 try
                 {
-                    var banner = await bannerRepository.GetByIdAsync(id);
-                    banner.Titulo = dto.Titulo;
-                    banner.Descripcion = dto.Descripcion;
-                    banner.TextoBoton = dto.TextoBoton;
-                    banner.Link = dto.Link;
-                    banner.FechaInicio = dto.FechaInicio;
-                    banner.FechaExpiracion = dto.FechaExpiracion;
-                    banner.Visible = dto.Visible;
-                    banner.Aprobado = dto.Aprobado;
-                    banner.Prioridad = dto.Prioridad;
+                    // Obtener empresaId del token del usuario autenticado
+                    var empresaId = currentUserService.GetEmpresaId();
 
-                    await bannerRepository.UpdateAsync(banner);
+                    if (fechaInicio >= fechaFin)
+                    {
+                        return Results.BadRequest(new { success = false, message = "Fecha Inicio debe ser menor a Fecha Fin" });
+                    }
 
-                    return Results.Ok(new { success = true, message = "Banner actualizado correctamente" });
+                    Stream? imagenStream = null;
+                    string? imagenFileName = null;
+
+                    if (imagen != null && imagen.Length > 0)
+                    {
+                        imagenStream = imagen.OpenReadStream();
+                        imagenFileName = imagen.FileName;
+                    }
+
+
+                    var command = new UpdateBannerWithValidationCommand(
+                      id,
+                      empresaId,
+                      titulo,
+                      descripcion,
+                      textoBoton,
+                      link,
+                      redireccion,
+                      fechaInicio,
+                      fechaFin,
+                      imagenStream,
+                      imagenFileName);
+
+                    var result = await mediator.Send(command);
+
+                    imagenStream?.Dispose();
+
+                    return result.Success ? Results.Ok(result) : Results.BadRequest(result);
                 }
-                catch (KeyNotFoundException)
+                catch (UnauthorizedAccessException ex)
                 {
-                    return Results.NotFound(new { success = false, message = $"Banner {id} not found" });
+                    return Results.Unauthorized();
+                }
+                catch (Exception ex)
+                {
+                    return Results.BadRequest(new { success = false, message = ex.Message });
                 }
             })
             .WithName("UpdateBanner")
             .WithOpenApi()
             .WithSummary("✏️ Actualizar banner")
-            .WithDescription("Actualiza los datos de un banner (sin imagen).");
+            .WithDescription("Actualiza los datos de un banner. Requiere ser propietario del banner.")
+            .Accepts<IFormFile>("multipart/form-data")
+            .Produces<BannerResponseDto>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
+            .Produces(StatusCodes.Status403Forbidden)
+            .Produces(StatusCodes.Status404NotFound)
+            .DisableAntiforgery();
 
             // DELETE /api/Banner/{id} - Eliminar banner
-            group.MapDelete("/{id}", async (
-                int id,
-                IBannerRepository bannerRepository) =>
+            group.MapDelete("/{id:guid}", async (
+                Guid id,
+                IBannerRepository bannerRepository,
+                ICurrentUserService currentUserService) =>
             {
                 try
                 {

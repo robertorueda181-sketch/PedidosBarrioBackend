@@ -229,7 +229,8 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
                         empresaID: empresa.ID,
                         tiposID: 1,
                         urlNegocio: request.NombreEmpresa.ToLower().Replace(" ", "-"),
-                        descripcion: request.Descripcion);
+                        descripcion: request.Descripcion,
+                        nombre: request.NombreEmpresa);
                     
                     var negocioResult = await _mediator.Send(negocioCommand, cancellationToken);
                     await _logger.LogInformationAsync(
@@ -300,7 +301,8 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
                 Token = token,
                 RefreshToken = refreshToken,
                 TokenExpiracion = DateTime.UtcNow.AddMinutes(minutosExpiracion),
-                EsNuevo = true
+                EsNuevo = true,
+                Aprobado = autoAprobado
             };
 
             await _logger.LogInformationAsync(
@@ -311,7 +313,7 @@ namespace PedidosBarrio.Application.Commands.RegisterSocial
             try
             {
                 var emailEnviado = await _emailService.SendWelcomeEmailAsync(
-                    toEmail: usuario.Email,
+                    toEmail: request.Email,
                     userName: $"{request.Nombre} {request.Apellido}".Trim(),
                     businessName: request.NombreEmpresa,
                     businessType: tipoEmpresaStr

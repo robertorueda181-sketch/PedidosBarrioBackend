@@ -44,32 +44,7 @@ namespace PedidosBarrio.Api.EndPoint
                         .WithSummary("💾 Guardar detalles de la empresa y sede")
                         .WithDescription("Crea o actualiza los datos de la empresa (redes, teléfonos, descripción) y su sede (dirección, ubicación).");
 
-                                    // POST /api/Empresa/logo (Upload logo with validation and optimization)
-                                    group.MapPost("/logo", async (IFormFile file, IMediator mediator, ICurrentUserService currentUserService) =>
-                                    {
-                                        if (file == null || file.Length == 0)
-                                        {
-                                            return Results.BadRequest(new { success = false, message = "Archivo requerido" });
-                                        }
-
-                                        var empresaId = currentUserService.GetEmpresaId();
-
-                                        using (var stream = file.OpenReadStream())
-                                        {
-                                            var command = new UploadEmpresaLogoCommand(empresaId, stream, file.FileName);
-                                            var result = await mediator.Send(command);
-                                            return result.Success ? Results.Ok(result) : Results.BadRequest(result);
-                                        }
-                                    })
-                                    .WithName("UploadEmpresaLogo")
-                                    .WithOpenApi()
-                                    .WithSummary("🖼️ Subir logo de empresa")
-                                    .WithDescription("Sube y optimiza el logo de la empresa. Valida la extensión, optimiza la imagen y devuelve la ruta. Formatos permitidos: JPG, JPEG, PNG, GIF, WebP. Máximo 5MB.")
-                                    .Accepts<IFormFile>("multipart/form-data")
-                                    .Produces<UploadEmpresaLogoResponseDto>(StatusCodes.Status200OK)
-                                    .Produces(StatusCodes.Status400BadRequest)
-                                    .DisableAntiforgery();
-
+          
                                     // POST /api/Empresa/profile-image (Upload profile image with validation and optimization)
                                         group.MapPost("/profile-image", async (IFormFile file, IMediator mediator, ICurrentUserService currentUserService) =>
                                         {

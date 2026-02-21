@@ -13,19 +13,22 @@ namespace PedidosBarrio.Application.Queries.GetEmpresaSedeDetalle
         private readonly IImagenRepository _imagenRepository;
         private readonly IImageProcessingService _imageProcessingService;
         private readonly INegocioRepository _negocioRepository;
+        private readonly IPiiEncryptionService _encryptionService;
 
         public GetEmpresaSedeDetalleQueryHandler(
             IEmpresaRepository empresaRepository,
             IDireccionRepository direccionRepository,
             IImagenRepository imagenRepository,
             IImageProcessingService imageProcessingService,
-            INegocioRepository negocioRepository)
+            INegocioRepository negocioRepository,
+            IPiiEncryptionService encryptionService)
         {
             _empresaRepository = empresaRepository;
             _direccionRepository = direccionRepository;
             _imagenRepository = imagenRepository;
             _imageProcessingService = imageProcessingService;
             _negocioRepository = negocioRepository;
+            _encryptionService = encryptionService;
         }
 
         public async Task<EmpresaSedeDetalleDto> Handle(GetEmpresaSedeDetalleQuery request, CancellationToken cancellationToken)
@@ -45,39 +48,44 @@ namespace PedidosBarrio.Application.Queries.GetEmpresaSedeDetalle
             string? logoUrl = null;
           
 
-            // Obtener Imagen de Perfil
-            var profileImage = imagenes.FirstOrDefault(i => i.Type == "PROFILE");
-            string? profileImageUrl = null;
-            if (profileImage != null && !string.IsNullOrEmpty(profileImage.Urlimagen))
-            {
-                profileImageUrl = await _imageProcessingService.GetImageUrlAsync(profileImage.Urlimagen);
-            }
+                    // Obtener Imagen de Perfil
+                    var profileImage = imagenes.FirstOrDefault(i => i.Type == "PROFILE");
+                    string? profileImageUrl = null;
+                    if (profileImage != null && !string.IsNullOrEmpty(profileImage.Urlimagen))
+                    {
+                        profileImageUrl = await _imageProcessingService.GetImageUrlAsync(profileImage.Urlimagen);
+                    }
 
-            return new EmpresaSedeDetalleDto
-            {
-                EmpresaID = empresa.ID,
-                Nombre = negocio?.Nombre ?? "",
-                Descripcion = negocio?.Descripcion ?? string.Empty,
-                Email = empresa.Usuario?.Email,
-                LogoUrl = logoUrl,
-                ProfileImageUrl = profileImageUrl,
-                Facebook = empresa.Facebook,
-                Instagram = empresa.Instagram,
-                Twitter = empresa.Twitter,
-                Tiktok = empresa.Tiktok,
-                Whatsapp = empresa.Whatsapp,
-                TelefonoPrincipal = empresa.TelefonoPrincipal,
-                TelefonoSec = empresa.TelefonoSec,
-                DireccionID = direccion?.DireccionID,
-                NombreLocal = direccion?.NombreLocal,
-                Direccion = direccion?.DireccionTexto,
-                Longitud = direccion?.Longitud ?? 0,
-                Latitud = direccion?.Latitud ?? 0,
-                Departamento = direccion?.Departamento,
-                Provincia = direccion?.Provincia,
-                Distrito = direccion?.Distrito,
-                Referencia = direccion?.Referencia
-            };
-        }
-    }
+                    // Desencriptar email
+                    var emailDesencriptado = empresa.Usuario?.Email != null 
+                        ? _encryptionService.Decrypt(empresa.Usuario.Email) 
+                        : null;
+
+                    return new EmpresaSedeDetalleDto
+                    {
+                        EmpresaID = empresa.ID,
+                        Nombre = negocio?.Nombre ?? "",
+                        Descripcion = negocio?.Descripcion ?? string.Empty,
+                        Email = emailDesencriptado,
+                        LogoUrl = logoUrl,
+                        ProfileImageUrl = profileImageUrl,
+                        Facebook = empresa.Facebook,
+                        Instagram = empresa.Instagram,
+                        Twitter = empresa.Twitter,
+                        Tiktok = empresa.Tiktok,
+                        Whatsapp = empresa.Whatsapp,
+                        TelefonoPrincipal = empresa.TelefonoPrincipal,
+                        TelefonoSec = empresa.TelefonoSec,
+                        DireccionID = direccion?.DireccionID,
+                        NombreLocal = direccion?.NombreLocal,
+                        Direccion = direccion?.DireccionTexto,
+                        Longitud = direccion?.Longitud ?? 0,
+                        Latitud = direccion?.Latitud ?? 0,
+                        Departamento = direccion?.Departamento,
+                        Provincia = direccion?.Provincia,
+                        Distrito = direccion?.Distrito,
+                        Referencia = direccion?.Referencia
+                    };
+                }
+            }
 }

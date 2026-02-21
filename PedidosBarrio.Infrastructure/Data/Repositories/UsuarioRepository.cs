@@ -23,23 +23,23 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             user.SocialId = _encryptionService.Encrypt(user.SocialId);
         }
 
-        private void DecryptUser(Usuario user)
-        {
-            if (user == null) return;
+        //private void DecryptUser(Usuario user)
+        //{
+        //    if (user == null) return;
 
-            var entry = _context.Entry(user);
-            bool isTracked = entry.State != EntityState.Detached;
+        //    var entry = _context.Entry(user);
+        //    bool isTracked = entry.State != EntityState.Detached;
 
-            user.Email = _encryptionService.Decrypt(user.Email);
-            user.SocialId = _encryptionService.Decrypt(user.SocialId);
+        //    user.Email = _encryptionService.Decrypt(user.Email);
+        //    user.SocialId = _encryptionService.Decrypt(user.SocialId);
 
-            // Si el objeto está siendo rastreado, avisamos a EF que no guarde estos cambios
-            if (isTracked)
-            {
-                entry.Property(u => u.Email).IsModified = false;
-                entry.Property(u => u.SocialId).IsModified = false;
-            }
-        }
+        //    // Si el objeto está siendo rastreado, avisamos a EF que no guarde estos cambios
+        //    if (isTracked)
+        //    {
+        //        entry.Property(u => u.Email).IsModified = false;
+        //        entry.Property(u => u.SocialId).IsModified = false;
+        //    }
+        //}
 
         public async Task<Usuario?> GetByIdAsync(Guid id)
         {
@@ -49,7 +49,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
 
             if (user != null)
             {
-                DecryptUser(user);
+                
                 if (user.Empresas.Any())
                 {
                     user.EmpresaID = user.Empresas.First().ID;
@@ -77,15 +77,6 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             return user;
         }
 
-        public new async Task<IEnumerable<Usuario>> GetAllAsync()
-        {
-            var users = await _context.Usuarios.ToListAsync();
-            foreach (var user in users)
-            {
-                DecryptUser(user);
-            }
-            return users;
-        }
 
         public async Task<IEnumerable<Usuario>> GetByEmpresaIdAsync(Guid empresaID)
         {

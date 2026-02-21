@@ -15,7 +15,6 @@ public partial class Empresa
         TipoEmpresa = tipoEmpresa;
         FechaRegistro = DateTime.UtcNow;
         Activa = true;
-        Visible = true;
         Aprobado = false;
     }
 

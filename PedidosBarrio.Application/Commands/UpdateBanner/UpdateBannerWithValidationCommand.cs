@@ -3,8 +3,9 @@ using PedidosBarrio.Application.DTOs;
 
 namespace PedidosBarrio.Application.Commands.CreateBanner
 {
-    public class CreateBannerWithValidationCommand : IRequest<BannerResponseDto>
+    public class UpdateBannerWithValidationCommand : IRequest<BannerResponseDto>
     {
+        public Guid BannerId { get; set; }
         public Guid EmpresaID { get; set; }
         public string? Titulo { get; set; }
         public string? Descripcion { get; set; }
@@ -16,7 +17,8 @@ namespace PedidosBarrio.Application.Commands.CreateBanner
         public Stream? ImagenStream { get; set; }
         public string? ImagenFileName { get; set; }
 
-        public CreateBannerWithValidationCommand(
+        public UpdateBannerWithValidationCommand(
+            Guid bannerId,
             Guid empresaID,
             string? titulo,
             string? descripcion,
@@ -28,6 +30,7 @@ namespace PedidosBarrio.Application.Commands.CreateBanner
             Stream? imagenStream,
             string? imagenFileName)
         {
+            BannerId = bannerId;
             EmpresaID = empresaID;
             Titulo = titulo;
             Descripcion = descripcion;

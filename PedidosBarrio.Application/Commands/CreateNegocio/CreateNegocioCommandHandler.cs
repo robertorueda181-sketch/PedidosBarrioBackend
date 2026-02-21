@@ -19,7 +19,7 @@ namespace PedidosBarrio.Application.Commands.CreateNegocio
 
         public async Task<NegocioDto> Handle(CreateNegocioCommand command, CancellationToken cancellationToken)
         {
-            var negocio = new Negocio(command.EmpresaID, command.TiposID, command.URLNegocio, command.Descripcion, command.URLOpcional);
+            var negocio = new Negocio(command.EmpresaID, command.Nombre, command.TiposID, command.URLNegocio, command.Descripcion, command.URLOpcional);
 
             await _negocioRepository.AddAsync(negocio);
             return _mapper.Map<NegocioDto>(negocio);

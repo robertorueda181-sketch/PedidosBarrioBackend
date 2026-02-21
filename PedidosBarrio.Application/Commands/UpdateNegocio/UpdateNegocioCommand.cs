@@ -11,8 +11,9 @@ namespace PedidosBarrio.Application.Commands.UpdateNegocio
         public string URLNegocio { get; set; }
         public string Descripcion { get; set; }
         public string URLOpcional { get; set; }
+        public string Nombre { get; set; }
 
-        public UpdateNegocioCommand(int negocioID, Guid empresaID, int tiposID, string urlNegocio, string descripcion, string urlOpcional = null)
+        public UpdateNegocioCommand(int negocioID, string nombre,Guid empresaID, int tiposID, string urlNegocio, string descripcion, string urlOpcional = null)
         {
             NegocioID = negocioID;
             EmpresaID = empresaID;
@@ -20,6 +21,7 @@ namespace PedidosBarrio.Application.Commands.UpdateNegocio
             URLNegocio = urlNegocio;
             Descripcion = descripcion;
             URLOpcional = urlOpcional;
+            Nombre = nombre;
         }
     }
 }

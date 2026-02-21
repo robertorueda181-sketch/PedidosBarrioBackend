@@ -29,7 +29,6 @@ namespace PedidosBarrio.Application.Commands.CreateBanner
                 string? redireccion,
                 DateTime fechaInicio,
                 DateTime fechaFin,
-                DateTime fechaExpiracion,
                 bool? visible = true,
                 bool? aprobado = false,
                 short prioridad = 1,
@@ -44,7 +43,6 @@ namespace PedidosBarrio.Application.Commands.CreateBanner
                 Redireccion = redireccion;
                 FechaInicio = fechaInicio;
                 FechaFin = fechaFin;
-                FechaExpiracion = fechaExpiracion;
                 Visible = visible;
                 Aprobado = aprobado;
                 Prioridad = prioridad;

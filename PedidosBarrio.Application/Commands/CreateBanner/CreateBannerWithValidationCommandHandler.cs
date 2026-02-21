@@ -103,7 +103,6 @@ namespace PedidosBarrio.Application.Commands.CreateBanner
                     request.Redireccion,
                     request.FechaInicio,
                     request.FechaFin,
-                    request.FechaExpiracion,
                     visible: true,
                     aprobado: aprobadoAutomatico,
                     prioridad: prioridad,

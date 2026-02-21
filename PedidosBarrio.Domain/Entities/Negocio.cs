@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
-using NpgsqlTypes;
 
 namespace PedidosBarrio.Domain.Entities;
 
@@ -13,9 +10,10 @@ public partial class Negocio
 {
     public Negocio() { }
 
-    public Negocio(Guid empresaID, int tiposID, string urlNegocio, string descripcion, string urlOpcional = null)
+    public Negocio(Guid empresaID,string nombre, int tiposID, string urlNegocio, string descripcion, string urlOpcional = null)
     {
         EmpresaID = empresaID;
+        Nombre = nombre;
         TiposId = tiposID;
         Urlnegocio = urlNegocio;
         Descripcion = descripcion;
@@ -71,10 +69,10 @@ public partial class Negocio
     public string? Referencia { get; set; }
 
     [Column("longitud")]
-    public NpgsqlPoint? Longitud { get; set; }
+    public decimal? Longitud { get; set; }
 
     [Column("latitud")]
-    public NpgsqlPoint? Latitud { get; set; }
+    public decimal? Latitud { get; set; }
 
     [StringLength(100)]
     public string? Direccion { get; set; }

@@ -25,7 +25,7 @@ namespace PedidosBarrio.Application.Commands.UpdateNegocio
                 throw new ApplicationException($"Negocio with ID {command.NegocioID} not found.");
             }
 
-            negocio = new Negocio(command.EmpresaID, command.TiposID, command.URLNegocio, command.Descripcion, command.URLOpcional)
+            negocio = new Negocio(command.EmpresaID,command.Nombre, command.TiposID, command.URLNegocio, command.Descripcion, command.URLOpcional)
             {
                 NegocioID = command.NegocioID,
                 FechaRegistro = negocio.FechaRegistro

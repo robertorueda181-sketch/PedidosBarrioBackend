@@ -10,7 +10,6 @@ namespace PedidosBarrio.Application.DTOs
         public string? Redireccion { get; set; } // URL de redirección
         public DateTime FechaInicio { get; set; }
         public DateTime FechaFin { get; set; }
-        public DateTime FechaExpiracion { get; set; }
         public bool? Visible { get; set; } = true;
         public bool? Aprobado { get; set; } = false;
         public short Prioridad { get; set; } = 1;
@@ -20,13 +19,13 @@ namespace PedidosBarrio.Application.DTOs
     {
         public bool Success { get; set; }
         public string Message { get; set; }
-        public int BannerId { get; set; }
+        public Guid BannerId { get; set; }
         public string? UrlImagen { get; set; }
     }
 
     public class BannerDetailDto
     {
-        public int BannerID { get; set; }
+        public Guid BannerID { get; set; }
         public string? Titulo { get; set; }
         public string? Descripcion { get; set; }
         public string? TextoBoton { get; set; }
@@ -35,7 +34,6 @@ namespace PedidosBarrio.Application.DTOs
         public string? UrlImagen { get; set; }
         public DateTime FechaInicio { get; set; }
         public DateTime FechaFin { get; set; }
-        public DateTime FechaExpiracion { get; set; }
         public bool? Visible { get; set; }
         public bool? Aprobado { get; set; }
         public DateTime FechaCreacion { get; set; }

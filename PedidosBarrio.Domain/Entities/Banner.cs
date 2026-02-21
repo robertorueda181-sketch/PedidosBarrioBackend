@@ -8,7 +8,7 @@ namespace PedidosBarrio.Domain.Entities
     {
         [Key]
         [Column("BannerID")]
-        public int BannerID { get; set; }
+        public Guid BannerID { get; set; } = Guid.NewGuid();
 
         [Column("Titulo")]
         [StringLength(50)]

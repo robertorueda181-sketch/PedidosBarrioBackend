@@ -64,25 +64,6 @@ namespace PedidosBarrio.Api.EndPoint
             .WithName("CreateNegocio")
             .WithOpenApi();
 
-            // PUT /api/Negocios/{id}
-            group.MapPut("/{id:int}", async (int id, [FromBody] NegocioDto updateDto, IMediator mediator) =>
-            {
-                var command = new UpdateNegocioCommand(id, updateDto.EmpresaID, updateDto.TiposID, updateDto.URLNegocio,
-                    updateDto.Descripcion);
-                await mediator.Send(command);
-                return Results.NoContent();
-            })
-            .WithName("UpdateNegocio")
-            .WithOpenApi();
-
-            // DELETE /api/Negocios/{id}
-            group.MapDelete("/{id:int}", async (int id, IMediator mediator) =>
-            {
-                await mediator.Send(new DeleteNegocioCommand(id));
-                return Results.NoContent();
-            })
-            .WithName("DeleteNegocio")
-            .WithOpenApi();
         }
     }
 }
