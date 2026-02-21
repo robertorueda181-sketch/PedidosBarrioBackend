@@ -15,6 +15,7 @@ namespace PedidosBarrio.Application.Commands.CreateBanner
         public DateTime FechaFin { get; set; }
         public Stream? ImagenStream { get; set; }
         public string? ImagenFileName { get; set; }
+        public string? ImagenUrl { get; set; }  // URL directa sin procesar
 
         public CreateBannerWithValidationCommand(
             Guid empresaID,
@@ -26,7 +27,8 @@ namespace PedidosBarrio.Application.Commands.CreateBanner
             DateTime fechaInicio,
             DateTime fechaFin,
             Stream? imagenStream,
-            string? imagenFileName)
+            string? imagenFileName,
+            string? imagenUrl = null)
         {
             EmpresaID = empresaID;
             Titulo = titulo;
@@ -38,6 +40,7 @@ namespace PedidosBarrio.Application.Commands.CreateBanner
             FechaFin = fechaFin;
             ImagenStream = imagenStream;
             ImagenFileName = imagenFileName;
+            ImagenUrl = imagenUrl;
         }
     }
 }

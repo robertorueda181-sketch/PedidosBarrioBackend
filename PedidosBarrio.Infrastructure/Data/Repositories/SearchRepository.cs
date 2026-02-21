@@ -85,7 +85,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                     Id = n.NegocioID,
                     Title = n.Nombre ?? n.Urlnegocio ?? "Negocio",
                     Description = n.Descripcion ?? "",
-                    Location = n.Direccion ?? "",
+                    Location = "", // Dirección viene de tabla Direccion separada
                     Category = n.Tipos?.Descripcion ?? "Comercio",
                     ImageUrl = !string.IsNullOrEmpty(img) ? await _imageProcessingService.GetImageUrlAsync(img) : "",
                     Url = $"{n.Urlopcional ?? n.Urlnegocio}"

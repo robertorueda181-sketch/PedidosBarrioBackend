@@ -65,21 +65,6 @@ public partial class Negocio
     [StringLength(50)]
     public string? Nombre { get; set; }
 
-    [StringLength(100)]
-    public string? Referencia { get; set; }
-
-    [Column("longitud")]
-    public decimal? Longitud { get; set; }
-
-    [Column("latitud")]
-    public decimal? Latitud { get; set; }
-
-    [StringLength(100)]
-    public string? Direccion { get; set; }
-
-    [StringLength(12)]
-    public string? Telefono { get; set; }
-
     [StringLength(20)]
     public string? Codigo { get; set; }
 

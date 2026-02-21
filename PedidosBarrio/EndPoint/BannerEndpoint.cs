@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using PedidosBarrio.Application.Commands.CreateBanner;
 using PedidosBarrio.Application.DTOs;
+using PedidosBarrio.Application.Queries.GetAllActiveBanners;
 using PedidosBarrio.Application.Services;
 using PedidosBarrio.Domain.Repositories;
 
@@ -17,11 +18,12 @@ namespace PedidosBarrio.Api.EndPoint
 
             // GET /api/Banner/publicos - Obtener todos los banners activos (públicos)
             publicGroup.MapGet("/publicos", async (
-                IBannerRepository bannerRepository) =>
+                IMediator mediator) =>
             {
                 try
                 {
-                    var banners = await bannerRepository.GetAllActiveAsync();
+                    var query = new GetAllActiveBannersQuery();
+                    var banners = await mediator.Send(query);
                     return Results.Ok(banners);
                 }
                 catch (Exception ex)
@@ -32,7 +34,7 @@ namespace PedidosBarrio.Api.EndPoint
             .WithName("GetAllActiveBanners")
             .WithOpenApi()
             .WithSummary("🌍 Obtener todos los banners activos")
-            .WithDescription("Obtiene todos los banners activos de todas las empresas, sin autenticación requerida. Ordenados por prioridad y estado de aprobación.");
+            .WithDescription("Obtiene todos los banners activos de todas las empresas, sin autenticación requerida. Retorna solo información pública.");
 
             // Grupo CON autenticación requerida
             var group = app.MapGroup("/api/Banner")
@@ -41,14 +43,7 @@ namespace PedidosBarrio.Api.EndPoint
 
             // POST /api/Banner - Crear banner con imagen y validación de IA
             group.MapPost("/", async (
-                [FromForm] string? titulo,
-                [FromForm] string? descripcion,
-                [FromForm] string? textoBoton,
-                [FromForm] string? link,
-                [FromForm] string? redireccion,
-                [FromForm] DateTime fechaInicio,
-                [FromForm] DateTime fechaFin,
-                [FromForm] IFormFile? imagen,
+                HttpContext httpContext,
                 IMediator mediator,
                 ICurrentUserService currentUserService) =>
             {
@@ -56,6 +51,22 @@ namespace PedidosBarrio.Api.EndPoint
                 {
                     // Obtener empresaId del token del usuario autenticado
                     var empresaId = currentUserService.GetEmpresaId();
+
+                    // Leer FormData
+                    var form = await httpContext.Request.ReadFormAsync();
+
+                    var titulo = form["titulo"].FirstOrDefault();
+                    var descripcion = form["descripcion"].FirstOrDefault();
+                    var textoBoton = form["textoBoton"].FirstOrDefault();
+                    var link = form["link"].FirstOrDefault();
+                    var redireccion = form["redireccion"].FirstOrDefault();
+                    var imagenUrl = form["imagenUrl"].FirstOrDefault();
+
+                    if (!DateTime.TryParse(form["fechaInicio"].FirstOrDefault(), out var fechaInicio))
+                        return Results.BadRequest(new { success = false, message = "Formato inválido para fechaInicio" });
+
+                    if (!DateTime.TryParse(form["fechaFin"].FirstOrDefault(), out var fechaFin))
+                        return Results.BadRequest(new { success = false, message = "Formato inválido para fechaFin" });
 
                     if (fechaInicio >= fechaFin)
                     {
@@ -65,6 +76,7 @@ namespace PedidosBarrio.Api.EndPoint
                     Stream? imagenStream = null;
                     string? imagenFileName = null;
 
+                    var imagen = form.Files["imagen"];
                     if (imagen != null && imagen.Length > 0)
                     {
                         imagenStream = imagen.OpenReadStream();
@@ -82,7 +94,8 @@ namespace PedidosBarrio.Api.EndPoint
                         fechaInicio,
                         fechaFin,
                         imagenStream,
-                        imagenFileName);
+                        imagenFileName,
+                        imagenUrl);
 
                     var result = await mediator.Send(command);
 
@@ -154,14 +167,7 @@ namespace PedidosBarrio.Api.EndPoint
             // PUT /api/Banner/{id} - Actualizar banner
             group.MapPut("/{id:guid}", async (
                 Guid id,
-                [FromForm] string? titulo,
-                [FromForm] string? descripcion,
-                [FromForm] string? textoBoton,
-                [FromForm] string? link,
-                [FromForm] string? redireccion,
-                [FromForm] DateTime fechaInicio,
-                [FromForm] DateTime fechaFin,
-                [FromForm] IFormFile? imagen,
+                HttpContext httpContext,
                 IMediator mediator,
                 ICurrentUserService currentUserService) =>
             {
@@ -169,6 +175,22 @@ namespace PedidosBarrio.Api.EndPoint
                 {
                     // Obtener empresaId del token del usuario autenticado
                     var empresaId = currentUserService.GetEmpresaId();
+
+                    // Leer FormData
+                    var form = await httpContext.Request.ReadFormAsync();
+
+                    var titulo = form["titulo"].FirstOrDefault();
+                    var descripcion = form["descripcion"].FirstOrDefault();
+                    var textoBoton = form["textoBoton"].FirstOrDefault();
+                    var link = form["link"].FirstOrDefault();
+                    var redireccion = form["redireccion"].FirstOrDefault();
+                    var imagenUrl = form["imagenUrl"].FirstOrDefault();
+
+                    if (!DateTime.TryParse(form["fechaInicio"].FirstOrDefault(), out var fechaInicio))
+                        return Results.BadRequest(new { success = false, message = "Formato inválido para fechaInicio" });
+
+                    if (!DateTime.TryParse(form["fechaFin"].FirstOrDefault(), out var fechaFin))
+                        return Results.BadRequest(new { success = false, message = "Formato inválido para fechaFin" });
 
                     if (fechaInicio >= fechaFin)
                     {
@@ -178,12 +200,12 @@ namespace PedidosBarrio.Api.EndPoint
                     Stream? imagenStream = null;
                     string? imagenFileName = null;
 
+                    var imagen = form.Files["imagen"];
                     if (imagen != null && imagen.Length > 0)
                     {
                         imagenStream = imagen.OpenReadStream();
                         imagenFileName = imagen.FileName;
                     }
-
 
                     var command = new UpdateBannerWithValidationCommand(
                       id,
@@ -196,7 +218,8 @@ namespace PedidosBarrio.Api.EndPoint
                       fechaInicio,
                       fechaFin,
                       imagenStream,
-                      imagenFileName);
+                      imagenFileName,
+                      imagenUrl);
 
                     var result = await mediator.Send(command);
 

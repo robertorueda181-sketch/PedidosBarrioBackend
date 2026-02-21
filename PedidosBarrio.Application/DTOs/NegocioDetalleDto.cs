@@ -12,6 +12,9 @@ namespace PedidosBarrio.Application.DTOs
         public string Telefono { get; set; }
         public string Direccion { get; set; }
         public string Referencia { get; set; }
+        public string? LogoUrl { get; set; }
+        public decimal? Longitud { get; set; }
+        public decimal? Latitud { get; set; }
         public string? Facebook { get; set; }
         public string? Instagram { get; set; }
         public string? Twitter { get; set; }

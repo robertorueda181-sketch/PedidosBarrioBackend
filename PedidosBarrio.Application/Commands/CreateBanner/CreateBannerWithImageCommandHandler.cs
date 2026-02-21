@@ -10,18 +10,18 @@ namespace PedidosBarrio.Application.Commands.CreateBanner
     public class CreateBannerWithImageCommandHandler : IRequestHandler<CreateBannerWithImageCommand, BannerResponseDto>
     {
         private readonly IBannerRepository _bannerRepository;
-        private readonly IImageProcessingService _imageProcessingService;
+        private readonly IImageSaveStrategyFactory _imageSaveStrategyFactory;
         private readonly IApplicationLogger _logger;
         private readonly string[] _allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
         private const long MaxFileSizeMB = 10;
 
         public CreateBannerWithImageCommandHandler(
             IBannerRepository bannerRepository,
-            IImageProcessingService imageProcessingService,
+            IImageSaveStrategyFactory imageSaveStrategyFactory,
             IApplicationLogger logger)
         {
             _bannerRepository = bannerRepository;
-            _imageProcessingService = imageProcessingService;
+            _imageSaveStrategyFactory = imageSaveStrategyFactory;
             _logger = logger;
         }
 
@@ -57,15 +57,29 @@ namespace PedidosBarrio.Application.Commands.CreateBanner
                         };
                     }
 
-                    // Optimizar y guardar imagen
-                    var imagePath = await _imageProcessingService.OptimizeAndSaveImageAsync(
-                        request.ImagenStream,
-                        request.ImagenFileName,
-                        0,
-                        Guid.Empty);
+                    try
+                    {
+                        // Obtener estrategia de guardado para banners (guarda en /images/banners/ y convierte a WebP)
+                        var bannerStrategy = _imageSaveStrategyFactory.GetStrategy(ImageType.Banner);
+                        urlImagen = await bannerStrategy.SaveImageAsync(request.ImagenStream, request.ImagenFileName);
 
-                    urlImagen = await _imageProcessingService.GetImageUrlAsync(imagePath);
-                    await _logger.LogInformationAsync($"Imagen de banner guardada: {imagePath}");
+                        await _logger.LogInformationAsync($"Imagen de banner guardada: {urlImagen}");
+                    }
+                    catch (ArgumentException ex)
+                    {
+                        await _logger.LogWarningAsync($"Validación de imagen fallida: {ex.Message}");
+                        return new BannerResponseDto
+                        {
+                            Success = false,
+                            Message = ex.Message
+                        };
+                    }
+                }
+                // Si no hay archivo pero hay URL, usar la URL directamente
+                else if (!string.IsNullOrEmpty(request.ImagenUrl))
+                {
+                    urlImagen = request.ImagenUrl;
+                    await _logger.LogInformationAsync($"URL de imagen de banner guardada directamente: {urlImagen}");
                 }
 
                 // Crear banner

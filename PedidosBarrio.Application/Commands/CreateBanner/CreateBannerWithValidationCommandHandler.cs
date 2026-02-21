@@ -71,7 +71,7 @@ namespace PedidosBarrio.Application.Commands.CreateBanner
                     .OrderByDescending(s => s.NivelSuscripcion)
                     .FirstOrDefault();
 
-                short prioridad = 3; // Prioridad por defecto (baja)
+                short prioridad = 1; // Prioridad por defecto (baja)
                 bool aprobadoAutomatico = false;
 
                 if (suscripcionActiva != null)
@@ -103,11 +103,12 @@ namespace PedidosBarrio.Application.Commands.CreateBanner
                     request.Redireccion,
                     request.FechaInicio,
                     request.FechaFin,
+                    request.ImagenStream,
+                    request.ImagenFileName,
                     visible: true,
                     aprobado: aprobadoAutomatico,
                     prioridad: prioridad,
-                    request.ImagenStream,
-                    request.ImagenFileName);
+                    fechaExpiracion: request.FechaFin);
 
                 var result = await _mediator.Send(createCommand, cancellationToken);
 

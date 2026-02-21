@@ -58,11 +58,6 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                 .Include(n => n.Empresa)
                 .FirstOrDefaultAsync(n => n.Codigo == id || n.Urlnegocio == id);
 
-            if (negocio?.Empresa != null && !string.IsNullOrEmpty(negocio.Referencia))
-            {
-                negocio.Empresa.Referencia = negocio.Referencia;
-            }
-
             return negocio?.Empresa;
         }
 

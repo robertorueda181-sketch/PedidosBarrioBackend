@@ -12,20 +12,20 @@ namespace PedidosBarrio.Application.Commands.CreateBanner
         private readonly IMediator _mediator;
         private readonly ISuscripcionRepository _suscripcionRepository;
         private readonly IBannerRepository _bannerRepository;
-        private readonly IImageProcessingService _imageProcessingService;
+        private readonly IImageSaveStrategyFactory _imageSaveStrategyFactory;
         private readonly IApplicationLogger _logger;
 
         public UpdateBannerWithValidationCommandHandler(
             IMediator mediator,
             ISuscripcionRepository suscripcionRepository,
             IBannerRepository bannerRepository,
-            IImageProcessingService imageProcessingService,
+            IImageSaveStrategyFactory imageSaveStrategyFactory,
             IApplicationLogger logger)
         {
             _mediator = mediator;
             _suscripcionRepository = suscripcionRepository;
             _bannerRepository = bannerRepository;
-            _imageProcessingService = imageProcessingService;
+            _imageSaveStrategyFactory = imageSaveStrategyFactory;
             _logger = logger;
         }
 
@@ -94,13 +94,27 @@ namespace PedidosBarrio.Application.Commands.CreateBanner
                 // 5. Procesar imagen si se proporciona una nueva
                 if (request.ImagenStream != null && request.ImagenStream.Length > 0)
                 {
-                    var imagenUrl = await _imageProcessingService.OptimizeAndSaveImageAsync(
-                        request.ImagenStream,
-                        request.ImagenFileName,
-                        0, // No usamos productoId para banners
-                        request.EmpresaID);
-
-                    bannerExistente.UrlImagen = imagenUrl;
+                    try
+                    {
+                        var bannerStrategy = _imageSaveStrategyFactory.GetStrategy(ImageType.Banner);
+                        var urlImagen = await bannerStrategy.SaveImageAsync(request.ImagenStream, request.ImagenFileName);
+                        bannerExistente.UrlImagen = urlImagen;
+                    }
+                    catch (ArgumentException ex)
+                    {
+                        await _logger.LogWarningAsync($"Error al procesar imagen: {ex.Message}");
+                        return new BannerResponseDto
+                        {
+                            Success = false,
+                            Message = $"Error al procesar imagen: {ex.Message}"
+                        };
+                    }
+                }
+                // Si no hay archivo pero hay URL, usar la URL directamente
+                else if (!string.IsNullOrEmpty(request.ImagenUrl))
+                {
+                    bannerExistente.UrlImagen = request.ImagenUrl;
+                    await _logger.LogInformationAsync($"URL de imagen de banner guardada directamente: {request.ImagenUrl}");
                 }
 
                 // 6. Guardar cambios

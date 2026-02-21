@@ -99,6 +99,9 @@ namespace PedidosBarrio.Infrastructure.IoC
             // Image Processing Service
             services.AddScoped<IImageProcessingService, ImageProcessingService>();
 
+            // Image Save Strategy Factory y Estrategias
+            services.AddScoped<IImageSaveStrategyFactory, ImageSaveStrategyFactory>();
+
             // Email Service
             services.AddScoped<IEmailService, SmtpEmailService>();
 

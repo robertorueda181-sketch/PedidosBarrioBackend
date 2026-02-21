@@ -13,6 +13,7 @@ namespace PedidosBarrio.Application.Queries.GetNegocioByCodigoEmpresa
         private readonly IProductoRepository _productoRepository;
         private readonly ICategoriaRepository _categoriaRepository;
         private readonly IImagenRepository _imagenRepository;
+        private readonly IDireccionRepository _direccionRepository;
         private readonly IImageProcessingService _imageProcessingService;
         private readonly IMapper _mapper;
 
@@ -22,6 +23,7 @@ namespace PedidosBarrio.Application.Queries.GetNegocioByCodigoEmpresa
             IProductoRepository productoRepository,
             ICategoriaRepository categoriaRepository,
             IImagenRepository imagenRepository,
+            IDireccionRepository direccionRepository,
             IImageProcessingService imageProcessingService,
             IMapper mapper)
         {
@@ -30,6 +32,7 @@ namespace PedidosBarrio.Application.Queries.GetNegocioByCodigoEmpresa
             _productoRepository = productoRepository;
             _categoriaRepository = categoriaRepository;
             _imagenRepository = imagenRepository;
+            _direccionRepository = direccionRepository;
             _imageProcessingService = imageProcessingService;
             _mapper = mapper;
         }
@@ -46,13 +49,22 @@ namespace PedidosBarrio.Application.Queries.GetNegocioByCodigoEmpresa
             // Obtener productos de la empresa
             var productos = (await _productoRepository.GetByEmpresaIdAsync(empresa.ID)).ToList();
 
-            // Obtener categoras que deben mostrarse (Mostrar = true y Activo = true)
+            // Obtener categorías que deben mostrarse (Mostrar = true y Activo = true)
             var categorias = await _categoriaRepository.GetByEmpresaIdMostrandoAsync(empresa.ID);
 
-            // Obtener imgenes de la empresa para los productos
+            // Obtener imágenes de la empresa para los productos
             var todasLasImagenes = await _imagenRepository.GetByEmpresaIdAsync(empresa.ID);
             var imagenesPorProducto = todasLasImagenes.GroupBy(i => i.ExternalId ?? 0)
                 .ToDictionary(g => g.Key, g => g.OrderBy(i => i.Order).ToList());
+
+            // Obtener imagen de perfil (logo)
+            var imagenPerfil = todasLasImagenes.FirstOrDefault(i => i.Type == "PROFILE");
+            var logoUrl = imagenPerfil != null && !string.IsNullOrEmpty(imagenPerfil.Urlimagen)
+                ? await _imageProcessingService.GetImageUrlAsync(imagenPerfil.Urlimagen)
+                : null;
+
+            // Obtener dirección (Sede) de la tabla Direccion - única por empresaID
+            var direccion = (await _direccionRepository.GetByEmpresaIdAsync(empresa.ID)).FirstOrDefault();
 
             var productoDtos = new List<ProductoDetalleDto>();
 
@@ -90,10 +102,13 @@ namespace PedidosBarrio.Application.Queries.GetNegocioByCodigoEmpresa
                 EmpresaID = empresa.ID,
                 Nombre = negocio.Nombre ?? "",
                 Descripcion = negocio.Descripcion ?? string.Empty,
-                Email = "", // Email est en Usuario, habra que incluirlo si se requiere
-                Telefono = negocio.Telefono ?? string.Empty,
-                Direccion = negocio.Direccion ?? string.Empty,
-                Referencia = negocio.Referencia ?? string.Empty,
+                Email = "", // Email está en Usuario
+                Telefono = empresa.TelefonoPrincipal ?? string.Empty,
+                Direccion = direccion?.DireccionTexto ?? "",
+                Referencia = direccion?.Referencia ?? "",
+                LogoUrl = logoUrl,
+                Longitud = direccion?.Longitud ?? 0,
+                Latitud = direccion?.Latitud ?? 0,
                 Facebook = empresa.Facebook,
                 Instagram = empresa.Instagram,
                 Twitter = empresa.Twitter,
