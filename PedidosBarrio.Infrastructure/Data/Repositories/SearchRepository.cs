@@ -30,13 +30,33 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             var lowerTerm = term.ToLower();
             var results = new List<SearchResult>();
 
-            // 1. BUSCAR EN PRODUCTOS
+            // ===== PASO 1: OBTENER SOLO EMPRESAS VÁLIDAS (VISIBLE, ACTIVO, APROBADO) =====
+            var empresasValidas = await _context.Empresas
+                .AsNoTracking()
+                .Where(e => e.Activa == true && e.Visible && e.Aprobado)
+                .Select(e => e.ID)
+                .ToListAsync();
+
+            if (!empresasValidas.Any())
+                return results;
+
+            var allTypes = await _context.Tipos.AsNoTracking().ToDictionaryAsync(t => t.TipoID);
+
+            // ===== PASO 2: BUSCAR PRODUCTOS EN EMPRESAS VÁLIDAS =====
             var productos = await _context.Productos
                 .AsNoTracking()
                 .Where(p => p.Activa == true && 
+                           p.Aprobado == true &&
+                           empresasValidas.Contains(p.EmpresaID.Value) &&
                            (p.Nombre.ToLower().Contains(lowerTerm) || 
                             (p.Descripcion != null && p.Descripcion.ToLower().Contains(lowerTerm))))
                 .Take(20)
+                .ToListAsync();
+
+            var urlNegocioMap = await _context.Negocios
+                .AsNoTracking()
+                .Where(n => n.EmpresaID.HasValue && empresasValidas.Contains(n.EmpresaID.Value))
+                .Select(n => new { n.EmpresaID, n.Urlnegocio, n.Urlopcional })
                 .ToListAsync();
 
             foreach (var p in productos)
@@ -48,6 +68,8 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                     .Select(img => img.Urlimagen)
                     .FirstOrDefaultAsync();
 
+                var negocioUrl = urlNegocioMap.FirstOrDefault(u => u.EmpresaID == p.EmpresaID);
+
                 results.Add(new SearchResult
                 {
                     Type = "PRODUCTO",
@@ -55,21 +77,24 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                     Title = p.Nombre,
                     Description = p.Descripcion ?? "",
                     ImageUrl = !string.IsNullOrEmpty(img) ? await _imageProcessingService.GetImageUrlAsync(img) : "",
-                    Url = $"/producto/{p.ProductoID}"
+                    Url = negocioUrl?.Urlopcional ?? negocioUrl?.Urlnegocio ?? ""
                 });
             }
 
-            // 2. BUSCAR EN NEGOCIOS
+            // ===== PASO 3: BUSCAR NEGOCIOS EN EMPRESAS VÁLIDAS =====
             var negocios = await _context.Negocios
-                .AsNoTracking()
-                .Include(n => n.Tipos)
-                .Where(n => (n.Activa ?? true) && 
-                           ((n.Nombre != null && n.Nombre.ToLower().Contains(lowerTerm)) || 
-                            (n.Descripcion != null && n.Descripcion.ToLower().Contains(lowerTerm)) ||
-                            (n.Urlnegocio != null && n.Urlnegocio.ToLower().Contains(lowerTerm))))
-                .Take(20)
-                .ToListAsync();
+               .AsNoTracking()
+               .Include(n => n.Tipos)
+               .Where(n => n.EmpresaID.HasValue &&
+                          empresasValidas.Contains(n.EmpresaID.Value) &&
+                          ((n.Nombre != null && n.Nombre.ToLower().Contains(lowerTerm)) ||
+                           (n.Descripcion != null && n.Descripcion.ToLower().Contains(lowerTerm)) ||
+                           (n.Urlnegocio != null && n.Urlnegocio.ToLower().Contains(lowerTerm))))
+               .Take(20)
+               .ToListAsync();
 
+            // ===== PASO 3: BUSCAR NEGOCIOS EN EMPRESAS VÁLIDAS =====
+           
             foreach (var n in negocios)
             {
                 var img = await _context.Imagenes
@@ -85,19 +110,19 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                     Id = n.NegocioID,
                     Title = n.Nombre ?? n.Urlnegocio ?? "Negocio",
                     Description = n.Descripcion ?? "",
-                    Location = "", // Dirección viene de tabla Direccion separada
+                    Location = "",
                     Category = n.Tipos?.Descripcion ?? "Comercio",
                     ImageUrl = !string.IsNullOrEmpty(img) ? await _imageProcessingService.GetImageUrlAsync(img) : "",
                     Url = $"{n.Urlopcional ?? n.Urlnegocio}"
                 });
             }
 
-            // 3. BUSCAR EN INMUEBLES (SERVICIOS/PROPIEDADES)
-            var allTypes = await _context.Tipos.AsNoTracking().ToDictionaryAsync(t => t.TipoID);
+            // ===== PASO 4: BUSCAR INMUEBLES EN EMPRESAS VÁLIDAS =====
             var inmuebles = await _context.Inmuebles
                 .AsNoTracking()
                 .Include(i => i.Tipos)
-                .Where(prop => (prop.Activa ?? true) && 
+                .Where(prop => prop.Activa == true &&
+                           empresasValidas.Contains(prop.EmpresaID.Value) &&
                            ((prop.Descripcion != null && prop.Descripcion.ToLower().Contains(lowerTerm)) || 
                             (prop.Ubicacion != null && prop.Ubicacion.ToLower().Contains(lowerTerm))))
                 .Take(20)
