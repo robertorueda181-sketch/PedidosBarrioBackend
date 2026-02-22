@@ -32,11 +32,11 @@ namespace PedidosBarrio.Domain.Entities
         public string? TextoBoton { get; set; }
 
         [Column("FechaInicio")]
-        public DateTime FechaInicio { get; set; }
+        public DateOnly FechaInicio { get; set; }
 
 
         [Column("FechaExpiracion")]
-        public DateTime FechaExpiracion { get; set; }
+        public DateOnly FechaExpiracion { get; set; }
 
         [Column("Visible")]
         public bool? Visible { get; set; }

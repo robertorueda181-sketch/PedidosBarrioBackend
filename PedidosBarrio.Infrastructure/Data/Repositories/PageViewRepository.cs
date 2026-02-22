@@ -40,7 +40,7 @@ public class PageViewRepository : IPageViewRepository
             .AsNoTracking()
             .Where(pv => pv.EmpresaID == empresaId 
                 && pv.Fecha >= startDate 
-                && pv.Fecha <= endDate)
+                && pv.Fecha < endDate)
             .OrderByDescending(pv => pv.Fecha)
             .ToListAsync();
     }

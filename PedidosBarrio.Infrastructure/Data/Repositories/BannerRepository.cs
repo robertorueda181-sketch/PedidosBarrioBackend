@@ -32,32 +32,33 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
 
         public async Task<IEnumerable<Banner>> GetActiveByEmpresaIdAsync(Guid empresaId)
         {
-            var today = DateTime.UtcNow.Date;
+                var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
-            return await _context.Banners
-                .Where(b => b.EmpresaID == empresaId 
-                    && (b.Visible ?? true) // Debe ser visible
-                    && b.FechaInicio <= today // Debe haber comenzado
-                    && b.FechaExpiracion >= today) // No debe haber expirado
-                .OrderByDescending(b => b.Prioridad) // Mayor prioridad primero
-                .ThenByDescending(b => (b.Aprobado ?? false) ? 1 : 0) // Aprobados primero
-                .ThenByDescending(b => (b.Visible ?? false) ? 1 : 0) // Visibles primero
-                .ToListAsync();
-        }
+                return await _context.Banners
+                    .Where(b => b.EmpresaID == empresaId 
+                        && (b.Visible ?? true) // Debe ser visible
+                        && b.FechaInicio <= today // Debe haber comenzado
+                        && b.FechaExpiracion >= today) // No debe haber expirado
+                    .OrderByDescending(b => b.Prioridad) // Mayor prioridad primero
+                    .ThenByDescending(b => (b.Aprobado ?? false) ? 1 : 0) // Aprobados primero
+                    .ThenByDescending(b => (b.Visible ?? false) ? 1 : 0) // Visibles primero
+                    .ToListAsync();
+            }
 
-        public async Task<IEnumerable<Banner>> GetAllActiveAsync()
-        {
-            var today = DateTime.UtcNow.Date;
+            public async Task<IEnumerable<Banner>> GetAllActiveAsync()
+            {
+                var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
-            return await _context.Banners
-                .Where(b => (b.Visible ?? true) // Debe ser visible
-                    && b.FechaInicio <= today // Debe haber comenzado
-                    && b.FechaExpiracion >= today) // No debe haber expirado
-                .OrderByDescending(b => b.Prioridad) // Mayor prioridad primero
-                .ThenByDescending(b => (b.Aprobado ?? false) ? 1 : 0) // Aprobados primero
-                .ThenBy(b => b.EmpresaID) // Agrupado por empresa
-                .ToListAsync();
-        }
+                return await _context.Banners
+                    .Where(b => (b.Visible ?? true)
+                        && (b.Aprobado ?? false)// Debe ser visible
+                        && b.FechaInicio <= today // Debe haber comenzado
+                        && b.FechaExpiracion >= today) // No debe haber expirado
+                    .OrderByDescending(b => b.Prioridad) // Mayor prioridad primero
+                    .ThenByDescending(b => (b.Aprobado ?? false) ? 1 : 0) // Aprobados primero
+                    .ThenBy(b => b.EmpresaID) // Agrupado por empresa
+                    .ToListAsync();
+            }
 
         public async Task<Guid> AddAsync(Banner banner)
         {

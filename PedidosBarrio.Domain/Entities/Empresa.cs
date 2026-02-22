@@ -66,6 +66,12 @@ public partial class Empresa
     /// </summary>
     public bool PasosIniciales { get; set; } = true;
 
+    /// <summary>
+    /// Zona horaria de la empresa (ej: "SA Pacific Standard Time", "America/Bogota")
+    /// Se usa para calcular fechas en la zona horaria local en lugar de UTC
+    /// </summary>
+    public string? TimeZoneId { get; set; } = "UTC";
+
     [ForeignKey("UsuarioID")]
     [InverseProperty("Empresas")]
     public virtual Usuario? Usuario { get; set; }
