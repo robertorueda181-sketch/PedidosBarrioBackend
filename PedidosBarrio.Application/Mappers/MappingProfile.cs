@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using PedidosBarrio.Application.Commands.ClienteAuth;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Domain.Entities;
 
@@ -69,8 +70,26 @@ namespace PedidosBarrio.Application.Mappers
                 .ForMember(dest => dest.UrlImagen, opt => opt.MapFrom(src => src.Imagenes.Urlimagen));
             CreateMap<CreateNegocioDto, Negocio>();
 
-            // ===================== PASO INICIAL MAPPINGS =====================
-            CreateMap<PasoInicial, PasoInicialDto>();
-        }
+                // ===================== PASO INICIAL MAPPINGS =====================
+                CreateMap<PasoInicial, PasoInicialDto>();
+
+                    // ===================== CLIENTE AUTH MAPPINGS =====================
+                    CreateMap<ClienteRegistroDto, ClienteGoogleAuthCommand>()
+                        .ForMember(dest => dest.IdToken, opt => opt.MapFrom(src => src.IdToken))
+                        .ForMember(dest => dest.DNI, opt => opt.MapFrom(src => src.DNI))
+                        .ForMember(dest => dest.Telefono, opt => opt.MapFrom(src => src.Telefono))
+                        .ForMember(dest => dest.Latitud, opt => opt.MapFrom(src => src.Latitud))
+                        .ForMember(dest => dest.Longitud, opt => opt.MapFrom(src => src.Longitud));
+
+                    // ===================== CLIENTE DIRECCION MAPPINGS =====================
+                    CreateMap<ClienteDireccion, ClienteDireccionDto>();
+                    CreateMap<CreateClienteDireccionDto, ClienteDireccion>()
+                        .ForMember(dest => dest.ClienteDireccionID, opt => opt.MapFrom(_ => Guid.NewGuid()))
+                        .ForMember(dest => dest.FechaCreacion, opt => opt.MapFrom(_ => DateTime.UtcNow))
+                        .ForMember(dest => dest.Activa, opt => opt.MapFrom(_ => true));
+                    CreateMap<UpdateClienteDireccionDto, ClienteDireccion>()
+                        .ForMember(dest => dest.FechaActualizacion, opt => opt.MapFrom(_ => DateTime.UtcNow))
+                        .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+                }
     }
 }

@@ -4,6 +4,7 @@ namespace PedidosBarrio.Application.Services
     {
         Guid GetEmpresaId();
         Guid GetUsuarioId();
+        Guid GetClienteId();
         string GetUserEmail();
         bool IsAuthenticated();
         bool GetPasosIniciales();

@@ -1,7 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using PedidosBarrio.Application.Commands.SaveEmpresaSede;
-using PedidosBarrio.Application.Commands.UploadEmpresaLogo;
 using PedidosBarrio.Application.Commands.UploadEmpresaProfileImage;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Queries.GetEmpresaSedeDetalle;

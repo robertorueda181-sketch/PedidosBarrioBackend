@@ -60,6 +60,9 @@ public partial class Producto
 
     [InverseProperty("Producto")]
     public virtual ICollection<Presentacion> Presentaciones { get; set; } = new List<Presentacion>();
+
+    [InverseProperty("Producto")]
+    public virtual ICollection<PedidoDetalle> PedidoDetalles { get; set; } = new List<PedidoDetalle>();
 }
 
 

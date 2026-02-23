@@ -13,6 +13,7 @@ namespace PedidosBarrio.Application.Services
     public interface IJwtTokenService
     {
         string GenerateToken(Usuario usuario, int minutosExpiracion, string? emailOverride = null, bool pasosIniciales = true);
+        string GenerateClienteToken(Guid clienteId, string dni, int minutosExpiracion = 1440);
         string GenerateRefreshToken();
         ClaimsPrincipal? GetPrincipalFromExpiredToken(string token);
     }
@@ -53,6 +54,36 @@ namespace PedidosBarrio.Application.Services
                 new Claim("NombreCompleto", email),
                 new Claim("EmpresaID", usuario.EmpresaID.ToString()),
                 new Claim("PasosIniciales", pasosIniciales.ToString())
+            };
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddMinutes(minutosExpiracion),
+                Issuer = _jwtIssuer,
+                Audience = _jwtAudience,
+                SigningCredentials = credentials
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+
+        /// <summary>
+        /// Genera un JWT token para clientes
+        /// </summary>
+        public string GenerateClienteToken(Guid clienteId, string dni, int minutosExpiracion = 1440)
+        {
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSecret));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, clienteId.ToString()),
+                new Claim("ClienteID", clienteId.ToString()),
+                new Claim("DNI", dni),
+                new Claim("TipoUsuario", "Cliente")
             };
 
             var tokenDescriptor = new SecurityTokenDescriptor

@@ -52,9 +52,12 @@ public partial class Usuario
         [StringLength(8)]
         public string? Provider { get; set; }
 
-        [InverseProperty("Usuario")]
-        public virtual ICollection<Empresa> Empresas { get; set; } = new List<Empresa>();
-    }
+            [InverseProperty("Usuario")]
+            public virtual ICollection<Empresa> Empresas { get; set; } = new List<Empresa>();
+
+            [InverseProperty("Usuario")]
+            public virtual ICollection<Cliente> Clientes { get; set; } = new List<Cliente>();
+        }
 
 
 

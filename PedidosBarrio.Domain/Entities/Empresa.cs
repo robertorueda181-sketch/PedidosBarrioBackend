@@ -89,6 +89,9 @@ public partial class Empresa
     public virtual ICollection<Suscripcion> Suscripcions { get; set; } = new List<Suscripcion>();
 
     [InverseProperty("Empresa")]
+    public virtual ICollection<Pedido> Pedidos { get; set; } = new List<Pedido>();
+
+    [InverseProperty("Empresa")]
     public virtual ICollection<Direccion> Direcciones { get; set; } = new List<Direccion>();
 
     [InverseProperty("Empresa")]

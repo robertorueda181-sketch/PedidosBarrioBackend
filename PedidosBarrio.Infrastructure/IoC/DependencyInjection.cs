@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using PedidosBarrio.Application.Commands.ModerateText;
 using PedidosBarrio.Application.Commands.RegisterSocial;
 using PedidosBarrio.Application.Commands.ValidateImage;
+using PedidosBarrio.Application.Commands.ClienteAuth;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Interfaces;
 using PedidosBarrio.Application.Logging;
@@ -136,6 +137,12 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<INotificacionAppRepository, NotificacionAppRepository>();
             services.AddScoped<IPageViewRepository, PageViewRepository>();
 
+            // Repositorios de Pedidos
+            services.AddScoped<IClienteRepository, ClienteRepository>();
+            services.AddScoped<IPedidoRepository, PedidoRepository>();
+            services.AddScoped<IPedidoDetalleRepository, PedidoDetalleRepository>();
+            services.AddScoped<IClienteDireccionRepository, ClienteDireccionRepository>();
+
             // PageView Services - Cola en memoria y Background Service
             services.AddSingleton<IPageViewQueueService, PageViewQueueService>();
             services.AddHostedService<PageViewProcessorBackgroundService>();
@@ -170,14 +177,19 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<IValidator<TextModerationRequestDto>, TextModerationRequestDtoValidator>();
             services.AddScoped<IValidator<CreateProductoDto>, CreateProductoDtoValidator>();
             services.AddScoped<IValidator<UpdateProductoDto>, UpdateProductoDtoValidator>();
-            
+            services.AddScoped<IValidator<CreateClienteDireccionDto>, CreateClienteDireccionDtoValidator>();
+            services.AddScoped<IValidator<UpdateClienteDireccionDto>, UpdateClienteDireccionDtoValidator>();
             // Command Validators
             services.AddScoped<IValidator<RegisterSocialCommand>, RegisterSocialCommandValidator>();
             services.AddScoped<IValidator<ModerateTextCommand>, ModerateTextCommandValidator>();
             services.AddScoped<IValidator<ValidateImageCommand>, ValidateImageCommandValidator>();
+            services.AddScoped<IValidator<ClienteGoogleAuthCommand>, ClienteGoogleAuthCommandValidator>();
 
             // JWT Token Service
             services.AddScoped<IJwtTokenService, JwtTokenService>();
+
+            // Google Token Validator Service - para autenticación con Google
+            services.AddHttpClient<IGoogleTokenValidatorService, GoogleTokenValidatorService>();
 
             // MediatR
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CompanyService).Assembly));

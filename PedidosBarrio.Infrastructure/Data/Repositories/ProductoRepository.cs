@@ -33,6 +33,15 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             return producto;
         }
 
+        public async Task<IEnumerable<Producto>> GetByEmpresaIdVisibleAsync(Guid empresaId)
+        {
+            return await _context.Productos
+                .Where(p => p.EmpresaID == empresaId && (p.Activa == true) && (p.Visible ?? false))
+                .Include(p => p.Presentaciones.Where(pr => pr.EmpresaID == empresaId))
+                    .ThenInclude(pr => pr.Precios.Where(pre => pre.EmpresaID == empresaId))
+                .OrderByDescending(p => p.FechaRegistro)
+                .ToListAsync();
+        }
         public async Task<IEnumerable<Producto>> GetByEmpresaIdAsync(Guid empresaId)
         {
             return await _context.Productos

@@ -28,12 +28,22 @@ namespace PedidosBarrio.Infrastructure.Services
             // Primero intentar con "UsuarioID", luego con NameIdentifier
             var usuarioIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirst("UsuarioID")?.Value
                                 ?? _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                                
+
             if (string.IsNullOrEmpty(usuarioIdClaim) || !Guid.TryParse(usuarioIdClaim, out var usuarioId))
             {
                 throw new UnauthorizedAccessException("No se pudo obtener el UsuarioID del token");
             }
             return usuarioId;
+        }
+
+        public Guid GetClienteId()
+        {
+            var clienteIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirst("ClienteID")?.Value;
+            if (string.IsNullOrEmpty(clienteIdClaim) || !Guid.TryParse(clienteIdClaim, out var clienteId))
+            {
+                throw new UnauthorizedAccessException("No se pudo obtener el ClienteID del token");
+            }
+            return clienteId;
         }
 
         public string GetUserEmail()
