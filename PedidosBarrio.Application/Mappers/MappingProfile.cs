@@ -85,9 +85,23 @@ namespace PedidosBarrio.Application.Mappers
                     CreateMap<ClienteDireccion, ClienteDireccionDto>();
                     CreateMap<CreateClienteDireccionDto, ClienteDireccion>()
                         .ForMember(dest => dest.ClienteDireccionID, opt => opt.MapFrom(_ => Guid.NewGuid()))
-                        .ForMember(dest => dest.FechaCreacion, opt => opt.MapFrom(_ => DateTime.UtcNow))
+                        .ForMember(dest => dest.FechaCreacion, opt => opt.MapFrom(_ => DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc)))
                         .ForMember(dest => dest.Activa, opt => opt.MapFrom(_ => true));
                     CreateMap<UpdateClienteDireccionDto, ClienteDireccion>()
+                        .ForMember(dest => dest.FechaActualizacion, opt => opt.MapFrom(_ => DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc)))
+                        .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+                    // ===================== PAGINA MAPPINGS =====================
+                    CreateMap<Pagina, PaginaDto>();
+                    CreateMap<CreatePaginaDto, Pagina>()
+                        .ForMember(dest => dest.PaginaID, opt => opt.MapFrom(_ => Guid.NewGuid()))
+                        .ForMember(dest => dest.FechaCreacion, opt => opt.MapFrom(_ => DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc)))
+                        .ForMember(dest => dest.FechaActualizacion, opt => opt.MapFrom(_ => DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc)))
+                        .ForMember(dest => dest.Activa, opt => opt.MapFrom(_ => true));
+                    CreateMap<UpdatePaginaDto, Pagina>()
+                        .ForMember(dest => dest.FechaActualizacion, opt => opt.MapFrom(_ => DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc)))
+                        .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+                    CreateMap<UpdatePaginaDto, Pagina>()
                         .ForMember(dest => dest.FechaActualizacion, opt => opt.MapFrom(_ => DateTime.UtcNow))
                         .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
                 }

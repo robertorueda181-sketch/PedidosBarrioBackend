@@ -97,6 +97,7 @@ app.MapPageViewEndpoints();
 app.MapDashboardEndpoints();
 app.MapClienteAuthEndpoints();
 app.MapClienteDireccionEndpoints();
+app.MapPaginaEndpoints();
 app.MapPedidoEndpoints();
 app.MapTokenDebugEndpoints(); // Debug endpoint para analizar tokens
 

@@ -16,6 +16,7 @@ using PedidosBarrio.Application.Logging;
 using PedidosBarrio.Application.Mappers;
 using PedidosBarrio.Application.Services;
 using PedidosBarrio.Application.Validator;
+using PedidosBarrio.Application.Validators;
 using PedidosBarrio.Domain.Enums;
 using PedidosBarrio.Domain.Repositories;
 using PedidosBarrio.Infrastructure.Authorization;
@@ -142,6 +143,7 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<IPedidoRepository, PedidoRepository>();
             services.AddScoped<IPedidoDetalleRepository, PedidoDetalleRepository>();
             services.AddScoped<IClienteDireccionRepository, ClienteDireccionRepository>();
+            services.AddScoped<IPaginaRepository, PaginaRepository>();
 
             // PageView Services - Cola en memoria y Background Service
             services.AddSingleton<IPageViewQueueService, PageViewQueueService>();
@@ -179,6 +181,8 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<IValidator<UpdateProductoDto>, UpdateProductoDtoValidator>();
             services.AddScoped<IValidator<CreateClienteDireccionDto>, CreateClienteDireccionDtoValidator>();
             services.AddScoped<IValidator<UpdateClienteDireccionDto>, UpdateClienteDireccionDtoValidator>();
+            services.AddScoped<IValidator<CreatePaginaDto>, CreatePaginaDtoValidator>();
+            services.AddScoped<IValidator<UpdatePaginaDto>, UpdatePaginaDtoValidator>();
             // Command Validators
             services.AddScoped<IValidator<RegisterSocialCommand>, RegisterSocialCommandValidator>();
             services.AddScoped<IValidator<ModerateTextCommand>, ModerateTextCommandValidator>();

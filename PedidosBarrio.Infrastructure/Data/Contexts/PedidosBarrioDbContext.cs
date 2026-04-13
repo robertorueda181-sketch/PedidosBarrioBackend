@@ -68,6 +68,8 @@ public partial class PedidosBarrioDbContext : DbContext
 
     public virtual DbSet<PedidoDetalle> PedidoDetalles { get; set; }
 
+    public virtual DbSet<Pagina> Paginas { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
