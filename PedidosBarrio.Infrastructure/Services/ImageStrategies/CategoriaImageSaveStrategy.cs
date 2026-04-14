@@ -8,32 +8,30 @@ using SixLabors.ImageSharp.Processing;
 namespace PedidosBarrio.Infrastructure.Services.ImageStrategies
 {
     /// <summary>
-    /// Estrategia para guardar imágenes de banners (1200x600) convertidas a WebP
+    /// Estrategia para guardar imágenes de categorías (500x500) con conversión a WebP
     /// </summary>
-    public class BannerImageSaveStrategy : IImageSaveStrategy
+    public class CategoriaImageSaveStrategy : IImageSaveStrategy
     {
         private readonly IWebHostEnvironment _environment;
-        private readonly string _bannerImagePath;
+        private readonly string _categoriaImagePath;
         private readonly string _baseImageUrl;
 
-        public BannerImageSaveStrategy(IWebHostEnvironment environment, IConfiguration configuration)
+        public CategoriaImageSaveStrategy(IWebHostEnvironment environment, IConfiguration configuration)
         {
             _environment = environment;
-            _bannerImagePath = Path.Combine(_environment.WebRootPath, "images", "banners");
+            _categoriaImagePath = Path.Combine(_environment.WebRootPath, "images", "categorias");
 
             var baseUrl = configuration["BaseUrl"] ?? "https://localhost:7045";
             _baseImageUrl = baseUrl.TrimEnd('/');
 
-            // Si la URL base termina en /api, la quitamos
             if (_baseImageUrl.EndsWith("/api", StringComparison.OrdinalIgnoreCase))
             {
                 _baseImageUrl = _baseImageUrl.Substring(0, _baseImageUrl.Length - 4);
             }
 
-            // Crear directorio si no existe
-            if (!Directory.Exists(_bannerImagePath))
+            if (!Directory.Exists(_categoriaImagePath))
             {
-                Directory.CreateDirectory(_bannerImagePath);
+                Directory.CreateDirectory(_categoriaImagePath);
             }
         }
 
@@ -42,50 +40,36 @@ namespace PedidosBarrio.Infrastructure.Services.ImageStrategies
             if (imageStream == null || imageStream.Length == 0)
                 throw new ArgumentException("Stream de imagen inválido");
 
-            // Validar tamaño (máximo 10MB)
             if (imageStream.Length > 10 * 1024 * 1024)
                 throw new ArgumentException("El archivo es demasiado grande. Tamaño máximo: 10MB");
 
-            // Validar extensión
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-            var fileExtension = Path.GetExtension(fileName).ToLower();
-            if (!allowedExtensions.Contains(fileExtension))
-                throw new ArgumentException($"Formato no permitido. Extensiones permitidas: {string.Join(", ", allowedExtensions)}");
-
             try
             {
-                // Reset stream position if possible
                 if (imageStream.CanSeek) imageStream.Position = 0;
 
-                // Generar nombre único con extensión .webp
                 var newFileName = $"{Guid.NewGuid()}_{DateTime.UtcNow:yyyyMMddHHmmss}.webp";
-                var filePath = Path.Combine(_bannerImagePath, newFileName);
+                var filePath = Path.Combine(_categoriaImagePath, newFileName);
 
                 using (var image = await Image.LoadAsync(imageStream))
                 {
-                    // Redimensionar a 1200x600 para banners
-                    image.Mutate(x => x.Resize(1200, 600));
+                    // Redimensionar a 500x500 para categorías
+                    image.Mutate(x => x.Resize(500, 500));
 
                     var encoder = new WebpEncoder
                     {
-                        Quality = 80, // Calidad para banners (más alta que productos)
+                        Quality = 75,
                         Method = WebpEncodingMethod.BestQuality
                     };
 
                     await image.SaveAsync(filePath, encoder);
                 }
 
-                // Retornar URL completa con baseURL
-                var relativeUrl = $"/images/banners/{newFileName}";
+                var relativeUrl = $"/images/categorias/{newFileName}";
                 return $"{_baseImageUrl}{relativeUrl}";
-            }
-            catch (ArgumentException)
-            {
-                throw;
             }
             catch (Exception ex)
             {
-                throw new ApplicationException($"Error al guardar imagen de banner: {ex.Message}", ex);
+                throw new ApplicationException($"Error al procesar imagen de categoría: {ex.Message}", ex);
             }
         }
     }

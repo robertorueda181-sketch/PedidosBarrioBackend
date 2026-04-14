@@ -1,13 +1,22 @@
 namespace PedidosBarrio.Application.Services
 {
     /// <summary>
-    /// Tipos de imágenes soportados
+    /// Tipos de imágenes soportados con sus dimensiones específicas
     /// </summary>
     public enum ImageType
     {
+        /// <summary>Banner - 1200x600</summary>
         Banner,
+        /// <summary>Producto - 400x400</summary>
         Producto,
-        Empresa
+        /// <summary>Empresa/Logo - 300x300</summary>
+        Empresa,
+        /// <summary>Categoría - 500x500</summary>
+        Categoria,
+        /// <summary>Avatar/Perfil - 200x200</summary>
+        Avatar,
+        /// <summary>Sin ajuste - solo convierte a WebP</summary>
+        Original
     }
 
     /// <summary>

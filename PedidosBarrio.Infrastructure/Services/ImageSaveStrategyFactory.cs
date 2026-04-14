@@ -25,7 +25,10 @@ namespace PedidosBarrio.Infrastructure.Services
             {
                 ImageType.Banner => new BannerImageSaveStrategy(_environment, _configuration),
                 ImageType.Producto => new ProductoImageSaveStrategy(_environment, _configuration),
-                ImageType.Empresa => new ProductoImageSaveStrategy(_environment, _configuration), // Por ahora usa la misma que producto
+                ImageType.Empresa => new EmpresaImageSaveStrategy(_environment, _configuration),
+                ImageType.Categoria => new CategoriaImageSaveStrategy(_environment, _configuration),
+                ImageType.Avatar => new AvatarImageSaveStrategy(_environment, _configuration),
+                ImageType.Original => new OriginalImageSaveStrategy(_environment, _configuration),
                 _ => throw new ArgumentException($"Tipo de imagen no soportado: {imageType}")
             };
         }

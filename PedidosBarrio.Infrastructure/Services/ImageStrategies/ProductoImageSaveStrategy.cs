@@ -8,7 +8,7 @@ using SixLabors.ImageSharp.Processing;
 namespace PedidosBarrio.Infrastructure.Services.ImageStrategies
 {
     /// <summary>
-    /// Estrategia para guardar imágenes de productos con redimensionamiento a 300x300 y conversión a WebP
+    /// Estrategia para guardar imágenes de productos (400x400) con conversión a WebP
     /// </summary>
     public class ProductoImageSaveStrategy : IImageSaveStrategy
     {
@@ -57,8 +57,8 @@ namespace PedidosBarrio.Infrastructure.Services.ImageStrategies
 
                 using (var image = await Image.LoadAsync(imageStream))
                 {
-                    // Redimensionar a 300x300 para productos
-                    image.Mutate(x => x.Resize(300, 300));
+                    // Redimensionar a 400x400 para productos
+                    image.Mutate(x => x.Resize(400, 400));
 
                     // Configuramos el encoder de WebP para optimizar y comprimir
                     var encoder = new WebpEncoder
