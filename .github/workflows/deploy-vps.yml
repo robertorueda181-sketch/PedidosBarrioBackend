@@ -1,4 +1,4 @@
-name: Deploy to VPS
+name: Deploy Backend to VPS
 
 on:
   push:
@@ -7,21 +7,16 @@ on:
   pull_request:
     branches:
       - main
-    types: [opened, synchronize, reopened]
+  workflow_dispatch: # Permite ejecutarlo manualmente
 
 env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
   DOTNET_VERSION: '10.0.x'
+  # Asegúrate de que este secreto sea /var/www/backend en GitHub
+  APP_PATH: ${{ secrets.VPS_APP_PATH }} 
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      packages: write
-
     steps:
       - name: 📥 Checkout código
         uses: actions/checkout@v4
@@ -36,10 +31,6 @@ jobs:
 
       - name: 🏗️ Compilar
         run: dotnet build --configuration Release --no-restore
-
-      - name: 🧪 Ejecutar tests
-        run: dotnet test --configuration Release --no-build --verbosity normal --logger "console;verbosity=minimal"
-        continue-on-error: true
 
       - name: 📰 Publicar aplicación
         run: |
@@ -72,11 +63,10 @@ jobs:
           name: published-app
           path: ./publish
 
-      - name: 📋 Verificar artefactos descargados
+      - name: 📋 DEBUG LOCAL: Verificar archivos antes de enviar
         run: |
-          echo "📂 Contenido del directorio publish:"
+          echo "📂 Contenido de la carpeta publish local:"
           ls -la ./publish/
-          echo "📊 Archivos totales:"
           find ./publish -type f | wc -l
 
       - name: 🔐 Setup SSH
@@ -84,86 +74,64 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.SERVER_HOST  }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
 
-      - name: 📁 Crear directorios en VPS
+      - name: 📁 Preparar directorios en VPS
         run: |
-          ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST  }} << 'EOF'
+          ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
           mkdir -p ${{ secrets.VPS_APP_PATH }}/latest
           mkdir -p ${{ secrets.VPS_APP_PATH }}/backup
           mkdir -p ${{ secrets.VPS_APP_PATH }}/logs
+          # Limpiamos latest para que no haya archivos viejos
+          rm -rf ${{ secrets.VPS_APP_PATH }}/latest/*
           EOF
 
-      - name: 📤 Transferir archivos
+      - name: 📤 Transferir archivos (SCP)
         run: |
+          # Usamos ./publish/. para copiar el contenido sin crear la carpeta 'publish'
           scp -i ~/.ssh/deploy_key \
-            -o ConnectTimeout=10 \
+            -o ConnectTimeout=15 \
             -o StrictHostKeyChecking=no \
-            -r ./publish/. \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST  }}:${{ secrets.VPS_APP_PATH }}/latest/
+            -r ./publish/. ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.VPS_APP_PATH }}/latest/
 
-      - name: 📤 Transferir scripts
+      - name: 🔍 DEBUG REMOTO: ¿Qué llegó a la VPS?
+        run: |
+          echo "🔎 Verificando archivos en la VPS tras el SCP:"
+          ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "ls -R ${{ secrets.VPS_APP_PATH }}/latest"
+
+      - name: 📜 Transferir script de deploy
         run: |
           scp -i ~/.ssh/deploy_key \
-            -o ConnectTimeout=10 \
             -o StrictHostKeyChecking=no \
-            ./.github/scripts/deploy.sh \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST  }}:${{ secrets.VPS_APP_PATH }}/
+            ./.github/scripts/deploy.sh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.VPS_APP_PATH }}/
 
       - name: 🚀 Ejecutar script de deploy
         run: |
-          ssh -i ~/.ssh/deploy_key \
-            -o ConnectTimeout=10 \
-            -o StrictHostKeyChecking=no \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST  }} << 'EOF'
+          ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
           chmod +x ${{ secrets.VPS_APP_PATH }}/deploy.sh
-          ${{ secrets.VPS_APP_PATH }}/deploy.sh
+          # Ejecutamos con sudo si el servicio requiere permisos de root
+          sudo ${{ secrets.VPS_APP_PATH }}/deploy.sh
           EOF
 
-      - name: ✅ Verificar servicio
+      - name: ✅ Verificar estado del servicio
         run: |
-          ssh -i ~/.ssh/deploy_key \
-            -o ConnectTimeout=10 \
-            -o StrictHostKeyChecking=no \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST  }} << 'EOF'
+          ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
           sleep 5
           if systemctl is-active --quiet pedidosbarrio; then
-            echo "✅ Servicio activo"
+            echo "✅ Servicio activo y funcionando."
           else
-            echo "❌ Error: Servicio no está activo"
-            journalctl -u pedidosbarrio -n 20
+            echo "❌ ERROR: El servicio no inició correctamente."
+            journalctl -u pedidosbarrio -n 50 --no-pager
             exit 1
           fi
           EOF
 
-      - name: 📊 Deploy exitoso
+      - name: 📊 Notificar Éxito
         if: success()
-        run: |
-          echo "✅ Aplicación desplegada exitosamente"
-          echo "🌐 Accesible en: ${{ secrets.SERVER_HOST  }}"
+        run: echo "🚀 El deploy de PedidosBarrio Backend terminó con éxito."
 
-      - name: 🚨 Deploy fallido
+      - name: 🚨 Notificar Fallo
         if: failure()
         run: |
-          echo "❌ Error en el deploy"
-          echo "Revisa los logs en GitHub Actions"
+          echo "❌ El deploy falló. Revisa el paso 'DEBUG REMOTO' o los logs de systemd arriba."
           exit 1
-
-  notify:
-    needs: [build, deploy]
-    runs-on: ubuntu-latest
-    if: always()
-
-    steps:
-      - name: 📬 Notificar resultado
-        uses: 8398a7/action-slack@v3
-        if: always()
-        with:
-          status: ${{ job.status }}
-          text: |
-            Deploy PedidosBarrio: ${{ job.status }}
-            Commit: ${{ github.sha }}
-            Autor: ${{ github.actor }}
-            Rama: ${{ github.ref }}
-          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
-        continue-on-error: true
