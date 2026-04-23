@@ -94,18 +94,18 @@ jobs:
             -o StrictHostKeyChecking=no \
             -r ./publish/. ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.VPS_APP_PATH }}/latest/
 
-      - name: 🔍 DEBUG REMOTO: ¿Qué llegó a la VPS?
+      - name: DEBUG REMOTO 
         run: |
           echo "🔎 Verificando archivos en la VPS tras el SCP:"
           ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} "ls -R ${{ secrets.VPS_APP_PATH }}/latest"
 
-      - name: 📜 Transferir script de deploy
+      - name: Transferir script de deploy
         run: |
           scp -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=no \
             ./.github/scripts/deploy.sh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.VPS_APP_PATH }}/
 
-      - name: 🚀 Ejecutar script de deploy
+      - name: Ejecutar script de deploy
         run: |
           ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
           chmod +x ${{ secrets.VPS_APP_PATH }}/deploy.sh
@@ -113,7 +113,7 @@ jobs:
           sudo ${{ secrets.VPS_APP_PATH }}/deploy.sh
           EOF
 
-      - name: ✅ Verificar estado del servicio
+      - name: Verificar estado del servicio
         run: |
           ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
           sleep 5
@@ -126,7 +126,7 @@ jobs:
           fi
           EOF
 
-      - name: 📊 Notificar Éxito
+      - name: Notificar Éxito
         if: success()
         run: echo "🚀 El deploy de PedidosBarrio Backend terminó con éxito."
 
