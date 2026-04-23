@@ -63,8 +63,11 @@ log "═════════════════════════
 
 # 1. Validar que el nuevo código existe
 log "1️⃣  Validando archivos..."
-if [ ! -f "$APP_PATH/$APP_NAME" ]; then
-    log_error "No se encontró la aplicación publicada en $APP_PATH/$APP_NAME"
+LATEST_PATH="$APP_PATH/latest"
+if [ ! -f "$LATEST_PATH/$APP_NAME" ]; then
+    log_error "No se encontró la aplicación publicada en $LATEST_PATH/$APP_NAME"
+    log_error "Contenido de $LATEST_PATH:"
+    ls -la "$LATEST_PATH/" 2>/dev/null || echo "Directorio no existe"
     exit 1
 fi
 log_success "Archivos validados"
@@ -95,9 +98,12 @@ else
     log_warning "No hay versión anterior para respaldar"
 fi
 
-# 4. Hacer aplicación ejecutable
-log "4️⃣  Configurando permisos..."
+# 4. Copiar nueva versión
+log "4️⃣  Instalando nueva versión..."
+rm -rf "$APP_PATH"/* 2>/dev/null || true
+cp -r "$LATEST_PATH"/* "$APP_PATH/"
 chmod +x "$APP_PATH/$APP_NAME"
+log_success "Nueva versión instalada"
 chmod +x "$APP_PATH"/*.sh 2>/dev/null || true
 log_success "Permisos configurados"
 
