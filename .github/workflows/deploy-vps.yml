@@ -99,7 +99,7 @@ jobs:
           scp -i ~/.ssh/deploy_key \
             -o ConnectTimeout=10 \
             -o StrictHostKeyChecking=no \
-            -r ./publish/ \
+            -r ./publish/. \
             ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST  }}:${{ secrets.VPS_APP_PATH }}/latest/
 
       - name: 📤 Transferir scripts
