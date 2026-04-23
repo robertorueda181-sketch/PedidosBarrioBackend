@@ -63,7 +63,7 @@ jobs:
           name: published-app
           path: ./publish
 
-      - name: 📋 DEBUG LOCAL: Verificar archivos antes de enviar
+      - name: DEBUG LOCAL: Verificar archivos antes de enviar
         run: |
           echo "📂 Contenido de la carpeta publish local:"
           ls -la ./publish/
