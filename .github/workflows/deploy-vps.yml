@@ -72,6 +72,13 @@ jobs:
           name: published-app
           path: ./publish
 
+      - name: 📋 Verificar artefactos descargados
+        run: |
+          echo "📂 Contenido del directorio publish:"
+          ls -la ./publish/
+          echo "📊 Archivos totales:"
+          find ./publish -type f | wc -l
+
       - name: 🔐 Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -92,8 +99,8 @@ jobs:
           scp -i ~/.ssh/deploy_key \
             -o ConnectTimeout=10 \
             -o StrictHostKeyChecking=no \
-            -r ./publish/* \
-            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST  }}:${{ secrets.VPS_APP_PATH }}/
+            -r ./publish/ \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST  }}:${{ secrets.VPS_APP_PATH }}/latest/
 
       - name: 📤 Transferir scripts
         run: |
