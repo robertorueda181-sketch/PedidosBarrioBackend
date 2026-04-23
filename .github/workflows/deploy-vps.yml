@@ -75,13 +75,13 @@ jobs:
       - name: 🔐 Setup SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.SERVER_HOST  }} >> ~/.ssh/known_hosts
 
       - name: 📁 Crear directorios en VPS
         run: |
-          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+          ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST  }} << 'EOF'
           mkdir -p ${{ secrets.VPS_APP_PATH }}
           mkdir -p ${{ secrets.VPS_APP_PATH }}/backup
           mkdir -p ${{ secrets.VPS_APP_PATH }}/logs
@@ -93,7 +93,7 @@ jobs:
             -o ConnectTimeout=10 \
             -o StrictHostKeyChecking=no \
             -r ./publish/* \
-            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_APP_PATH }}/
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST  }}:${{ secrets.VPS_APP_PATH }}/
 
       - name: 📤 Transferir scripts
         run: |
@@ -101,14 +101,14 @@ jobs:
             -o ConnectTimeout=10 \
             -o StrictHostKeyChecking=no \
             ./.github/scripts/deploy.sh \
-            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_APP_PATH }}/
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST  }}:${{ secrets.VPS_APP_PATH }}/
 
       - name: 🚀 Ejecutar script de deploy
         run: |
           ssh -i ~/.ssh/deploy_key \
             -o ConnectTimeout=10 \
             -o StrictHostKeyChecking=no \
-            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST  }} << 'EOF'
           chmod +x ${{ secrets.VPS_APP_PATH }}/deploy.sh
           ${{ secrets.VPS_APP_PATH }}/deploy.sh
           EOF
@@ -118,7 +118,7 @@ jobs:
           ssh -i ~/.ssh/deploy_key \
             -o ConnectTimeout=10 \
             -o StrictHostKeyChecking=no \
-            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST  }} << 'EOF'
           sleep 5
           if systemctl is-active --quiet pedidosbarrio; then
             echo "✅ Servicio activo"
@@ -133,7 +133,7 @@ jobs:
         if: success()
         run: |
           echo "✅ Aplicación desplegada exitosamente"
-          echo "🌐 Accesible en: ${{ secrets.VPS_HOST }}"
+          echo "🌐 Accesible en: ${{ secrets.SERVER_HOST  }}"
 
       - name: 🚨 Deploy fallido
         if: failure()
