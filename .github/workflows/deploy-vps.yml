@@ -1,0 +1,162 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  DOTNET_VERSION: '10.0.x'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: 📦 Restaurar dependencias
+        run: dotnet restore
+
+      - name: 🏗️ Compilar
+        run: dotnet build --configuration Release --no-restore
+
+      - name: 🧪 Ejecutar tests
+        run: dotnet test --configuration Release --no-build --verbosity normal --logger "console;verbosity=minimal"
+        continue-on-error: true
+
+      - name: 📰 Publicar aplicación
+        run: |
+          dotnet publish ./PedidosBarrio/PedidosBarrio.Api.csproj \
+            --configuration Release \
+            --output ./publish \
+            --no-restore \
+            --self-contained true \
+            --runtime linux-x64
+
+      - name: 📤 Subir artefactos
+        uses: actions/upload-artifact@v4
+        with:
+          name: published-app
+          path: ./publish
+          retention-days: 1
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: 📥 Checkout código
+        uses: actions/checkout@v4
+
+      - name: 📥 Descargar artefactos
+        uses: actions/download-artifact@v4
+        with:
+          name: published-app
+          path: ./publish
+
+      - name: 🔐 Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: 📁 Crear directorios en VPS
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+          mkdir -p ${{ secrets.VPS_APP_PATH }}
+          mkdir -p ${{ secrets.VPS_APP_PATH }}/backup
+          mkdir -p ${{ secrets.VPS_APP_PATH }}/logs
+          EOF
+
+      - name: 📤 Transferir archivos
+        run: |
+          scp -i ~/.ssh/deploy_key \
+            -o ConnectTimeout=10 \
+            -o StrictHostKeyChecking=no \
+            -r ./publish/* \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_APP_PATH }}/
+
+      - name: 📤 Transferir scripts
+        run: |
+          scp -i ~/.ssh/deploy_key \
+            -o ConnectTimeout=10 \
+            -o StrictHostKeyChecking=no \
+            ./.github/scripts/deploy.sh \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:${{ secrets.VPS_APP_PATH }}/
+
+      - name: 🚀 Ejecutar script de deploy
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -o ConnectTimeout=10 \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+          chmod +x ${{ secrets.VPS_APP_PATH }}/deploy.sh
+          ${{ secrets.VPS_APP_PATH }}/deploy.sh
+          EOF
+
+      - name: ✅ Verificar servicio
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+            -o ConnectTimeout=10 \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+          sleep 5
+          if systemctl is-active --quiet pedidosbarrio; then
+            echo "✅ Servicio activo"
+          else
+            echo "❌ Error: Servicio no está activo"
+            journalctl -u pedidosbarrio -n 20
+            exit 1
+          fi
+          EOF
+
+      - name: 📊 Deploy exitoso
+        if: success()
+        run: |
+          echo "✅ Aplicación desplegada exitosamente"
+          echo "🌐 Accesible en: ${{ secrets.VPS_HOST }}"
+
+      - name: 🚨 Deploy fallido
+        if: failure()
+        run: |
+          echo "❌ Error en el deploy"
+          echo "Revisa los logs en GitHub Actions"
+          exit 1
+
+  notify:
+    needs: [build, deploy]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: 📬 Notificar resultado
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          text: |
+            Deploy PedidosBarrio: ${{ job.status }}
+            Commit: ${{ github.sha }}
+            Autor: ${{ github.actor }}
+            Rama: ${{ github.ref }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        continue-on-error: true

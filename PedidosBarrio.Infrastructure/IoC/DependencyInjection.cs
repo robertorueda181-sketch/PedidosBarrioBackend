@@ -105,6 +105,9 @@ namespace PedidosBarrio.Infrastructure.IoC
             // Image Save Strategy Factory y Estrategias
             services.AddScoped<IImageSaveStrategyFactory, ImageSaveStrategyFactory>();
 
+            // Firebase Messaging Service para Push Notifications
+            services.AddScoped<IFirebaseMessagingService, FirebaseMessagingService>();
+
             // Email Service
             services.AddScoped<IEmailService, SmtpEmailService>();
 
@@ -137,6 +140,7 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<IUbigeoRepository, UbigeoRepository>();
             services.AddScoped<INotificacionAppRepository, NotificacionAppRepository>();
             services.AddScoped<IPageViewRepository, PageViewRepository>();
+            services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
 
             // Repositorios de Pedidos
             services.AddScoped<IClienteRepository, ClienteRepository>();

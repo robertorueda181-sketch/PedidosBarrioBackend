@@ -54,6 +54,8 @@ public partial class PedidosBarrioDbContext : DbContext
 
     public virtual DbSet<NotificacionApp> NotificacionesApp { get; set; }
 
+    public virtual DbSet<DeviceToken> DeviceTokens { get; set; }
+
     public virtual DbSet<VerificarCorreo> VerificarCorreos { get; set; }
 
     public virtual DbSet<PasoInicial> PasosIniciales { get; set; }

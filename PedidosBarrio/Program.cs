@@ -94,6 +94,7 @@ app.MapConfiguracionEndpoints();
 app.MapUbigeoEndpoints();
 app.MapNotificacionAppEndpoints();
 app.MapPageViewEndpoints();
+app.MapPushNotificationEndpoints();
 app.MapDashboardEndpoints();
 app.MapClienteAuthEndpoints();
 app.MapClienteDireccionEndpoints();
