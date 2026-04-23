@@ -89,7 +89,7 @@ jobs:
       - name: 📁 Crear directorios en VPS
         run: |
           ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST  }} << 'EOF'
-          mkdir -p ${{ secrets.VPS_APP_PATH }}
+          mkdir -p ${{ secrets.VPS_APP_PATH }}/latest
           mkdir -p ${{ secrets.VPS_APP_PATH }}/backup
           mkdir -p ${{ secrets.VPS_APP_PATH }}/logs
           EOF
