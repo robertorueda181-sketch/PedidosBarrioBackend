@@ -5,7 +5,7 @@ set -e
 # Si VPS_APP_PATH no viene, usamos la ruta absoluta por defecto
 APP_ROOT="${VPS_APP_PATH:-/var/www/backend}"
 SERVICE_NAME="dotnet-backend.service"
-APP_NAME="PedidosBarrio.Api"
+APP_NAME="PedidosBarrio.Api.dll"
 
 # Subcarpetas para no borrarlo todo
 LATEST_PATH="$APP_ROOT/latest"
