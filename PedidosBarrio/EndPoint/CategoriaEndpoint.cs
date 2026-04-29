@@ -9,8 +9,10 @@ using PedidosBarrio.Application.Commands.UpdateProducto;
 using PedidosBarrio.Application.Commands.UpdateProductoVisible;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Queries.GetAllCategorias;
+using PedidosBarrio.Application.Queries.GetAllProductos;
 using PedidosBarrio.Application.Queries.GetCategoriaById;
 using PedidosBarrio.Application.Queries.GetCombinedData;
+using PedidosBarrio.Application.Queries.GetOnlyCategorias;
 using PedidosBarrio.Application.Queries.GetProductoById;
 
 namespace PedidosBarrio.Api.EndPoint
@@ -23,28 +25,29 @@ namespace PedidosBarrio.Api.EndPoint
                            .WithTags("Categorias y Productos")
                            .RequireAuthorization();
 
-            // ===== ENDPOINT PRINCIPAL: OBTENER CATEGORÍAS Y PRODUCTOS COMBINADOS =====
+            // ===== ENDPOINT: OBTENER SOLO CATEGORÍAS =====
             group.MapGet("/getAll", async (IMediator mediator) =>
             {
-                var query = new GetCombinedDataQuery();
+                var query = new GetOnlyCategoriasQuery();
                 var result = await mediator.Send(query);
                 return Results.Ok(result);
             })
-            .WithName("GetCombinedData")
-            .WithOpenApi()
-            .WithSummary("📋 Obtener categorías y productos de la empresa")
-            .WithDescription("Retorna todas las categorías y productos que pertenecen a la empresa del usuario logueado");
-
-            // ===== ENDPOINTS DE CATEGORÍAS =====
-            group.MapGet("/", async (IMediator mediator) =>
-            {
-                var categorias = await mediator.Send(new GetAllCategoriasQuery());
-                return Results.Ok(categorias);
-            })
-            .WithName("GetAllCategorias")
+            .WithName("GetOnlyCategorias")
             .WithOpenApi()
             .WithSummary("📂 Obtener todas las categorías")
             .WithDescription("Retorna solo las categorías de la empresa del usuario logueado");
+
+            // ===== ENDPOINT: OBTENER TODOS LOS PRODUCTOS CON IMÁGENES Y PRECIOS =====
+            group.MapGet("/productos/getAll", async (IMediator mediator) =>
+            {
+                var query = new GetAllProductosQuery();
+                var result = await mediator.Send(query);
+                return Results.Ok(result);
+            })
+            .WithName("GetAllProductos")
+            .WithOpenApi()
+            .WithSummary("🛍️ Obtener todos los productos")
+            .WithDescription("Retorna todos los productos de la empresa con sus imágenes y precios");
 
             group.MapGet("/{id:int}", async (int id, IMediator mediator) =>
             {
