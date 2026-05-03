@@ -34,8 +34,6 @@ public partial class PedidosBarrioDbContext : DbContext
 
     public virtual DbSet<Negocio> Negocios { get; set; }
 
-    public virtual DbSet<Precio> Precios { get; set; }
-
     public virtual DbSet<Presentacion> Presentaciones { get; set; }
 
     public virtual DbSet<PresentacionOpcion> PresentacionOpciones { get; set; }
@@ -85,7 +83,6 @@ public partial class PedidosBarrioDbContext : DbContext
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.ProductoConfiguration());
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.CategoriaConfiguration());
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.EmpresaConfiguration());
-        modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.PrecioConfiguration());
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.PresentacionConfiguration());
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.DireccionConfiguration());
         modelBuilder.ApplyConfiguration(new PedidosBarrio.Infrastructure.Data.EntityConfigurations.ConfiguracionConfiguration());

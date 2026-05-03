@@ -48,29 +48,6 @@ namespace PedidosBarrio.Infrastructure.Data.EntityConfigurations
         }
     }
 
-    public class PrecioConfiguration : IEntityTypeConfiguration<Precio>
-    {
-        public void Configure(EntityTypeBuilder<Precio> builder)
-        {
-            builder.ToTable("Precios");
-            builder.HasKey(p => p.IdPrecio);
-            
-            builder.Property(p => p.IdPrecio).HasColumnName("IdPrecio").ValueGeneratedOnAdd();
-            builder.Property(p => p.PrecioValor).HasColumnName("Precio").HasColumnType("decimal(12,2)").IsRequired();
-            builder.Property(p => p.PresentacionID).HasColumnName("PresentacionID").IsRequired();
-            builder.Property(p => p.EmpresaID).HasColumnName("EmpresaID").IsRequired();
-            builder.Property(p => p.Principal).HasColumnName("EsPrincipal").HasDefaultValue(false);
-            builder.Property(p => p.Descripcion).HasColumnName("Descripcion").HasMaxLength(50);
-
-            builder.HasIndex(p => p.PresentacionID).HasDatabaseName("IX_Precios_PresentacionID");
-            builder.HasIndex(p => p.EmpresaID).HasDatabaseName("IX_Precios_EmpresaID");
-
-            builder.HasOne(p => p.Presentacion)
-                .WithMany(pr => pr.Precios)
-                .HasForeignKey(p => p.PresentacionID)
-                .OnDelete(DeleteBehavior.Restrict);
-        }
-    }
 
     public class PresentacionConfiguration : IEntityTypeConfiguration<Presentacion>
     {

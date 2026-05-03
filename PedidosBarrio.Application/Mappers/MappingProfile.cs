@@ -39,14 +39,9 @@ namespace PedidosBarrio.Application.Mappers
             CreateMap<CreateSuscripcionDto, Suscripcion>();
 
             // ===================== PRODUCTO MAPPINGS =====================
-            CreateMap<Producto, ProductoDto>()
-                .ForMember(dest => dest.Precios, opt => opt.MapFrom(src => src.Presentaciones.SelectMany(p => p.Precios)));
             CreateMap<CreateProductoDto, Producto>();
 
             CreateMap<Presentacion, PresentacionDto>();
-            CreateMap<Precio, PrecioDto>()
-                .ForMember(dest => dest.PrecioValor, opt => opt.MapFrom(src => src.PrecioValor))
-                .ForMember(dest => dest.EsPrincipal, opt => opt.MapFrom(src => src.Principal));
 
             // ===================== IMAGEN MAPPINGS =====================
             CreateMap<Imagen, ImagenDto>();

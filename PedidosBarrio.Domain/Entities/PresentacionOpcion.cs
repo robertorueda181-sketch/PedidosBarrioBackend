@@ -58,6 +58,7 @@ public partial class PresentacionOpcion
     /// Si está activa
     /// </summary>
     public bool Activa { get; set; } = true;
+    public bool EsPrincipal { get; set; } = false;
 
     /// <summary>
     /// Stock disponible para esta opción específica

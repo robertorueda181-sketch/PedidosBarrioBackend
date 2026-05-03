@@ -9,7 +9,6 @@ namespace PedidosBarrio.Application.Queries.GetAllProductos
     public class GetAllProductosQueryHandler : IRequestHandler<GetAllProductosQuery, GetAllProductosDto>
     {
         private readonly IProductoRepository _productoRepository;
-        private readonly IPrecioRepository _precioRepository;
         private readonly IImagenRepository _imagenRepository;
         private readonly IImageProcessingService _imageProcessingService;
         private readonly ICurrentUserService _currentUserService;
@@ -17,14 +16,12 @@ namespace PedidosBarrio.Application.Queries.GetAllProductos
 
         public GetAllProductosQueryHandler(
             IProductoRepository productoRepository,
-            IPrecioRepository precioRepository,
             IImagenRepository imagenRepository,
             IImageProcessingService imageProcessingService,
             ICurrentUserService currentUserService,
             IApplicationLogger logger)
         {
             _productoRepository = productoRepository;
-            _precioRepository = precioRepository;
             _imagenRepository = imagenRepository;
             _imageProcessingService = imageProcessingService;
             _currentUserService = currentUserService;
@@ -45,10 +42,6 @@ namespace PedidosBarrio.Application.Queries.GetAllProductos
                 // Obtener productos de la empresa
                 var productos = await _productoRepository.GetByEmpresaIdAsync(empresaId);
 
-                // Obtener precios para todos los productos
-                var todosLosPrecios = await _precioRepository.GetByEmpresaIdAsync(empresaId);
-                var preciosPorProducto = todosLosPrecios.GroupBy(p => p.Presentacion.ProductoID)
-                    .ToDictionary(g => g.Key, g => g.OrderByDescending(p => p.IdPrecio).ToList());
 
                 // Obtener imágenes para todos los productos
                 var todasLasImagenes = await _imagenRepository.GetByEmpresaIdAsync(empresaId);
@@ -70,9 +63,7 @@ namespace PedidosBarrio.Application.Queries.GetAllProductos
                         Inventario = p.Inventario,
                         Visible = p.Visible ?? false,
                         Aprobado = p.Aprobado,
-                        PrecioActual = preciosPorProducto.ContainsKey(p.ProductoID) && preciosPorProducto[p.ProductoID].Any()
-                            ? preciosPorProducto[p.ProductoID].First().PrecioValor
-                            : null
+                        PrecioActual = 0
                     };
 
                     // Mapear imágenes con URL completa

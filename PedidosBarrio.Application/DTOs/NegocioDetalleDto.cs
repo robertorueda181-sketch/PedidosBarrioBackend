@@ -47,7 +47,7 @@ namespace PedidosBarrio.Application.DTOs
         public decimal Precio { get; set; } // Precio principal
         public int Stock { get; set; }
         public string URLImagen { get; set; }
-        public List<PrecioDto> Precios { get; set; } = new List<PrecioDto>();
+       // public List<PrecioDto> Precios { get; set; } = new List<PrecioDto>();
     }
 }
 

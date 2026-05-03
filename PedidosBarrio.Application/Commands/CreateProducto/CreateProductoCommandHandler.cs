@@ -12,7 +12,6 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
     {
         private readonly IProductoRepository _productoRepository;
         private readonly ICategoriaRepository _categoriaRepository;
-        private readonly IPrecioRepository _precioRepository;
         private readonly IPresentacionRepository _presentacionRepository;
         private readonly IImagenRepository _imagenRepository;
         private readonly IImageProcessingService _imageProcessingService;
@@ -25,7 +24,6 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
         public CreateProductoCommandHandler(
             IProductoRepository productoRepository,
             ICategoriaRepository categoriaRepository,
-            IPrecioRepository precioRepository,
             IPresentacionRepository presentacionRepository,
             IImagenRepository imagenRepository,
             IImageProcessingService imageProcessingService,
@@ -37,7 +35,6 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
         {
             _productoRepository = productoRepository;
             _categoriaRepository = categoriaRepository;
-            _precioRepository = precioRepository;
             _presentacionRepository = presentacionRepository;
             _imagenRepository = imagenRepository;
             _imageProcessingService = imageProcessingService;
@@ -55,7 +52,8 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
                 // ===== VALIDAR DTO CON FLUENTVALIDATION =====
                 var createDto = new CreateProductoDto
                 {
-                    CategoriaID = request.CategoriaID,
+                    Codigo = request.Codigo,
+                    CategoriaDescripcion = request.CategoriaDescripcion,
                     Nombre = request.Nombre,
                     Descripcion = request.Descripcion,
                     Stock = request.Stock,
@@ -75,13 +73,17 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
                 // Obtener empresa del usuario logueado
                 var empresaId = _currentUserService.GetEmpresaId();
 
-                // Verificar que la categoría pertenezca a la empresa
-                var categoria = await _categoriaRepository.GetByIdAsync(request.CategoriaID);
+                // Resolver CategoriaID por descripción
+                var categoriasEmpresa = await _categoriaRepository.GetByEmpresaIdAsync(empresaId);
+                var categoria = categoriasEmpresa.FirstOrDefault(c => 
+                    c.Descripcion.Trim().Equals(request.CategoriaDescripcion.Trim(), StringComparison.OrdinalIgnoreCase));
+                
                 if (categoria == null)
                 {
-                    throw new ApplicationException("La categoría especificada no existe");
+                    throw new ApplicationException($"La categoría '{request.CategoriaDescripcion}' especificada no existe en su empresa");
                 }
 
+                // Verificar que la categoría pertenezca a la empresa
                 if (categoria.EmpresaID != empresaId)
                 {
                     throw new ApplicationException("La categoría no pertenece a su empresa");
@@ -90,7 +92,8 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
                 // Crear el producto
                 var producto = new Producto(empresaId, request.Nombre, request.Descripcion)
                 {
-                    CategoriaID = request.CategoriaID,
+                    Codigo = request.Codigo,
+                    CategoriaID = categoria.CategoriaID,
                     Stock = request.Stock,
                     StockMinimo = request.StockMinimo,
                     Inventario = request.Inventario
@@ -98,8 +101,6 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
 
                 var productoId = await _productoRepository.AddAsync(producto);
 
-                // Crear los precios asociados (vía Presentaciones)
-                var preciosCreados = new List<Precio>();
                 if (request.Precios != null && request.Precios.Any())
                 {
                     foreach (var p in request.Precios)
@@ -111,18 +112,6 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
                             productoId
                         );
                         var presentacionId = await _presentacionRepository.AddAsync(presentacion);
-
-                        // 2. Crear el precio vinculado a la presentación
-                        var precio = new Precio(
-                            p.PrecioValor,
-                            presentacionId,
-                            empresaId,
-                            p.EsPrincipal,
-                            p.Descripcion
-                        );
-
-                        await _precioRepository.AddAsync(precio);
-                        preciosCreados.Add(precio);
                     }
                 }
                 else
@@ -131,9 +120,6 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
                     var presentacionDefault = new Presentacion("General", empresaId, productoId);
                     var presId = await _presentacionRepository.AddAsync(presentacionDefault);
 
-                    var precioDefault = new Precio(0, presId, empresaId, true, "Precio por definir");
-                    await _precioRepository.AddAsync(precioDefault);
-                    preciosCreados.Add(precioDefault);
                 }
 
                                 // Crear imagen inicial si se proporciona
@@ -154,7 +140,7 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
                                         catch
                                         {
                                             await _logger.LogInformationAsync(
-                                                $"Error de sanitizacion de imagen: ID={productoId}, Nombre={producto.Nombre}, EmpresaID={empresaId}, Precios={preciosCreados.Count}",
+                                                $"Error de sanitizacion de imagen: ID={productoId}, Nombre={producto.Nombre}, EmpresaID={empresaId}",
                                                 "CreateProductoCommand");
                                         }
                                     }
@@ -164,7 +150,7 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
                                 }
 
                                 await _logger.LogInformationAsync(
-                                    $"Producto creado: ID={productoId}, Nombre={producto.Nombre}, EmpresaID={empresaId}, Precios={preciosCreados.Count}",
+                                    $"Producto creado: ID={productoId}, Nombre={producto.Nombre}, EmpresaID={empresaId}",
                                     "CreateProductoCommand");
 
                                 // ===== EVALUAR PASOS INICIALES =====

@@ -77,13 +77,12 @@ namespace PedidosBarrio.Application.Queries.GetNegocioByCodigoEmpresa
                     Nombre = p.Nombre,
                     Descripcion = p.Descripcion ?? string.Empty,
                     Stock = p.Stock,
-                    Precios = p.Presentaciones.SelectMany(pres => pres.Precios)
-                        .Select(pre => _mapper.Map<PrecioDto>(pre)).ToList()
+                   // Precios = 0
                 };
 
                 // Asignar precio principal
-                var principal = dto.Precios.FirstOrDefault(pre => pre.EsPrincipal) ?? dto.Precios.FirstOrDefault();
-                dto.Precio = principal?.PrecioValor ?? 0;
+                //var principal = dto.Precios.FirstOrDefault(pre => pre.EsPrincipal) ?? dto.Precios.FirstOrDefault();
+               // dto.Precio = principal?.PrecioValor ?? 0;
 
                 // Asignar imagen
                 if (imagenesPorProducto.TryGetValue(p.ProductoID, out var imgs) && imgs.Any())

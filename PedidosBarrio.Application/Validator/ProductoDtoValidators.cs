@@ -18,28 +18,36 @@ namespace PedidosBarrio.Application.Validator
                 .WithMessage("La descripción no puede exceder los 1000 caracteres")
                 .When(x => !string.IsNullOrEmpty(x.Descripcion));
 
-                    RuleFor(x => x.CategoriaID)
-                        .GreaterThan((short)0)
-                        .WithMessage("Debe seleccionar una categoría válida");
+            RuleFor(x => x.Codigo)
+                .NotEmpty()
+                .WithMessage("El código del producto es requerido")
+                .MaximumLength(50)
+                .WithMessage("El código no puede exceder los 50 caracteres");
 
-                    RuleFor(x => x.Precios)
-                        .NotEmpty()
-                        .WithMessage("Debe proporcionar al menos un precio")
-                        .Must(precios => precios.Count <= 10)
-                        .WithMessage("No puede tener más de 10 precios por producto");
+            RuleFor(x => x.CategoriaDescripcion)
+                .NotEmpty()
+                .WithMessage("Debe especificar una categoría")
+                .MaximumLength(50)
+                .WithMessage("La categoría no puede exceder los 50 caracteres");
 
-                    RuleForEach(x => x.Precios).SetValidator(new PrecioCreateDtoValidator());
+            RuleFor(x => x.Precios)
+                .NotEmpty()
+                .WithMessage("Debe proporcionar al menos un precio")
+                .Must(precios => precios.Count <= 10)
+                .WithMessage("No puede tener más de 10 precios por producto");
 
-                    RuleFor(x => x.Stock)
-                        .GreaterThanOrEqualTo(0)
-                        .WithMessage("El stock debe ser mayor o igual a 0");
+            RuleForEach(x => x.Precios).SetValidator(new PrecioCreateDtoValidator());
 
-                    RuleFor(x => x.StockMinimo)
-                        .GreaterThanOrEqualTo(0)
-                        .WithMessage("El stock mínimo debe ser mayor o igual a 0")
-                        .When(x => x.StockMinimo.HasValue);
-                }
-            }
+            RuleFor(x => x.Stock)
+                .GreaterThanOrEqualTo(0)
+                .WithMessage("El stock debe ser mayor o igual a 0");
+
+            RuleFor(x => x.StockMinimo)
+                .GreaterThanOrEqualTo(0)
+                .WithMessage("El stock mínimo debe ser mayor o igual a 0")
+                .When(x => x.StockMinimo.HasValue);
+        }
+    }
 
             public class PrecioCreateDtoValidator : AbstractValidator<PrecioCreateDto>
             {
@@ -81,9 +89,17 @@ namespace PedidosBarrio.Application.Validator
                 .WithMessage("La descripción no puede exceder los 1000 caracteres")
                 .When(x => !string.IsNullOrEmpty(x.Descripcion));
 
-            RuleFor(x => x.CategoriaID)
-                .GreaterThan((short)0)
-                .WithMessage("Debe seleccionar una categoría válida");
+            RuleFor(x => x.Codigo)
+                .NotEmpty()
+                .WithMessage("El código del producto es requerido")
+                .MaximumLength(50)
+                .WithMessage("El código no puede exceder los 50 caracteres");
+
+            RuleFor(x => x.CategoriaDescripcion)
+                .NotEmpty()
+                .WithMessage("Debe especificar una categoría")
+                .MaximumLength(50)
+                .WithMessage("La categoría no puede exceder los 50 caracteres");
 
             RuleFor(x => x.Stock)
                 .GreaterThanOrEqualTo(0)
@@ -93,6 +109,7 @@ namespace PedidosBarrio.Application.Validator
                                 .GreaterThanOrEqualTo(0)
                                 .WithMessage("El stock mínimo debe ser mayor o igual a 0")
                                 .When(x => x.StockMinimo.HasValue);
-                        }
-                    }
-                }
+        }
+    }
+}
+

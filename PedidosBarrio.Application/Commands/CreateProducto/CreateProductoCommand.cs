@@ -5,23 +5,25 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
 {
     public class CreateProductoCommand : IRequest<ProductoDto>
     {
-        public short CategoriaID { get; set; }
-        public string Nombre { get; set; }
-        public string Descripcion { get; set; }
-        public int Stock { get; set; }
-        public int? StockMinimo { get; set; }
-        public bool Inventario { get; set; }
+        public string Codigo { get; }
+        public string CategoriaDescripcion { get; }
+        public string Nombre { get; }
+        public string Descripcion { get; }
+        public int Stock { get; }
+        public int? StockMinimo { get; }
+        public bool Inventario { get; }
 
         // Lista de precios
-        public List<PrecioCreateDto> Precios { get; set; } = new List<PrecioCreateDto>();
+        public List<PrecioCreateDto> Precios { get; } = new List<PrecioCreateDto>();
 
         // Imagen
-        public string ImagenUrl { get; set; }
-        public string ImagenDescripcion { get; set; }
+        public string ImagenUrl { get; }
+        public string ImagenDescripcion { get; }
 
         public CreateProductoCommand(CreateProductoDto dto)
         {
-            CategoriaID = dto.CategoriaID;
+            Codigo = dto.Codigo;
+            CategoriaDescripcion = dto.CategoriaDescripcion;
             Nombre = dto.Nombre;
             Descripcion = dto.Descripcion;
             Stock = dto.Stock;

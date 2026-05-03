@@ -8,10 +8,8 @@ using PedidosBarrio.Application.Commands.UpdateCategoria;
 using PedidosBarrio.Application.Commands.UpdateProducto;
 using PedidosBarrio.Application.Commands.UpdateProductoVisible;
 using PedidosBarrio.Application.DTOs;
-using PedidosBarrio.Application.Queries.GetAllCategorias;
 using PedidosBarrio.Application.Queries.GetAllProductos;
 using PedidosBarrio.Application.Queries.GetCategoriaById;
-using PedidosBarrio.Application.Queries.GetCombinedData;
 using PedidosBarrio.Application.Queries.GetOnlyCategorias;
 using PedidosBarrio.Application.Queries.GetProductoById;
 

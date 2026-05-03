@@ -26,7 +26,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             return await _context.Presentaciones
                 .AsNoTracking()
                 .Where(p => p.ProductoID == productoId)
-                .Include(p => p.Precios)
+                .Include(p => p.Opciones)
                 .ToListAsync();
         }
 

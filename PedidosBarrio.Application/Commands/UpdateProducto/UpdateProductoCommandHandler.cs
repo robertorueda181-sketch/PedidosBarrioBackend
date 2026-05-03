@@ -12,7 +12,6 @@ namespace PedidosBarrio.Application.Commands.UpdateProducto
     {
         private readonly IProductoRepository _productoRepository;
         private readonly ICategoriaRepository _categoriaRepository;
-        private readonly IPrecioRepository _precioRepository;
         private readonly IPresentacionRepository _presentacionRepository;
         private readonly IImagenRepository _imagenRepository;
         private readonly IImageProcessingService _imageProcessingService;
@@ -23,7 +22,6 @@ namespace PedidosBarrio.Application.Commands.UpdateProducto
         public UpdateProductoCommandHandler(
             IProductoRepository productoRepository,
             ICategoriaRepository categoriaRepository,
-            IPrecioRepository precioRepository,
             IPresentacionRepository presentacionRepository,
             IImagenRepository imagenRepository,
             IImageProcessingService imageProcessingService,
@@ -33,7 +31,6 @@ namespace PedidosBarrio.Application.Commands.UpdateProducto
         {
             _productoRepository = productoRepository;
             _categoriaRepository = categoriaRepository;
-            _precioRepository = precioRepository;
             _presentacionRepository = presentacionRepository;
             _imagenRepository = imagenRepository;
             _imageProcessingService = imageProcessingService;
@@ -49,7 +46,8 @@ namespace PedidosBarrio.Application.Commands.UpdateProducto
                 // ===== VALIDAR DTO CON FLUENTVALIDATION =====
                 var updateDto = new UpdateProductoDto
                 {
-                    CategoriaID = request.CategoriaID,
+                    Codigo = request.Codigo,
+                    CategoriaDescripcion = request.CategoriaDescripcion,
                     Nombre = request.Nombre,
                     Descripcion = request.Descripcion,
                     Stock = request.Stock,
@@ -80,20 +78,19 @@ namespace PedidosBarrio.Application.Commands.UpdateProducto
                     throw new ApplicationException("El producto no pertenece a su empresa");
                 }
 
-                // Verificar que la nueva categoría pertenece a la empresa
-                var categoria = await _categoriaRepository.GetByIdAsync(request.CategoriaID);
+                // Resolver CategoriaID por descripción
+                var categoriasEmpresa = await _categoriaRepository.GetByEmpresaIdAsync(empresaId);
+                var categoria = categoriasEmpresa.FirstOrDefault(c => 
+                    c.Descripcion.Trim().Equals(request.CategoriaDescripcion.Trim(), StringComparison.OrdinalIgnoreCase));
+                
                 if (categoria == null)
                 {
-                    throw new ApplicationException("La categoría especificada no existe");
-                }
-
-                if (categoria.EmpresaID != empresaId)
-                {
-                    throw new ApplicationException("La categoría no pertenece a su empresa");
+                    throw new ApplicationException($"La categoría '{request.CategoriaDescripcion}' especificada no existe en su empresa");
                 }
 
                 // Actualizar producto usando Entity Framework
-                producto.CategoriaID = request.CategoriaID;
+                producto.Codigo = request.Codigo;
+                producto.CategoriaID = categoria.CategoriaID;
                 producto.Nombre = request.Nombre;
                 producto.Descripcion = request.Descripcion;
                 producto.Stock = request.Stock;
@@ -105,17 +102,7 @@ namespace PedidosBarrio.Application.Commands.UpdateProducto
 
                 // 1. Obtener todas las presentaciones y precios actuales del producto
                 var presentacionesActuales = (await _presentacionRepository.GetByProductoIdAsync(producto.ProductoID)).ToList();
-                var preciosActuales = presentacionesActuales.SelectMany(p => p.Precios).ToList();
                 var idsPreciosIncoming = request.Precios.Where(p => p.IdPrecio > 0).Select(p => p.IdPrecio).ToList();
-
-                // 2. Eliminar precios que ya no vienen en la solicitud
-                foreach (var precioExistente in preciosActuales)
-                {
-                    if (!idsPreciosIncoming.Contains(precioExistente.IdPrecio))
-                    {
-                        await _precioRepository.DeleteAsync(precioExistente.IdPrecio);
-                    }
-                }
 
                 // 3. Manejar lista de precios (Agregar o Actualizar)
                 if (request.Precios != null && request.Precios.Any())
@@ -144,42 +131,21 @@ namespace PedidosBarrio.Application.Commands.UpdateProducto
                                 presentacionId = presentacionExistente.PresentacionID;
                             }
 
-                            // Crear el nuevo precio vinculado a la presentación (existente o nueva)
-                            var nuevoPrecio = new Precio(precioDto.PrecioValor, presentacionId, empresaId, precioDto.EsPrincipal, descripcion);
-                            await _precioRepository.AddAsync(nuevoPrecio);
                         }
                         else
                         {
-                            // Actualizar precio existente
-                            var existingPrecio = await _precioRepository.GetByIdAsync(precioDto.IdPrecio);
-                            if (existingPrecio != null && existingPrecio.EmpresaID == empresaId)
-                            {
-                                existingPrecio.PrecioValor = precioDto.PrecioValor;
-                                existingPrecio.Principal = precioDto.EsPrincipal;
-                                existingPrecio.Descripcion = precioDto.Descripcion;
-                                await _precioRepository.UpdateAsync(existingPrecio);
-                            }
+                            //// Actualizar precio existente
+                            //var existingPrecio = await _precioRepository.GetByIdAsync(precioDto.IdPrecio);
+                            //if (existingPrecio != null && existingPrecio.EmpresaID == empresaId)
+                            //{
+                            //    existingPrecio.PrecioValor = precioDto.PrecioValor;
+                            //    existingPrecio.Principal = precioDto.EsPrincipal;
+                            //    await _precioRepository.UpdateAsync(existingPrecio);
+                            //}
                         }
                     }
                 }
 
-                // 4. Limpieza: Eliminar presentaciones que se hayan quedado sin precios
-                // (Opcional, pero recomendado para mantener la BD limpia)
-                var presentacionesDespues = await _presentacionRepository.GetByProductoIdAsync(producto.ProductoID);
-                foreach (var pres in presentacionesDespues)
-                {
-                    if (!pres.Precios.Any())
-                    {
-                        await _presentacionRepository.DeleteAsync(pres.PresentacionID);
-                    }
-                }
-
-                await _logger.LogInformationAsync(
-                    $"Producto actualizado: ID={producto.ProductoID}, Nombre={producto.Nombre}, EmpresaID={empresaId}",
-                    "UpdateProductoCommand");
-
-                    // Obtener precios e imágenes para la respuesta
-                    var precios = await _precioRepository.GetByProductoIdAsync(producto.ProductoID);
                     var imagenes = await _imagenRepository.GetByProductoIdAsync(producto.ProductoID);
 
                     var dto = new ProductoDto
@@ -193,7 +159,7 @@ namespace PedidosBarrio.Application.Commands.UpdateProducto
                         StockMinimo = producto.StockMinimo ?? 0,
                         Visible = producto.Visible ?? true,
                         Inventario = producto.Inventario,
-                        PrecioActual = precios.FirstOrDefault(p => p.Principal)?.PrecioValor ?? precios.FirstOrDefault()?.PrecioValor,
+                        PrecioActual = 0,
                         Imagenes = new List<ImagenProductoDto>()
                     };
 

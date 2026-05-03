@@ -22,7 +22,6 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         {
             var producto = await _context.Productos
                 .Include(p => p.Presentaciones.Where(pr => pr.EmpresaID == empresaId))
-                    .ThenInclude(pr => pr.Precios.Where(pre => pre.EmpresaID == empresaId))
                 .FirstOrDefaultAsync(p => p.ProductoID == id && p.EmpresaID == empresaId && (p.Activa == true));
 
             if (producto == null)
@@ -38,7 +37,6 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             return await _context.Productos
                 .Where(p => p.EmpresaID == empresaId && (p.Activa == true) && (p.Visible ?? false))
                 .Include(p => p.Presentaciones.Where(pr => pr.EmpresaID == empresaId))
-                    .ThenInclude(pr => pr.Precios.Where(pre => pre.EmpresaID == empresaId))
                 .OrderByDescending(p => p.FechaRegistro)
                 .ToListAsync();
         }
@@ -47,7 +45,6 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             return await _context.Productos
                 .Where(p => p.EmpresaID == empresaId && (p.Activa == true))
                 .Include(p => p.Presentaciones.Where(pr => pr.EmpresaID == empresaId))
-                    .ThenInclude(pr => pr.Precios.Where(pre => pre.EmpresaID == empresaId))
                 .OrderByDescending(p => p.FechaRegistro)
                 .ToListAsync();
         }
@@ -135,7 +132,6 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             return await _context.Productos
                 .Where(p => p.EmpresaID == empresaId && p.Activa == true && p.Visible == true)
                 .Include(p => p.Presentaciones.Where(pr => pr.EmpresaID == empresaId))
-                    .ThenInclude(pr => pr.Precios.Where(pre => pre.EmpresaID == empresaId))
                 .OrderBy(p => p.Nombre)
                 .ToListAsync();
         }
@@ -159,7 +155,6 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                                        (p.Nombre.ToLower().Contains(term) || 
                                         p.Descripcion.ToLower().Contains(term)))
                            .Include(p => p.Presentaciones.Where(pr => pr.EmpresaID == empresaId))
-                               .ThenInclude(pr => pr.Precios.Where(pre => pre.EmpresaID == empresaId))
                            .OrderBy(p => p.Nombre)
                            .ToListAsync();
         }
@@ -175,7 +170,6 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                                       p.Activa == true && 
                                       p.Visible == true)
                            .Include(p => p.Presentaciones.Where(pr => pr.EmpresaID == empresaId))
-                               .ThenInclude(pr => pr.Precios.Where(pre => pre.EmpresaID == empresaId))
                            .OrderBy(p => p.Nombre)
                            .ToListAsync();
         }
@@ -278,7 +272,6 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                            p.EmpresaID == empresaId && 
                            p.Activa == true)
                 .Include(p => p.Presentaciones.Where(pr => pr.EmpresaID == empresaId))
-                    .ThenInclude(pr => pr.Precios.Where(pre => pre.EmpresaID == empresaId))
                 .FirstOrDefaultAsync();
         }
 
@@ -340,7 +333,6 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             return await _context.Productos
                 .Where(p => p.EmpresaID == empresaId && p.Activa == true && p.Visible == true)
                 .Include(p => p.Presentaciones.Where(pr => pr.EmpresaID == empresaId))
-                    .ThenInclude(pr => pr.Precios.Where(pre => pre.EmpresaID == empresaId))
                 .OrderBy(p => p.Nombre)
                 .Take(top)
                 .ToListAsync();

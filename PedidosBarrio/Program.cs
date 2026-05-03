@@ -1,5 +1,6 @@
 using PedidosBarrio.Api.EndPoint;
 using PedidosBarrio.Api.Middlewares;
+using PedidosBarrio.Api.Services;
 using PedidosBarrio.Infrastructure.IoC;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,6 +32,9 @@ if (corsOrigins != null && corsOrigins.Length > 0)
 // ¡Llama a tu método de extensión aquí!
 // Aquí llamas a tu método de extensión
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// Registrar Excel Security Service
+builder.Services.AddScoped<IExcelSecurityService, ExcelSecurityService>();
 
 var app = builder.Build();
 

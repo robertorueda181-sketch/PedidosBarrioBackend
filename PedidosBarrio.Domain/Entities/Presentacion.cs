@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace PedidosBarrio.Domain.Entities;
 
@@ -11,7 +8,6 @@ public partial class Presentacion
 {
     public Presentacion()
     {
-        Precios = new List<Precio>();
         Opciones = new List<PresentacionOpcion>();
     }
 
@@ -20,7 +16,6 @@ public partial class Presentacion
         Descripcion = descripcion;
         EmpresaID = empresaId;
         ProductoID = productoId;
-        Precios = new List<Precio>();
         Opciones = new List<PresentacionOpcion>();
     }
 
@@ -51,9 +46,6 @@ public partial class Presentacion
 
     [ForeignKey("ProductoID")]
     public virtual Producto Producto { get; set; } = null!;
-
-    public virtual ICollection<Precio> Precios { get; set; }
-
     /// <summary>
     /// Opciones de esta presentación (ej: S, M, L para Talla)
     /// </summary>

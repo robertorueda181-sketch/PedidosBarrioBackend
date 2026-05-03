@@ -5,39 +5,17 @@ namespace PedidosBarrio.Application.DTOs
     /// </summary>
     public class PresentacionExcelRowDto
     {
-        /// <summary>
-        /// ID del producto
-        /// </summary>
-        public int ProductoID { get; set; }
+        public int ExcelRow { get; set; }
+        public string? Codigo { get; set; }
+        public string? Categoria { get; set; } // Descripcion de la categoria (en lugar de CategoriaID)
+        public string? NombreProducto { get; set; }
+        public string? DescripcionProducto { get; set; }
+        public int? StockMinimo { get; set; }
+        public bool? Visible { get; set; }
 
-        /// <summary>
-        /// Nombre de la presentación (ej: "Talla", "Color")
-        /// </summary>
-        public string NombrePresentacion { get; set; } = null!;
-
-        /// <summary>
-        /// Valor de la opción (ej: "S", "M", "L" o "Rojo", "Verde", "Azul")
-        /// </summary>
-        public string ValorOpcion { get; set; } = null!;
-
-        /// <summary>
-        /// Precio específico para esta opción
-        /// </summary>
-        public decimal? PrecioOpcion { get; set; }
-
-        /// <summary>
-        /// URL de la imagen para esta opción
-        /// </summary>
-        public string? ImagenOpcion { get; set; }
-
-        /// <summary>
-        /// Stock disponible para esta opción
-        /// </summary>
-        public int? StockOpcion { get; set; }
-
-        /// <summary>
-        /// Descripción de la opción
-        /// </summary>
+        public decimal? Precio { get; set; }
+        public string? NombrePresentacion { get; set; }
         public string? DescripcionOpcion { get; set; }
     }
+
 }

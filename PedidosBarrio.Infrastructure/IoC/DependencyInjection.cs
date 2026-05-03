@@ -127,7 +127,6 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<IUsuarioRepository, UsuarioRepository>();
             services.AddScoped<ISuscripcionRepository, SuscripcionRepository>();
             services.AddScoped<IProductoRepository, ProductoRepository>();
-            services.AddScoped<IPrecioRepository, PrecioRepository>();
             services.AddScoped<IPresentacionRepository, PresentacionRepository>();
             services.AddScoped<IPresentacionOpcionRepository, PresentacionOpcionRepository>();
             services.AddScoped<IImagenRepository, ImagenRepository>();
