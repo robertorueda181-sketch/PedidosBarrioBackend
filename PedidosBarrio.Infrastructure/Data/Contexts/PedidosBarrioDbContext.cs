@@ -38,6 +38,8 @@ public partial class PedidosBarrioDbContext : DbContext
 
     public virtual DbSet<Presentacion> Presentaciones { get; set; }
 
+    public virtual DbSet<PresentacionOpcion> PresentacionOpciones { get; set; }
+
     public virtual DbSet<Producto> Productos { get; set; }
 
     public virtual DbSet<Suscripcion> Suscripciones { get; set; }

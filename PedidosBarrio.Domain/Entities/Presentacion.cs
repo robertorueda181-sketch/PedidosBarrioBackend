@@ -12,6 +12,7 @@ public partial class Presentacion
     public Presentacion()
     {
         Precios = new List<Precio>();
+        Opciones = new List<PresentacionOpcion>();
     }
 
     public Presentacion(string descripcion, Guid empresaId, int productoId)
@@ -20,12 +21,16 @@ public partial class Presentacion
         EmpresaID = empresaId;
         ProductoID = productoId;
         Precios = new List<Precio>();
+        Opciones = new List<PresentacionOpcion>();
     }
 
     [Key]
     [Column("PresentacionID")]
     public int PresentacionID { get; set; }
 
+    /// <summary>
+    /// Nombre de la presentación (ej: "Talla", "Color", "Tamaño")
+    /// </summary>
     [Required]
     [StringLength(50)]
     public string Descripcion { get; set; } = null!;
@@ -36,6 +41,11 @@ public partial class Presentacion
     [Column("ProductoID")]
     public int ProductoID { get; set; }
 
+    /// <summary>
+    /// Si esta presentación está activa
+    /// </summary>
+    public bool Activa { get; set; } = true;
+
     [ForeignKey("EmpresaID")]
     public virtual Empresa Empresa { get; set; } = null!;
 
@@ -43,4 +53,9 @@ public partial class Presentacion
     public virtual Producto Producto { get; set; } = null!;
 
     public virtual ICollection<Precio> Precios { get; set; }
+
+    /// <summary>
+    /// Opciones de esta presentación (ej: S, M, L para Talla)
+    /// </summary>
+    public virtual ICollection<PresentacionOpcion> Opciones { get; set; }
 }

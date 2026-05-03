@@ -22,15 +22,15 @@ public partial class Producto
         Aprobado = true;
     }
 
-    [Key]
-    [Column("ProductoID")]
-    public int ProductoID { get; set; }
+[Key]
+[Column("\"ProductoID\"")]
+public int ProductoID { get; set; }
 
     [NotMapped]
     public string? Imagen { get; set; }
 
-    [Column("EmpresaID")]
-    public Guid? EmpresaID { get; set; }
+[Column("\"EmpresaID\"")]
+public Guid? EmpresaID { get; set; }
 
     [StringLength(200)]
     public string Nombre { get; set; } = null!;
@@ -41,10 +41,11 @@ public partial class Producto
 
     public DateTime? FechaRegistro { get; set; }
 
-    public bool Activa { get; set; }
+[Column("\"Activa\"")]
+public bool Activa { get; set; }
 
-    [Column("CategoriaID")]
-    public short? CategoriaID { get; set; }
+[Column("\"CategoriaID\"")]
+public short? CategoriaID { get; set; }
 
     public int? StockMinimo { get; set; }
 

@@ -176,6 +176,7 @@ Thumbs.db
 .resharper.user
 
 appsettings*.json
+appsettings.*.json
 pedidosbarrio-*.json
 PedidosBarrio/appsettings.Development.json
 PedidosBarrio/appsettings.json

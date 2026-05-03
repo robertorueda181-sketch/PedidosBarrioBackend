@@ -67,11 +67,11 @@ namespace PedidosBarrio.Infrastructure.Services
                     }
                 }
             }
-                        catch
-                        {
-                            // Return original if decryption fails (might not be encrypted yet)
-                            return cipherText;
-                        }
-                    }
-                }
+            catch
+            {
+                // Return original if decryption fails (might not be encrypted yet)
+                return cipherText;
             }
+        }
+    }
+}

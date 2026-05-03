@@ -1,4 +1,4 @@
-@PedidosBarrio_HostAddress = http://localhost:5218
+@PedidosBarrio_HostAddress = http://localhost:5220
 
 GET {{PedidosBarrio_HostAddress}}/weatherforecast/
 Accept: application/json

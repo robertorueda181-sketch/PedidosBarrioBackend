@@ -108,6 +108,9 @@ namespace PedidosBarrio.Infrastructure.IoC
             // Firebase Messaging Service para Push Notifications
             services.AddScoped<IFirebaseMessagingService, FirebaseMessagingService>();
 
+            // Presentacion Excel Service para importar/exportar
+            services.AddScoped<IPresentacionExcelService, PresentacionExcelService>();
+
             // Email Service
             services.AddScoped<IEmailService, SmtpEmailService>();
 
@@ -126,6 +129,7 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<IProductoRepository, ProductoRepository>();
             services.AddScoped<IPrecioRepository, PrecioRepository>();
             services.AddScoped<IPresentacionRepository, PresentacionRepository>();
+            services.AddScoped<IPresentacionOpcionRepository, PresentacionOpcionRepository>();
             services.AddScoped<IImagenRepository, ImagenRepository>();
             services.AddScoped<IBannerRepository, BannerRepository>();
             services.AddScoped<IPasoInicialRepository, PasoInicialRepository>();

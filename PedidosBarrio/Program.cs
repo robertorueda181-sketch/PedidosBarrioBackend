@@ -100,6 +100,7 @@ app.MapClienteAuthEndpoints();
 app.MapClienteDireccionEndpoints();
 app.MapPaginaEndpoints();
 app.MapPedidoEndpoints();
+app.MapPresentacionEndpoints(); // Nuevo endpoint para presentaciones
 app.MapTokenDebugEndpoints(); // Debug endpoint para analizar tokens
 
 app.Run();
