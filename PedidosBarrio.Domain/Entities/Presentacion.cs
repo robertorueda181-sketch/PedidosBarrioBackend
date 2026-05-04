@@ -41,6 +41,11 @@ public partial class Presentacion
     /// </summary>
     public bool Activa { get; set; } = true;
 
+    /// <summary>
+    /// Si esta presentación está EsPrincipal
+    /// </summary>
+    public bool EsPrincipal { get; set; } = true;
+
     [ForeignKey("EmpresaID")]
     public virtual Empresa Empresa { get; set; } = null!;
 

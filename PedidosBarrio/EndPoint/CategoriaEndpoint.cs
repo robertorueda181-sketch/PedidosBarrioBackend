@@ -1,16 +1,10 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using PedidosBarrio.Application.Commands.CreateCategoria;
 using PedidosBarrio.Application.Commands.CreateProducto;
-using PedidosBarrio.Application.Commands.DeleteCategoria;
 using PedidosBarrio.Application.Commands.DeleteProducto;
-using PedidosBarrio.Application.Commands.UpdateCategoria;
 using PedidosBarrio.Application.Commands.UpdateProducto;
 using PedidosBarrio.Application.Commands.UpdateProductoVisible;
 using PedidosBarrio.Application.DTOs;
-using PedidosBarrio.Application.Queries.GetAllProductos;
-using PedidosBarrio.Application.Queries.GetCategoriaById;
-using PedidosBarrio.Application.Queries.GetOnlyCategorias;
 using PedidosBarrio.Application.Queries.GetProductoById;
 
 namespace PedidosBarrio.Api.EndPoint
@@ -34,62 +28,6 @@ namespace PedidosBarrio.Api.EndPoint
             .WithOpenApi()
             .WithSummary("📂 Obtener todas las categorías")
             .WithDescription("Retorna solo las categorías de la empresa del usuario logueado");
-
-            // ===== ENDPOINT: OBTENER TODOS LOS PRODUCTOS CON IMÁGENES Y PRECIOS =====
-            group.MapGet("/productos/getAll", async (IMediator mediator) =>
-            {
-                var query = new GetAllProductosQuery();
-                var result = await mediator.Send(query);
-                return Results.Ok(result);
-            })
-            .WithName("GetAllProductos")
-            .WithOpenApi()
-            .WithSummary("🛍️ Obtener todos los productos")
-            .WithDescription("Retorna todos los productos de la empresa con sus imágenes y precios");
-
-            group.MapGet("/{id:int}", async (int id, IMediator mediator) =>
-            {
-                var categoria = await mediator.Send(new GetCategoriaByIdQuery((short)id));
-                return categoria is not null ? Results.Ok(categoria) : Results.NotFound();
-            })
-            .WithName("GetCategoriaById")
-            .WithOpenApi()
-            .WithSummary("📂 Obtener categoría por ID")
-            .WithDescription("Retorna los detalles de una categoría específica");
-
-            group.MapPost("/", async ([FromBody] CreateCategoriaDto createDto, IMediator mediator) =>
-            {
-                var categoriaDto = await mediator.Send(new CreateCategoriaCommand(
-                    createDto.Descripcion, 
-                    createDto.Color));
-                    
-                return Results.Created($"/api/Categorias/{categoriaDto.CategoriaID}", categoriaDto);
-            })
-            .WithName("CreateCategoria")
-            .WithOpenApi()
-            .WithSummary("✅ Crear nueva categoría")
-            .WithDescription("Crea una nueva categoría para la empresa del usuario logueado");
-
-            group.MapPut("/{id:int}", async (int id, [FromBody] UpdateCategoriaDto updateDto, IMediator mediator) =>
-            {
-                var command = new UpdateCategoriaCommand((short)id, updateDto.Descripcion, updateDto.Color);
-                await mediator.Send(command);
-                return Results.NoContent();
-            })
-            .WithName("UpdateCategoria")
-            .WithOpenApi()
-            .WithSummary("✏️ Actualizar categoría")
-            .WithDescription("Actualiza una categoría existente verificando que pertenezca a la empresa");
-
-            group.MapDelete("/{id:int}", async (int id, IMediator mediator) =>
-            {
-                await mediator.Send(new DeleteCategoriaCommand((short)id));
-                return Results.NoContent();
-            })
-            .WithName("DeleteCategoria")
-            .WithOpenApi()
-            .WithSummary("🗑️ Eliminar categoría")
-            .WithDescription("Elimina una categoría verificando que pertenezca a la empresa");
 
             // ===== ENDPOINTS DE PRODUCTOS =====
             group.MapGet("/productos/{id:int}", async (int id, IMediator mediator) =>

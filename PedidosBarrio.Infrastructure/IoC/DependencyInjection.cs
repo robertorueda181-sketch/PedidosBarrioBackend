@@ -180,7 +180,6 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<IValidator<CreateNegocioDto>, CreateNegocioDtoValidator>();
             services.AddScoped<IValidator<RegisterDto>, RegisterDtoValidator>();
             services.AddScoped<IValidator<RegisterSocialRequestDto>, RegisterSocialRequestValidator>();
-            services.AddScoped<IValidator<CreateCategoriaDto>, CreateCategoriaDtoValidator>();
             services.AddScoped<IValidator<UpdateCategoriaDto>, UpdateCategoriaDtoValidator>();
             services.AddScoped<IValidator<ImageValidationRequestDto>, ImageValidationRequestDtoValidator>();
             services.AddScoped<IValidator<TextModerationRequestDto>, TextModerationRequestDtoValidator>();

@@ -31,6 +31,7 @@ namespace PedidosBarrio.Application.DTOs
         public int PresentacionID { get; set; }
         public string Descripcion { get; set; }
         public int ProductoID { get; set; }
+        public bool EsPrincipal { get; set; }
         public List<PresentacionOpcionDto> Opciones { get; set; } = new List<PresentacionOpcionDto>();
     } 
     public class ImagenProductoDto
