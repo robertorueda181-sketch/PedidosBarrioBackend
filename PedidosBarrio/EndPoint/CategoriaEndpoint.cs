@@ -5,7 +5,8 @@ using PedidosBarrio.Application.Commands.DeleteProducto;
 using PedidosBarrio.Application.Commands.UpdateProducto;
 using PedidosBarrio.Application.Commands.UpdateProductoVisible;
 using PedidosBarrio.Application.DTOs;
-using PedidosBarrio.Application.Queries.GetOnlyCategorias;
+using PedidosBarrio.Application.Queries.GetAllCategorias;
+using PedidosBarrio.Application.Queries.GetAllProductos;
 using PedidosBarrio.Application.Queries.GetProductoById;
 
 namespace PedidosBarrio.Api.EndPoint
@@ -19,9 +20,9 @@ namespace PedidosBarrio.Api.EndPoint
                            .RequireAuthorization();
 
             // ===== ENDPOINT: OBTENER SOLO CATEGORÍAS =====
-            group.MapGet("/getAll", async (IMediator mediator) =>
+            group.MapGet("/", async (IMediator mediator) =>
             {
-                var query = new GetOnlyCategoriasQuery();
+                var query = new GetAllCategoriasQuery();
                 var result = await mediator.Send(query);
                 return Results.Ok(result);
             })
@@ -29,6 +30,29 @@ namespace PedidosBarrio.Api.EndPoint
             .WithOpenApi()
             .WithSummary("📂 Obtener todas las categorías")
             .WithDescription("Retorna solo las categorías de la empresa del usuario logueado");
+
+            // ===== ENDPOINT: OBTENER TODOS LOS PRODUCTOS CON IMÁGENES Y PRECIOS =====
+            group.MapGet("/productos/getAll", async (IMediator mediator) =>
+            {
+                var query = new GetAllProductosQuery();
+                var result = await mediator.Send(query);
+                return Results.Ok(result);
+            })
+            .WithName("GetAllProductos")
+            .WithOpenApi()
+            .WithSummary("🛍️ Obtener todos los productos")
+            .WithDescription("Retorna todos los productos de la empresa con sus imágenes y precios");
+
+            //group.MapGet("/{id:int}", async (int id, IMediator mediator) =>
+            //{
+            //    var categoria = await mediator.Send(new GetCategoriaByIdQuery((short)id));
+            //    return categoria is not null ? Results.Ok(categoria) : Results.NotFound();
+            //})
+            //.WithName("GetCategoriaById")
+            //.WithOpenApi()
+            //.WithSummary("📂 Obtener categoría por ID")
+            //.WithDescription("Retorna los detalles de una categoría específica");
+
 
             // ===== ENDPOINTS DE PRODUCTOS =====
             group.MapGet("/productos/{id:int}", async (int id, IMediator mediator) =>

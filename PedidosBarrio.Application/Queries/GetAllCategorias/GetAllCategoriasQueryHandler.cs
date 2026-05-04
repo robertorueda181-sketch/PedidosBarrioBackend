@@ -27,7 +27,7 @@ namespace PedidosBarrio.Application.Queries.GetAllCategorias
             // Obtener EmpresaID del token
             var empresaId = _currentUserService.GetEmpresaId();
 
-            var categorias = await _categoriaRepository.GetAllAsync(empresaId);
+            var categorias = await _categoriaRepository.GetAllAsync();
             return categorias.Select(c => new CategoriaDto
             {
                 CategoriaID = c.CategoriaID,

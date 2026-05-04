@@ -59,7 +59,6 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
                     Stock = request.Stock,
                     StockMinimo = request.StockMinimo,
                     Inventario = request.Inventario,
-                    //Precios = request.Precios,
                     ImagenUrl = request.ImagenUrl,
                     ImagenDescripcion = request.ImagenDescripcion
                 };
@@ -74,7 +73,7 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
                 var empresaId = _currentUserService.GetEmpresaId();
 
                 // Resolver CategoriaID por descripción
-                var categoriasEmpresa = await _categoriaRepository.GetByEmpresaIdAsync(empresaId);
+                var categoriasEmpresa = await _categoriaRepository.GetAllAsync();
                 var categoria = categoriasEmpresa.FirstOrDefault(c => 
                     c.Descripcion.Trim().Equals(request.CategoriaDescripcion.Trim(), StringComparison.OrdinalIgnoreCase));
                 

@@ -79,14 +79,10 @@ namespace PedidosBarrio.Application.Commands.UpdateProducto
                 }
 
                 // Resolver CategoriaID por descripción
-                var categoriasEmpresa = await _categoriaRepository.GetByEmpresaIdAsync(empresaId);
+                var categoriasEmpresa = await _categoriaRepository.GetAllAsync();
                 var categoria = categoriasEmpresa.FirstOrDefault(c => 
                     c.Descripcion.Trim().Equals(request.CategoriaDescripcion.Trim(), StringComparison.OrdinalIgnoreCase));
-                
-                if (categoria == null)
-                {
-                    throw new ApplicationException($"La categoría '{request.CategoriaDescripcion}' especificada no existe en su empresa");
-                }
+           
 
                 // Actualizar producto usando Entity Framework
                 producto.Codigo = request.Codigo;

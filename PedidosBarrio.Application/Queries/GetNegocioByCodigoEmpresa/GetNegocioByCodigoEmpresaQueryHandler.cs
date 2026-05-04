@@ -50,7 +50,7 @@ namespace PedidosBarrio.Application.Queries.GetNegocioByCodigoEmpresa
             var productos = (await _productoRepository.GetByEmpresaIdVisibleAsync(empresa.ID)).ToList();
 
             // Obtener categorías que deben mostrarse (Mostrar = true y Activo = true)
-            var categorias = await _categoriaRepository.GetByEmpresaIdMostrandoAsync(empresa.ID);
+            var categorias = await _categoriaRepository.GetAllAsync();
 
             // Obtener imágenes de la empresa para los productos
             var todasLasImagenes = await _imagenRepository.GetByEmpresaIdAsync(empresa.ID);

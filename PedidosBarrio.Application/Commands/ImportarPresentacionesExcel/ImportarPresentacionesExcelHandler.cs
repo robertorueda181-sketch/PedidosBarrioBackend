@@ -73,7 +73,7 @@ namespace PedidosBarrio.Application.Commands.ImportarPresentacionesExcel
                 await _logger.LogInformationAsync($"Archivo leído: {filas.Count} filas. Empresa ID: {empresaId}", "ImportarPresentacionesExcelCommand");
 
                 // Obtener categorías existentes de la empresa (para mapeo por descripción)
-                var categoriasEmpresa = (await _categoriaRepository.GetByEmpresaIdAsync(empresaId)).ToList();
+                var categoriasEmpresa = (await _categoriaRepository.GetAllAsync()).ToList();
                 var categoriasByDescripcion = categoriasEmpresa
                     .Where(c => !string.IsNullOrWhiteSpace(c.Descripcion))
                     .GroupBy(c => c.Descripcion.Trim().ToLowerInvariant())
