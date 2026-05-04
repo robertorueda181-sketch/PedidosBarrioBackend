@@ -55,8 +55,7 @@ namespace PedidosBarrio.Api.EndPoint
                 if (file == null || file.Length == 0)
                     return Results.BadRequest("No se ha proporcionado ningún archivo.");
 
-                using var stream = file.OpenReadStream();
-                var command = new UploadImageCommand(productoId, descripcion, setAsPrincipal, stream, file.FileName);
+                var command = new UploadImageCommand(productoId, descripcion, setAsPrincipal, file, file.FileName);
                 var result = await mediator.Send(command);
                 return Results.Created($"/api/Imagenes/{result.ImagenID}", result);
             })

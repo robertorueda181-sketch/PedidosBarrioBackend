@@ -64,7 +64,6 @@ namespace PedidosBarrio.Application.Commands.UploadEmpresaProfileImage
                 // Procesar y optimizar imagen
                 var imagePath = await _imageProcessingService.OptimizeAndSaveImageAsync(
                     request.FileStream,
-                    request.FileName,
                     0, // ProductoId no se usa para imágenes de perfil
                     request.EmpresaId);
 

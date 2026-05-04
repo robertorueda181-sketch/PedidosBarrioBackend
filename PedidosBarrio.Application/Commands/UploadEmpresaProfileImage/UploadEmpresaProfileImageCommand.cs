@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using PedidosBarrio.Application.DTOs;
 
 namespace PedidosBarrio.Application.Commands.UploadEmpresaProfileImage
@@ -6,10 +7,10 @@ namespace PedidosBarrio.Application.Commands.UploadEmpresaProfileImage
     public class UploadEmpresaProfileImageCommand : IRequest<UploadEmpresaLogoResponseDto>
     {
         public Guid EmpresaId { get; set; }
-        public Stream FileStream { get; set; }
+        public IFormFile FileStream { get; set; }
         public string FileName { get; set; }
 
-        public UploadEmpresaProfileImageCommand(Guid empresaId, Stream fileStream, string fileName)
+        public UploadEmpresaProfileImageCommand(Guid empresaId, IFormFile fileStream, string fileName)
         {
             EmpresaId = empresaId;
             FileStream = fileStream;

@@ -9,21 +9,15 @@ namespace PedidosBarrio.Application.Queries.GetAllProductos
     public class GetAllProductosQueryHandler : IRequestHandler<GetAllProductosQuery, GetAllProductosDto>
     {
         private readonly IProductoRepository _productoRepository;
-        private readonly IImagenRepository _imagenRepository;
-        private readonly IImageProcessingService _imageProcessingService;
         private readonly ICurrentUserService _currentUserService;
         private readonly IApplicationLogger _logger;
 
         public GetAllProductosQueryHandler(
             IProductoRepository productoRepository,
-            IImagenRepository imagenRepository,
-            IImageProcessingService imageProcessingService,
             ICurrentUserService currentUserService,
             IApplicationLogger logger)
         {
             _productoRepository = productoRepository;
-            _imagenRepository = imagenRepository;
-            _imageProcessingService = imageProcessingService;
             _currentUserService = currentUserService;
             _logger = logger;
         }
@@ -43,10 +37,6 @@ namespace PedidosBarrio.Application.Queries.GetAllProductos
                 var productos = await _productoRepository.GetByEmpresaIdAsync(empresaId);
 
 
-                // Obtener imágenes para todos los productos
-                var todasLasImagenes = await _imagenRepository.GetByEmpresaIdAsync(empresaId);
-                var imagenesPorProducto = todasLasImagenes.GroupBy(i => i.ExternalId ?? 0)
-                    .ToDictionary(g => g.Key, g => g.ToList());
 
                 var productoDtos = new List<ProductoDto>();
                 foreach (var p in productos)
@@ -63,43 +53,10 @@ namespace PedidosBarrio.Application.Queries.GetAllProductos
                         Inventario = p.Inventario,
                         Visible = p.Visible ?? false,
                         Aprobado = p.Aprobado,
-                        PrecioActual = 0
+                        PrecioActual = 0,
+                        ImagenPrincipal = p.Presentaciones.FirstOrDefault().Opciones.FirstOrDefault().Imagen
                     };
 
-                    // Mapear imágenes con URL completa
-                    if (imagenesPorProducto.ContainsKey(p.ProductoID))
-                    {
-                        foreach (var img in imagenesPorProducto[p.ProductoID])
-                        {
-                            var imgDto = new ImagenProductoDto
-                            {
-                                ImagenID = img.ImagenID,
-                                ExternalId = img.ExternalId ?? 0,
-                                URLImagen = img.Urlimagen,
-                                Descripcion = img.Descripcion ?? string.Empty,
-                                FechaRegistro = img.FechaRegistro ?? DateTime.Now,
-                                Activa = img.Activa,
-                                Type = img.Type ?? "PRODUCT",
-                                Order = img.Order,
-                                EmpresaID = img.EmpresaID ?? Guid.Empty
-                            };
-
-                            // Resolver URL completa
-                            if (!string.IsNullOrEmpty(imgDto.URLImagen))
-                            {
-                                imgDto.URLImagen = await _imageProcessingService.GetImageUrlAsync(imgDto.URLImagen);
-                            }
-
-                            dto.Imagenes.Add(imgDto);
-                        }
-
-                        // Establecer imagen principal para el DTO
-                        var principal = dto.Imagenes.OrderBy(i => i.Order).FirstOrDefault();
-                        if (principal != null)
-                        {
-                            dto.ImagenPrincipal = principal.URLImagen;
-                        }
-                    }
 
                     productoDtos.Add(dto);
                 }

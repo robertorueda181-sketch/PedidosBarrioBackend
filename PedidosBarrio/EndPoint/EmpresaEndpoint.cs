@@ -54,12 +54,11 @@ namespace PedidosBarrio.Api.EndPoint
 
                                             var empresaId = currentUserService.GetEmpresaId();
 
-                                            using (var stream = file.OpenReadStream())
-                                            {
-                                                var command = new UploadEmpresaProfileImageCommand(empresaId, stream, file.FileName);
-                                                var result = await mediator.Send(command);
-                                                return result.Success ? Results.Ok(result) : Results.BadRequest(result);
-                                            }
+                                            
+                                             var command = new UploadEmpresaProfileImageCommand(empresaId, file, file.FileName);
+                                             var result = await mediator.Send(command);
+                                             return result.Success ? Results.Ok(result) : Results.BadRequest(result);
+                                            
                                         })
                                         .WithName("UploadEmpresaProfileImage")
                                         .WithOpenApi()

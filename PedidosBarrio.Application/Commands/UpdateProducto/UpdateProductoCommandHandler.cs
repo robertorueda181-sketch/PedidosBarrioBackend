@@ -117,7 +117,6 @@ namespace PedidosBarrio.Application.Commands.UpdateProducto
                         Visible = producto.Visible ?? true,
                         Inventario = producto.Inventario,
                         PrecioActual = 0,
-                        Imagenes = new List<ImagenProductoDto>()
                     };
 
                     foreach (var i in imagenes)
@@ -135,15 +134,7 @@ namespace PedidosBarrio.Application.Commands.UpdateProducto
                             EmpresaID = i.EmpresaID ?? Guid.Empty
                         };
 
-                        if (!string.IsNullOrEmpty(imgDto.URLImagen))
-                        {
-                            imgDto.URLImagen = await _imageProcessingService.GetImageUrlAsync(imgDto.URLImagen);
-                        }
-                        dto.Imagenes.Add(imgDto);
                     }
-
-                    dto.ImagenPrincipal = dto.Imagenes.OrderBy(i => i.Order).FirstOrDefault()?.URLImagen ?? string.Empty;
-
                     return dto;
                 }
             catch (ValidationException)

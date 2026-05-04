@@ -2,10 +2,16 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using PedidosBarrio.Application.Commands.CreatePresentacion;
 using PedidosBarrio.Application.Commands.ImportarProductosMasivos;
+using PedidosBarrio.Application.Commands.CargaMasivaImagenes;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Services;
+using PedidosBarrio.Domain.Entities;
 using PedidosBarrio.Domain.Repositories;
 using PedidosBarrio.Api.Services;
+using PedidosBarrio.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using System.Linq;
 
 namespace PedidosBarrio.Api.EndPoint
 {
@@ -104,6 +110,55 @@ namespace PedidosBarrio.Api.EndPoint
             .WithSummary("📤 Importar productos masivamente desde Excel")
             .WithDescription("Importa productos, precios y presentaciones desde un archivo Excel. Incluye validaciones de seguridad contra virus y macros")
             .DisableAntiforgery();
+
+            // ===== CARGA MASIVA DE IMÁGENES =====
+            group.MapPost("/carga-imagenes", async (
+                [FromForm] IFormCollection form,
+                IMediator mediator,
+                ICurrentUserService currentUserService,
+                ILogger<Program> logger) =>
+            {
+                try
+                {
+                    var empresaId = currentUserService.GetEmpresaId();
+                    var files = form.Files;
+
+                    if (files == null || files.Count == 0)
+                        return Results.BadRequest(new { error = "Debe proporcionar al menos un archivo de imagen" });
+
+                    var imagenesDto = files.Select(f => new ArchivoImagenDto
+                    {
+                        Stream = f,
+                        FileName = f.FileName,
+                        Length = f.Length
+                    }).ToList();
+
+                    var command = new CargaMasivaImagenesCommand(imagenesDto, empresaId);
+                    var result = await mediator.Send(command);
+
+                    if (!result.Exitoso)
+                    {
+                        return Results.BadRequest(result);
+                    }
+
+                    return Results.Ok(result);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Error en carga masiva de imágenes");
+                    return Results.Problem(
+                        title: "Error interno del servidor",
+                        detail: "Ocurrió un error inesperado durante la carga masiva de imágenes.",
+                        statusCode: StatusCodes.Status500InternalServerError
+                    );
+                }
+            })
+            .WithName("CargaMasivaImagenes")
+            .WithOpenApi()
+            .WithSummary("📷 Carga masiva de imágenes para opciones de presentación")
+            .WithDescription("Sube múltiples imágenes en formato WebP/PNG/JPG. Los nombres deben seguir el formato: codigo-variante1-variante2 (ej: PROD001-TallaM-ColorRojo). Las imágenes se optimizan automáticamente y se asignan a las opciones correspondientes.")
+            .DisableAntiforgery();
         }
     }
 }
+

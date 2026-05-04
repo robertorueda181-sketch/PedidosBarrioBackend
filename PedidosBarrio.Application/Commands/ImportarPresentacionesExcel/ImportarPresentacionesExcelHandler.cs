@@ -1,13 +1,12 @@
-using DocumentFormat.OpenXml.Presentation;
 using MediatR;
 using PedidosBarrio.Application.Commands.CreateProducto;
 using PedidosBarrio.Application.Commands.UpdateProducto;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Logging;
 using PedidosBarrio.Application.Services;
+using PedidosBarrio.Domain.Constants;
 using PedidosBarrio.Domain.Entities;
 using PedidosBarrio.Domain.Repositories;
-using System.Linq;
 
 namespace PedidosBarrio.Application.Commands.ImportarPresentacionesExcel
 {
@@ -235,25 +234,41 @@ namespace PedidosBarrio.Application.Commands.ImportarPresentacionesExcel
                         string segundaPresentacion = grupoProducto.FirstOrDefault()?.NombrePresentacion2?.Trim() ?? "";
                         string terceraPresentacion = grupoProducto.FirstOrDefault()?.NombrePresentacion3?.Trim() ?? "";
 
+                        decimal precioDefecto = grupoProducto.FirstOrDefault()?.Precio ?? 0;
+
                         bool tienePresentaciones =
                             !string.IsNullOrWhiteSpace(primeraPresentacion) ||
                             !string.IsNullOrWhiteSpace(segundaPresentacion) ||
                             !string.IsNullOrWhiteSpace(terceraPresentacion);
 
-                        // Si no tiene ninguna → usar GENERAL
-                        if (!tienePresentaciones)
-                        {
-                            primeraPresentacion = "General";
-                        }
-
+                        //SE AGREGA LA PRESENTACION  POR DEFECTO                 
                         int presentacionId1 = 0;
 
                         // Presentación principal
-                        var nuevaPresentacion1 = new Presentacion(primeraPresentacion, empresaId, productoId);
-                        presentacionId1 = await _presentacionRepository.AddAsync(nuevaPresentacion1);
+                        var nuevaPresentacionGeneral = new Presentacion(Description.DESCRIPCION_GENERAL, empresaId, productoId);
+                        presentacionId1 = await _presentacionRepository.AddAsync(nuevaPresentacionGeneral);
                         result.PresentacionesCreadas++;
 
-                        // Otras (solo metadata)
+
+                        var opcionDefecto = new PresentacionOpcion(Description.DESCRIPCION_GENERAL, presentacionId1, precioDefecto, "")
+                        {
+                            Stock = 0,
+                            Descripcion = Description.DESCRIPCION_GENERAL,
+                            Activa = true,
+                            EsPrincipal = true
+                        };
+
+                        await _presentacionOpcionRepository.AddAsync(opcionDefecto);
+                        result.OpcionesAgregadas++;
+
+
+
+                        if (!string.IsNullOrWhiteSpace(primeraPresentacion))
+                        {
+                            await _presentacionRepository.AddAsync(new Presentacion(primeraPresentacion, empresaId, productoId));
+                            result.PresentacionesCreadas++;
+                        }
+
                         if (!string.IsNullOrWhiteSpace(segundaPresentacion))
                         {
                             await _presentacionRepository.AddAsync(new Presentacion(segundaPresentacion, empresaId, productoId));
@@ -270,47 +285,39 @@ namespace PedidosBarrio.Application.Commands.ImportarPresentacionesExcel
                         // ===============================
                         // GENERAR OPCIONES (SIN PERDER DUPLICADOS)
                         // ===============================
+                        var grupoVariantes = grupoProducto.Where(f => f.Precio.HasValue);
 
-                        bool esPrimeraOpcion = true;
-
-                        foreach (var fila in grupoProducto.Where(f => f.Precio.HasValue))
+                        if (grupoVariantes.Count() > 1)
                         {
-                            string op1 = fila.DescripcionOpcion1?.Trim() ?? "";
-                            string op2 = fila.DescripcionOpcion2?.Trim() ?? "";
-                            string op3 = fila.DescripcionOpcion3?.Trim() ?? "";
 
-                            // Si no hay opciones → GENERAL
-                            if (string.IsNullOrWhiteSpace(op1) &&
-                                string.IsNullOrWhiteSpace(op2) &&
-                                string.IsNullOrWhiteSpace(op3))
+                            foreach (var fila in grupoVariantes)
                             {
-                                op1 = "General";
+                                string op1 = fila.DescripcionOpcion1?.Trim() ?? "";
+                                string op2 = fila.DescripcionOpcion2?.Trim() ?? "";
+                                string op3 = fila.DescripcionOpcion3?.Trim() ?? "";
+
+                                // Construir descripción
+                                var partes = new List<string>();
+                                if (!string.IsNullOrWhiteSpace(op1)) partes.Add(op1);
+                                if (!string.IsNullOrWhiteSpace(op2)) partes.Add(op2);
+                                if (!string.IsNullOrWhiteSpace(op3)) partes.Add(op3);
+
+                                string descripcion = string.Join("/", partes);
+
+                                decimal precio = fila.Precio ?? 0;
+
+                                var nuevaOpcion = new PresentacionOpcion(op1, presentacionId1, precio, "")
+                                {
+                                    Stock = 0,
+                                    Descripcion = descripcion,
+                                    Activa = true,
+                                    EsPrincipal = false
+                                };
+
+                                await _presentacionOpcionRepository.AddAsync(nuevaOpcion);
+                                result.OpcionesAgregadas++;
+
                             }
-
-                            // Construir descripción
-                            var partes = new List<string>();
-                            if (!string.IsNullOrWhiteSpace(op1)) partes.Add(op1);
-                            if (!string.IsNullOrWhiteSpace(op2)) partes.Add(op2);
-                            if (!string.IsNullOrWhiteSpace(op3)) partes.Add(op3);
-
-                            string descripcion = string.Join("/", partes);
-
-                            decimal precio = fila.Precio ?? 0;
-
-                            var nuevaOpcion = new PresentacionOpcion(op1, presentacionId1, precio, "")
-                            {
-                                Stock = 0,
-                                Descripcion = descripcion,
-                                Activa = true,
-                                EsPrincipal = !tienePresentaciones
-                                                ? true                 // caso GENERAL
-                                                : esPrimeraOpcion      // solo la primera si hay presentaciones
-                            };
-
-                            await _presentacionOpcionRepository.AddAsync(nuevaOpcion);
-                            result.OpcionesAgregadas++;
-
-                            esPrimeraOpcion = false; // solo la primera será principal
                         }
 
                     }

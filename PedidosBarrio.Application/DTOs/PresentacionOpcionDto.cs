@@ -32,5 +32,7 @@ namespace PedidosBarrio.Application.DTOs
         /// Stock disponible para esta opción específica
         /// </summary>
         public int? Stock { get; set; }
+
+        public bool EsPrincipal { get; set; }
     }
 }

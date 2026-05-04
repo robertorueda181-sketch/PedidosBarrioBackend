@@ -61,7 +61,6 @@ namespace PedidosBarrio.Application.Commands.UploadEmpresaLogo
                 // Procesar y optimizar imagen
                 var imagePath = await _imageProcessingService.OptimizeAndSaveImageAsync(
                     request.FileStream,
-                    request.FileName,
                     0, // ProductoId no se usa para logos
                     request.EmpresaId);
 

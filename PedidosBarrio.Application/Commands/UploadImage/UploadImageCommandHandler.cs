@@ -42,7 +42,6 @@ namespace PedidosBarrio.Application.Commands.UploadImage
             // 1. Guardar y optimizar imagen
             var relativeUrl = await _imageProcessingService.OptimizeAndSaveImageAsync(
                 request.FileStream, 
-                request.FileName, 
                 request.ProductoId, 
                 empresaId);
 

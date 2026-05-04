@@ -21,8 +21,6 @@ namespace PedidosBarrio.Application.DTOs
         // Precio actual (el más reciente o principal)
         public decimal? PrecioActual { get; set; }
 
-        // Lista de imágenes del producto
-        public List<ImagenProductoDto> Imagenes { get; set; } = new List<ImagenProductoDto>();
 
         // Imagen principal (primera o por order)
         public string ImagenPrincipal { get; set; }

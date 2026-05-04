@@ -1,5 +1,6 @@
 using System.IO;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using PedidosBarrio.Application.DTOs;
 
 namespace PedidosBarrio.Application.Commands.UploadImage
@@ -9,10 +10,10 @@ namespace PedidosBarrio.Application.Commands.UploadImage
         public int ProductoId { get; set; }
         public string? Descripcion { get; set; }
         public bool SetAsPrincipal { get; set; }
-        public Stream FileStream { get; set; }
+        public IFormFile FileStream { get; set; }
         public string FileName { get; set; }
 
-        public UploadImageCommand(int productoId, string? descripcion, bool setAsPrincipal, Stream fileStream, string fileName)
+        public UploadImageCommand(int productoId, string? descripcion, bool setAsPrincipal, IFormFile fileStream, string fileName)
         {
             ProductoId = productoId;
             Descripcion = descripcion;

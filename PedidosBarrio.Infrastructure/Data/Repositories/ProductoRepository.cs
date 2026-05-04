@@ -51,6 +51,7 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             return await _context.Productos
                 .Where(p => p.EmpresaID == empresaId && (p.Activa == true))
                 .Include(p => p.Presentaciones.Where(pr => pr.EmpresaID == empresaId))
+                .ThenInclude(pr => pr.Opciones.Where(op => op.Activa && op.EsPrincipal))
                 .OrderByDescending(p => p.FechaRegistro)
                 .ToListAsync();
         }

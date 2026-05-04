@@ -34,40 +34,41 @@ namespace PedidosBarrio.Infrastructure.Services
             }
         }
 
-        public async Task<string> OptimizeAndSaveImageAsync(Stream imageStream, string fileName, int productoId, Guid empresaId)
+        public async Task<string> OptimizeAndSaveImageAsync(IFormFile file, int productoId, Guid empresaId)
         {
-            if (imageStream == null || imageStream.Length == 0)
-                throw new ArgumentException("Stream de imagen inválido");
+            if (file == null || file.Length == 0)
+                throw new ArgumentException("Archivo inválido");
 
-            // Validar tamaño (máximo 10MB)
-            if (imageStream.Length > 10 * 1024 * 1024)
-                throw new ArgumentException("El archivo es demasiado grande. Tamaño máximo: 10MB");
+            if (file.Length > 10 * 1024 * 1024)
+                throw new ArgumentException("El archivo es demasiado grande. Máximo 10MB");
 
-            // Generar nombre único con extensión .webp
             var newFileName = $"{productoId}_{DateTime.UtcNow:yyyyMMddHHmmss}.webp";
             var filePath = Path.Combine(_baseImagePath, newFileName);
 
             try
             {
-                // Reset stream position if possible
-                if (imageStream.CanSeek) imageStream.Position = 0;
+                // 🔥 CLAVE: copiar a memoria para evitar errores de stream
+                using var memoryStream = new MemoryStream();
+                await file.CopyToAsync(memoryStream);
+                memoryStream.Position = 0;
 
-                using (var image = await Image.LoadAsync(imageStream))
+                using (var image = await Image.LoadAsync(memoryStream))
                 {
-                    // Redimensionar a 200x200
-                    image.Mutate(x => x.Resize(300, 300));
+                    image.Mutate(x => x.Resize(new ResizeOptions
+                    {
+                        Size = new Size(300, 300),
+                        Mode = ResizeMode.Crop // mantiene proporción sin deformar
+                    }));
 
-                    // Configuramos el encoder de WebP para optimizar y comprimir
                     var encoder = new WebpEncoder
                     {
-                        Quality = 75, // Balance ideal entre calidad y peso
+                        Quality = 75,
                         Method = WebpEncodingMethod.BestQuality
                     };
 
                     await image.SaveAsync(filePath, encoder);
                 }
 
-                // Retornar URL relativa
                 return $"/images/productos/{newFileName}";
             }
             catch (Exception ex)

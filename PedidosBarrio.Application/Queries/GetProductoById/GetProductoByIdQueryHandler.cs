@@ -44,37 +44,6 @@ namespace PedidosBarrio.Application.Queries.GetProductoById
 
             var dto = _mapper.Map<ProductoDto>(producto);
 
-            // Obtener imágenes
-            var imagenes = await _imagenRepository.GetByProductoIdAsync(query.ProductoID);
-            foreach (var img in imagenes)
-            {
-                var imgDto = new ImagenProductoDto
-                {
-                    ImagenID = img.ImagenID,
-                    ExternalId = img.ExternalId ?? 0,
-                    URLImagen = img.Urlimagen,
-                    Descripcion = img.Descripcion ?? string.Empty,
-                    FechaRegistro = img.FechaRegistro ?? DateTime.Now,
-                    Activa = img.Activa,
-                    Type = img.Type ?? "PRODUCT",
-                    Order = img.Order,
-                    EmpresaID = img.EmpresaID ?? Guid.Empty
-                };
-
-                if (!string.IsNullOrEmpty(imgDto.URLImagen))
-                {
-                    imgDto.URLImagen = await _imageProcessingService.GetImageUrlAsync(imgDto.URLImagen);
-                }
-
-                dto.Imagenes.Add(imgDto);
-            }
-
-            // Imagen principal
-            var principal = dto.Imagenes.OrderBy(i => i.Order).FirstOrDefault();
-            if (principal != null)
-            {
-                dto.ImagenPrincipal = principal.URLImagen;
-            }
             var precioPrincipal = producto.Presentaciones
                     .SelectMany(p => p.Opciones)
                     .Where(o => o.Activa && o.EsPrincipal)
@@ -82,6 +51,8 @@ namespace PedidosBarrio.Application.Queries.GetProductoById
                     .FirstOrDefault();
 
             dto.PrecioActual = precioPrincipal;
+           
+
             return dto;
         }
     }
