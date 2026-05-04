@@ -30,14 +30,6 @@ namespace PedidosBarrio.Application.Validator
                 .MaximumLength(50)
                 .WithMessage("La categoría no puede exceder los 50 caracteres");
 
-            RuleFor(x => x.Precios)
-                .NotEmpty()
-                .WithMessage("Debe proporcionar al menos un precio")
-                .Must(precios => precios.Count <= 10)
-                .WithMessage("No puede tener más de 10 precios por producto");
-
-            RuleForEach(x => x.Precios).SetValidator(new PrecioCreateDtoValidator());
-
             RuleFor(x => x.Stock)
                 .GreaterThanOrEqualTo(0)
                 .WithMessage("El stock debe ser mayor o igual a 0");

@@ -27,7 +27,7 @@ namespace PedidosBarrio.Application.Commands.UpdateProducto
             StockMinimo = dto.StockMinimo;
             Inventario = dto.Inventario;
             Visible = dto.Visible;
-            Precios = dto.Precios;
+            //Precios = dto.Precios;
         }
     }
 }

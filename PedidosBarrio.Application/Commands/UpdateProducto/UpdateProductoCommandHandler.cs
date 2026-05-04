@@ -54,7 +54,7 @@ namespace PedidosBarrio.Application.Commands.UpdateProducto
                     StockMinimo = request.StockMinimo,
                     Inventario = request.Inventario,
                     Visible = request.Visible,
-                    Precios = request.Precios
+                    //Precios = request.Precios
                 };
 
                 var validationResult = await _validator.ValidateAsync(updateDto, cancellationToken);

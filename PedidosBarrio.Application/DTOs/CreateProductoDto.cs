@@ -11,7 +11,7 @@ namespace PedidosBarrio.Application.DTOs
         public bool Inventario { get; set; }
 
         // Lista de precios del producto
-        public List<PrecioCreateDto> Precios { get; set; } = new List<PrecioCreateDto>();
+        //public List<PrecioCreateDto> Precios { get; set; } = new List<PrecioCreateDto>();
 
         // Imagen inicial (opcional)
         public string ImagenUrl { get; set; }

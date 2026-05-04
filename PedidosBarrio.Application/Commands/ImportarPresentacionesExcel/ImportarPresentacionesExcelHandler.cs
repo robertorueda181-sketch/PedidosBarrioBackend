@@ -1,3 +1,4 @@
+using DocumentFormat.OpenXml.Presentation;
 using MediatR;
 using PedidosBarrio.Application.Commands.CreateProducto;
 using PedidosBarrio.Application.Commands.UpdateProducto;
@@ -192,12 +193,12 @@ namespace PedidosBarrio.Application.Commands.ImportarPresentacionesExcel
                                 Stock = 0,
                                 StockMinimo = stockMinimo,
                                 Inventario = false,
-                                Precios = precios.Select(p => new PrecioCreateDto
-                                {
-                                    PrecioValor = p.Value.Valor,
-                                    Descripcion = p.Key,
-                                    EsPrincipal = p.Value.Principal == true
-                                }).ToList(),
+                                //Precios = precios.Select(p => new PrecioCreateDto
+                                //{
+                                //    PrecioValor = p.Value.Valor,
+                                //    Descripcion = p.Key,
+                                //    EsPrincipal = p.Value.Principal == true
+                                //}).ToList(),
                                 ImagenUrl = string.Empty,
                                 ImagenDescripcion = string.Empty
                             };
@@ -222,13 +223,13 @@ namespace PedidosBarrio.Application.Commands.ImportarPresentacionesExcel
                                 StockMinimo = stockMinimo,
                                 Inventario = false,
                                 Visible = visible is bool b ? b : true,
-                                Precios = precios.Select(p => new PrecioDto
-                                {
-                                    IdPrecio = 0,
-                                    PrecioValor = p.Value.Valor,
-                                    EsPrincipal = p.Value.Principal == true,
-                                    Descripcion = p.Key
-                                }).ToList()
+                                //Precios = precios.Select(p => new PrecioDto
+                                //{
+                                //    IdPrecio = 0,
+                                //    PrecioValor = p.Value.Valor,
+                                //    EsPrincipal = p.Value.Principal == true,
+                                //    Descripcion = p.Key
+                                //}).ToList()
                             };
 
                             await _mediator.Send(new UpdateProductoCommand(productoId, updateDto));
@@ -238,64 +239,223 @@ namespace PedidosBarrio.Application.Commands.ImportarPresentacionesExcel
                         result.ProductosProcesados.Add(productoId);
 
                         // Procesar presentaciones y opciones
-                        var filasOpciones = grupoProducto
-                            .Where(f => !string.IsNullOrWhiteSpace(f.NombrePresentacion) && !string.IsNullOrWhiteSpace(f.DescripcionOpcion))
-                            .ToList();
+                        //var filasOpciones = grupoProducto
+                        //    .FirstOrDefault(f => !string.IsNullOrWhiteSpace(f.NombrePresentacion1) && !string.IsNullOrWhiteSpace(f.DescripcionOpcion1));
 
-                        if (filasOpciones.Any())
+
+                        //if (filasOpciones.Any())
+                        //{
+
+                        // ===============================
+                        // GENERAR OPCIONES CON PRECIO REAL (DESDE EXCEL)
+                        // ===============================
+                        // ===============================
+                        // CREAR PRESENTACIONES
+                        // ===============================
+                        string primeraPresentacion = grupoProducto.FirstOrDefault()?.NombrePresentacion1?.Trim() ?? "";
+                        string segundaPresentacion = grupoProducto.FirstOrDefault()?.NombrePresentacion2?.Trim() ?? "";
+                        string terceraPresentacion = grupoProducto.FirstOrDefault()?.NombrePresentacion3?.Trim() ?? "";
+
+                        bool tienePresentaciones =
+                            !string.IsNullOrWhiteSpace(primeraPresentacion) ||
+                            !string.IsNullOrWhiteSpace(segundaPresentacion) ||
+                            !string.IsNullOrWhiteSpace(terceraPresentacion);
+
+                        // Si no tiene ninguna → usar GENERAL
+                        if (!tienePresentaciones)
                         {
-                            var presentacionesExistentes = (await _presentacionRepository.GetByProductoIdAsync(productoId)).ToList();
-                            var presentacionesByNombre = presentacionesExistentes
-                                .GroupBy(p => p.Descripcion.Trim(), StringComparer.OrdinalIgnoreCase)
-                                .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
-
-                            foreach (var grupoPresentacion in filasOpciones.GroupBy(f => f.NombrePresentacion!.Trim(), StringComparer.OrdinalIgnoreCase))
-                            {
-                                var nombrePres = grupoPresentacion.Key.Trim();
-                                if (!presentacionesByNombre.TryGetValue(nombrePres, out var presentacion))
-                                {
-                                    var nueva = new Presentacion(nombrePres, empresaId, productoId);
-                                    var presentacionId = await _presentacionRepository.AddAsync(nueva);
-                                    nueva.PresentacionID = presentacionId;
-                                    presentacion = nueva;
-                                    presentacionesByNombre[nombrePres] = presentacion;
-                                    result.PresentacionesCreadas++;
-                                }
-
-                                var opcionesExistentes = await _presentacionOpcionRepository.GetByPresentacionIdAsync(presentacion.PresentacionID);
-                                var opcionesByValor = opcionesExistentes
-                                    .Where(o => !string.IsNullOrWhiteSpace(o.Valor))
-                                    .ToDictionary(o => o.Valor.Trim().ToLowerInvariant(), o => o);
-
-                                foreach (var fila in grupoPresentacion)
-                                {
-                                    var valor = fila.DescripcionOpcion!.Trim();
-                                    var valorKey = valor.ToLowerInvariant();
-                                    var descripcion = string.IsNullOrWhiteSpace(fila.DescripcionOpcion) ? null : fila.DescripcionOpcion.Trim();
-
-                                    if (opcionesByValor.TryGetValue(valorKey, out var existente))
-                                    {
-                                        if (fila.Precio.HasValue) existente.Precio = fila.Precio;
-                                        if (descripcion != null) existente.Descripcion = descripcion;
-                                        existente.Activa = true;
-                                        await _presentacionOpcionRepository.UpdateAsync(existente);
-                                        result.OpcionesActualizadas++;
-                                    }
-                                    else
-                                    {
-                                        var nuevaOpcion = new PresentacionOpcion(valor, presentacion.PresentacionID, fila.Precio, "")
-                                        {
-                                            Stock = 0,
-                                            Descripcion = descripcion,
-                                            Activa = true
-                                        };
-                                        await _presentacionOpcionRepository.AddAsync(nuevaOpcion);
-                                        opcionesByValor[valorKey] = nuevaOpcion;
-                                        result.OpcionesAgregadas++;
-                                    }
-                                }
-                            }
+                            primeraPresentacion = "General";
                         }
+
+                        int presentacionId1 = 0;
+
+                        // Presentación principal
+                        var nuevaPresentacion1 = new Presentacion(primeraPresentacion, empresaId, productoId);
+                        presentacionId1 = await _presentacionRepository.AddAsync(nuevaPresentacion1);
+                        result.PresentacionesCreadas++;
+
+                        // Otras (solo metadata)
+                        if (!string.IsNullOrWhiteSpace(segundaPresentacion))
+                        {
+                            await _presentacionRepository.AddAsync(new Presentacion(segundaPresentacion, empresaId, productoId));
+                            result.PresentacionesCreadas++;
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(terceraPresentacion))
+                        {
+                            await _presentacionRepository.AddAsync(new Presentacion(terceraPresentacion, empresaId, productoId));
+                            result.PresentacionesCreadas++;
+                        }
+
+
+                        // ===============================
+                        // GENERAR OPCIONES (SIN PERDER DUPLICADOS)
+                        // ===============================
+
+                        bool esPrimeraOpcion = true;
+
+                        foreach (var fila in grupoProducto.Where(f => f.Precio.HasValue))
+                        {
+                            string op1 = fila.DescripcionOpcion1?.Trim() ?? "";
+                            string op2 = fila.DescripcionOpcion2?.Trim() ?? "";
+                            string op3 = fila.DescripcionOpcion3?.Trim() ?? "";
+
+                            // Si no hay opciones → GENERAL
+                            if (string.IsNullOrWhiteSpace(op1) &&
+                                string.IsNullOrWhiteSpace(op2) &&
+                                string.IsNullOrWhiteSpace(op3))
+                            {
+                                op1 = "General";
+                            }
+
+                            // Construir descripción
+                            var partes = new List<string>();
+                            if (!string.IsNullOrWhiteSpace(op1)) partes.Add(op1);
+                            if (!string.IsNullOrWhiteSpace(op2)) partes.Add(op2);
+                            if (!string.IsNullOrWhiteSpace(op3)) partes.Add(op3);
+
+                            string descripcion = string.Join("/", partes);
+
+                            decimal precio = fila.Precio ?? 0;
+
+                            var nuevaOpcion = new PresentacionOpcion(op1, presentacionId1, precio, "")
+                            {
+                                Stock = 0,
+                                Descripcion = descripcion,
+                                Activa = true,
+                                EsPrincipal = !tienePresentaciones
+                                                ? true                 // caso GENERAL
+                                                : esPrimeraOpcion      // solo la primera si hay presentaciones
+                            };
+
+                            await _presentacionOpcionRepository.AddAsync(nuevaOpcion);
+                            result.OpcionesAgregadas++;
+
+                            esPrimeraOpcion = false; // solo la primera será principal
+                        }
+                        // ===============================
+                        // CREAR PRESENTACIONES
+                        // ===============================
+                        //string primeraPresentacion = grupoProducto.FirstOrDefault()?.NombrePresentacion1?.Trim() ?? "General";
+                        //string segundaPresentacion = grupoProducto.FirstOrDefault()?.NombrePresentacion2?.Trim() ?? "";
+                        //string terceraPresentacion = grupoProducto.FirstOrDefault()?.NombrePresentacion3?.Trim() ?? "";
+
+                        //int presentacionId1 = 0;
+
+                        //// SOLO usamos la principal para las opciones
+                        //var nuevaPresentacion1 = new Presentacion(primeraPresentacion, empresaId, productoId);
+                        //presentacionId1 = await _presentacionRepository.AddAsync(nuevaPresentacion1);
+                        //nuevaPresentacion1.PresentacionID = presentacionId1;
+                        //result.PresentacionesCreadas++;
+
+                        //// (Opcionales, solo metadata, no afectan opciones)
+                        //if (!string.IsNullOrWhiteSpace(segundaPresentacion))
+                        //{
+                        //    await _presentacionRepository.AddAsync(new Presentacion(segundaPresentacion, empresaId, productoId));
+                        //    result.PresentacionesCreadas++;
+                        //}
+
+                        //if (!string.IsNullOrWhiteSpace(terceraPresentacion))
+                        //{
+                        //    await _presentacionRepository.AddAsync(new Presentacion(terceraPresentacion, empresaId, productoId));
+                        //    result.PresentacionesCreadas++;
+                        //}
+
+
+                        //// ===============================
+                        //// OBTENER OPCIONES
+                        //// ===============================
+                        //var opciones1 = grupoProducto
+                        //    .Select(x => x.DescripcionOpcion1?.Trim() ?? "")
+                        //    .Where(x => !string.IsNullOrWhiteSpace(x))
+                        //    .Distinct(StringComparer.OrdinalIgnoreCase)
+                        //    .ToList();
+
+                        //var opciones2 = grupoProducto
+                        //    .Select(x => x.DescripcionOpcion2?.Trim() ?? "")
+                        //    .Where(x => !string.IsNullOrWhiteSpace(x))
+                        //    .Distinct(StringComparer.OrdinalIgnoreCase)
+                        //    .ToList();
+
+                        //var opciones3 = grupoProducto
+                        //    .Select(x => x.DescripcionOpcion3?.Trim() ?? "")
+                        //    .Where(x => !string.IsNullOrWhiteSpace(x))
+                        //    .Distinct(StringComparer.OrdinalIgnoreCase)
+                        //    .ToList();
+
+                        //var precio = filas.
+                        //// ===============================
+                        //// GENERAR OPCIONES (SIN DUPLICAR)
+                        //// ===============================
+
+                        //// 🔹 CASO 1: SOLO 1 NIVEL
+                        //if (!opciones2.Any() && !opciones3.Any())
+                        //{
+                        //    foreach (var op1 in opciones1)
+                        //    {
+                        //        var nuevaOpcion = new PresentacionOpcion(op1, presentacionId1, 0, "")
+                        //        {
+                        //            Stock = 0,
+                        //            Descripcion = op1,
+                        //            Activa = true,
+                        //            EsPrincipal = true
+                        //        };
+
+                        //        await _presentacionOpcionRepository.AddAsync(nuevaOpcion);
+                        //        result.OpcionesAgregadas++;
+                        //    }
+                        //}
+
+                        //// 🔹 CASO 2: 2 NIVELES
+                        //else if (opciones2.Any() && !opciones3.Any())
+                        //{
+                        //    foreach (var op1 in opciones1)
+                        //    {
+                        //        foreach (var op2 in opciones2)
+                        //        {
+                        //            var descripcion = $"{op1}/{op2}";
+
+                        //            var nuevaOpcion = new PresentacionOpcion(op1, presentacionId1, 0, "")
+                        //            {
+                        //                Stock = 0,
+                        //                Descripcion = descripcion,
+                        //                Activa = true,
+                        //                EsPrincipal = false
+                        //            };
+
+                        //            await _presentacionOpcionRepository.AddAsync(nuevaOpcion);
+                        //            result.OpcionesAgregadas++;
+                        //        }
+                        //    }
+                        //}
+
+                        //// 🔹 CASO 3: 3 NIVELES
+                        //else if (opciones2.Any() && opciones3.Any())
+                        //{
+                        //    foreach (var op1 in opciones1)
+                        //    {
+                        //        foreach (var op2 in opciones2)
+                        //        {
+                        //            foreach (var op3 in opciones3)
+                        //            {
+                        //                var descripcion = $"{op1}/{op2}/{op3}";
+
+                        //                var nuevaOpcion = new PresentacionOpcion(op1, presentacionId1, 0, "")
+                        //                {
+                        //                    Stock = 0,
+                        //                    Descripcion = descripcion,
+                        //                    Activa = true,
+                        //                    EsPrincipal = false
+                        //                };
+
+                        //                await _presentacionOpcionRepository.AddAsync(nuevaOpcion);
+                        //                result.OpcionesAgregadas++;
+                        //            }
+                        //        }
+                        //    }
+                        //}
+
+
                     }
                     catch (Exception ex)
                     {

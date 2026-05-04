@@ -34,8 +34,17 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
 
         public async Task AddAsync(PresentacionOpcion entity)
         {
-            await base.AddAsync(entity);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await base.AddAsync(entity);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+
+                Console.Write(ex.ToString());
+            }
+           
         }
 
         public async Task UpdateAsync(PresentacionOpcion entity)

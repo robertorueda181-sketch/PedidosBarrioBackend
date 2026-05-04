@@ -59,7 +59,7 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
                     Stock = request.Stock,
                     StockMinimo = request.StockMinimo,
                     Inventario = request.Inventario,
-                    Precios = request.Precios,
+                    //Precios = request.Precios,
                     ImagenUrl = request.ImagenUrl,
                     ImagenDescripcion = request.ImagenDescripcion
                 };
@@ -101,26 +101,26 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
 
                 var productoId = await _productoRepository.AddAsync(producto);
 
-                if (request.Precios != null && request.Precios.Any())
-                {
-                    foreach (var p in request.Precios)
-                    {
-                        // 1. Crear la presentación
-                        var presentacion = new Presentacion(
-                            p.Descripcion ?? "General",
-                            empresaId,
-                            productoId
-                        );
-                        var presentacionId = await _presentacionRepository.AddAsync(presentacion);
-                    }
-                }
-                else
-                {
-                    // Si no se envían precios, crear una presentación y un precio por defecto
-                    var presentacionDefault = new Presentacion("General", empresaId, productoId);
-                    var presId = await _presentacionRepository.AddAsync(presentacionDefault);
+                //if (request.Precios != null && request.Precios.Any())
+                //{
+                //    foreach (var p in request.Precios)
+                //    {
+                //        // 1. Crear la presentación
+                //        var presentacion = new Presentacion(
+                //            p.Descripcion ?? "General",
+                //            empresaId,
+                //            productoId
+                //        );
+                //        var presentacionId = await _presentacionRepository.AddAsync(presentacion);
+                //    }
+                //}
+                //else
+                //{
+                //    // Si no se envían precios, crear una presentación y un precio por defecto
+                //    var presentacionDefault = new Presentacion("General", empresaId, productoId);
+                //    var presId = await _presentacionRepository.AddAsync(presentacionDefault);
 
-                }
+                //}
 
                                 // Crear imagen inicial si se proporciona
                                 if (!string.IsNullOrEmpty(request.ImagenUrl))

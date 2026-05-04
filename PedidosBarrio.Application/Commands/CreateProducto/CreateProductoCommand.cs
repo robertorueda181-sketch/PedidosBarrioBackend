@@ -29,7 +29,6 @@ namespace PedidosBarrio.Application.Commands.CreateProducto
             Stock = dto.Stock;
             StockMinimo = dto.StockMinimo;
             Inventario = dto.Inventario;
-            Precios = dto.Precios;
             ImagenUrl = dto.ImagenUrl;
             ImagenDescripcion = dto.ImagenDescripcion;
         }

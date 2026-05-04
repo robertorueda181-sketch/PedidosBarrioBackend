@@ -11,6 +11,6 @@ namespace PedidosBarrio.Application.DTOs
             public bool Inventario { get; set; }
             public bool Visible { get; set; }
 
-            public List<PrecioDto> Precios { get; set; } = new List<PrecioDto>();
+            //public List<PrecioDto> Precios { get; set; } = new List<PrecioDto>();
         }
     }

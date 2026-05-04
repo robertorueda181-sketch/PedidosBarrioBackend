@@ -40,6 +40,7 @@ namespace PedidosBarrio.Application.Mappers
 
             // ===================== PRODUCTO MAPPINGS =====================
             CreateMap<CreateProductoDto, Producto>();
+            CreateMap<Producto, ProductoDto>();
 
             CreateMap<Presentacion, PresentacionDto>();
 

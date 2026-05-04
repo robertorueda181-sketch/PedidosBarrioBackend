@@ -45,7 +45,7 @@ namespace PedidosBarrio.Api.EndPoint
                     var bytes = await File.ReadAllBytesAsync(rutaPlantilla);
                     return Results.File(bytes, 
                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                        "Plantilla_Catalogo.xlsx");
+                        "Plantilla_Producto.xlsx");
                 }
                 catch (Exception ex)
                 {

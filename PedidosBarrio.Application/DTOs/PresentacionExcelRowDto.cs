@@ -14,8 +14,12 @@ namespace PedidosBarrio.Application.DTOs
         public bool? Visible { get; set; }
 
         public decimal? Precio { get; set; }
-        public string? NombrePresentacion { get; set; }
-        public string? DescripcionOpcion { get; set; }
+        public string? NombrePresentacion1 { get; set; }
+        public string? DescripcionOpcion1 { get; set; }
+        public string? NombrePresentacion2 { get; set; }
+        public string? DescripcionOpcion2 { get; set; }
+        public string? NombrePresentacion3 { get; set; }
+        public string? DescripcionOpcion3 { get; set; }
     }
 
 }
