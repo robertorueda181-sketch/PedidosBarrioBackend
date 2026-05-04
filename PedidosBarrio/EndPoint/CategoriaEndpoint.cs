@@ -5,6 +5,7 @@ using PedidosBarrio.Application.Commands.DeleteProducto;
 using PedidosBarrio.Application.Commands.UpdateProducto;
 using PedidosBarrio.Application.Commands.UpdateProductoVisible;
 using PedidosBarrio.Application.DTOs;
+using PedidosBarrio.Application.Queries.GetOnlyCategorias;
 using PedidosBarrio.Application.Queries.GetProductoById;
 
 namespace PedidosBarrio.Api.EndPoint
