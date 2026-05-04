@@ -75,9 +75,13 @@ namespace PedidosBarrio.Application.Queries.GetProductoById
             {
                 dto.ImagenPrincipal = principal.URLImagen;
             }
+            var precioPrincipal = producto.Presentaciones
+                    .SelectMany(p => p.Opciones)
+                    .Where(o => o.Activa && o.EsPrincipal)
+                    .Select(o => o.Precio)
+                    .FirstOrDefault();
 
-           
-
+            dto.PrecioActual = precioPrincipal;
             return dto;
         }
     }
