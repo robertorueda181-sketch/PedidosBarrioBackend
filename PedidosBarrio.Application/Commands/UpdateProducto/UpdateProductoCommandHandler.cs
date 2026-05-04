@@ -102,50 +102,7 @@ namespace PedidosBarrio.Application.Commands.UpdateProducto
 
                 // 1. Obtener todas las presentaciones y precios actuales del producto
                 var presentacionesActuales = (await _presentacionRepository.GetByProductoIdAsync(producto.ProductoID)).ToList();
-                var idsPreciosIncoming = request.Precios.Where(p => p.IdPrecio > 0).Select(p => p.IdPrecio).ToList();
-
-                // 3. Manejar lista de precios (Agregar o Actualizar)
-                if (request.Precios != null && request.Precios.Any())
-                {
-                    foreach (var precioDto in request.Precios)
-                    {
-                        if (precioDto.IdPrecio == 0)
-                        {
-                            // Intentar reutilizar una presentación con la misma descripción para evitar duplicados
-                            var descripcion = precioDto.Descripcion ?? "General";
-                            var presentacionExistente = presentacionesActuales
-                                .FirstOrDefault(p => p.Descripcion.Equals(descripcion, StringComparison.OrdinalIgnoreCase));
-
-                            int presentacionId;
-                            if (presentacionExistente == null)
-                            {
-                                var nuevaPresentacion = new Presentacion(descripcion, empresaId, producto.ProductoID);
-                                presentacionId = await _presentacionRepository.AddAsync(nuevaPresentacion);
-                                
-                                // Agregar a la lista local para posible reutilización en el mismo bucle
-                                nuevaPresentacion.PresentacionID = presentacionId;
-                                presentacionesActuales.Add(nuevaPresentacion);
-                            }
-                            else
-                            {
-                                presentacionId = presentacionExistente.PresentacionID;
-                            }
-
-                        }
-                        else
-                        {
-                            //// Actualizar precio existente
-                            //var existingPrecio = await _precioRepository.GetByIdAsync(precioDto.IdPrecio);
-                            //if (existingPrecio != null && existingPrecio.EmpresaID == empresaId)
-                            //{
-                            //    existingPrecio.PrecioValor = precioDto.PrecioValor;
-                            //    existingPrecio.Principal = precioDto.EsPrincipal;
-                            //    await _precioRepository.UpdateAsync(existingPrecio);
-                            //}
-                        }
-                    }
-                }
-
+               
                     var imagenes = await _imagenRepository.GetByProductoIdAsync(producto.ProductoID);
 
                     var dto = new ProductoDto

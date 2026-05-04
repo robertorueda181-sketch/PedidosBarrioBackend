@@ -17,8 +17,6 @@ namespace PedidosBarrio.Application.DTOs
         // Lista de presentaciones del producto (incluye sus precios)
         public List<PresentacionDto> Presentaciones { get; set; } = new List<PresentacionDto>();
 
-        // Lista de precios del producto (para compatibilidad o acceso rápido)
-        public List<PrecioDto> Precios { get; set; } = new List<PrecioDto>();
 
         // Precio actual (el más reciente o principal)
         public decimal? PrecioActual { get; set; }
@@ -30,22 +28,13 @@ namespace PedidosBarrio.Application.DTOs
         public string ImagenPrincipal { get; set; }
     }
 
-    public class PrecioDto
-    {
-        public int IdPrecio { get; set; }
-        public decimal PrecioValor { get; set; }
-        public bool EsPrincipal { get; set; }
-        public string? Descripcion { get; set; }
-    }
-
     public class PresentacionDto
     {
         public int PresentacionID { get; set; }
         public string Descripcion { get; set; }
         public int ProductoID { get; set; }
-        public List<PrecioDto> Precios { get; set; } = new List<PrecioDto>();
-    }
-
+        public List<PresentacionOpcionDto> Opciones { get; set; } = new List<PresentacionOpcionDto>();
+    } 
     public class ImagenProductoDto
     {
         public int ImagenID { get; set; }

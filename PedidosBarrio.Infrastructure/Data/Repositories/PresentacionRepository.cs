@@ -21,12 +21,20 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
             return await GetByIdAsync<int>(id);
         }
 
+        public async Task<IEnumerable<Presentacion>> GetByProductoIdWithOpcionesAsync(int productoId)
+        {
+            return await _context.Presentaciones
+                .AsNoTracking()
+                .Where(p => p.ProductoID == productoId)
+                .Include(p => p.Opciones.Where(x => x.Activa))
+                .ToListAsync();
+        }
+
         public async Task<IEnumerable<Presentacion>> GetByProductoIdAsync(int productoId)
         {
             return await _context.Presentaciones
                 .AsNoTracking()
                 .Where(p => p.ProductoID == productoId)
-                .Include(p => p.Opciones)
                 .ToListAsync();
         }
 

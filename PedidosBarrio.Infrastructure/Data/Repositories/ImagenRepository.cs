@@ -32,8 +32,6 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
 
         public async Task<IEnumerable<Imagen>> GetByProductoIdAsync(int productoId, string tipo = "PRODUCT")
         {
-            Console.WriteLine($"el tipo es {tipo}");
-            Console.WriteLine(tipo);
             return await _context.Imagenes
                 .Where(i => i.ExternalId == productoId && i.Type == tipo && (i.Activa))
                 .OrderBy(i => i.Order)

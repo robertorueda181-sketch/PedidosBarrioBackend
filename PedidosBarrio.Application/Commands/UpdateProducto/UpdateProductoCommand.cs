@@ -14,7 +14,6 @@ namespace PedidosBarrio.Application.Commands.UpdateProducto
         public int? StockMinimo { get; set; }
         public bool Inventario { get; set; }
         public bool Visible { get; set; }
-        public List<PrecioDto> Precios { get; set; }
 
         public UpdateProductoCommand(int productoId, UpdateProductoDto dto)
         {

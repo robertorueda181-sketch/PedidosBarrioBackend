@@ -21,8 +21,14 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
         public async Task<Producto> GetByIdAsync(int id, Guid empresaId)
         {
             var producto = await _context.Productos
+                .Where(p => p.ProductoID == id
+                         && p.EmpresaID == empresaId
+                         && p.Activa)
+
                 .Include(p => p.Presentaciones.Where(pr => pr.EmpresaID == empresaId))
-                .FirstOrDefaultAsync(p => p.ProductoID == id && p.EmpresaID == empresaId && (p.Activa == true));
+                    .ThenInclude(pr => pr.Opciones.Where(o => o.Activa))
+
+                .FirstOrDefaultAsync();
 
             if (producto == null)
             {

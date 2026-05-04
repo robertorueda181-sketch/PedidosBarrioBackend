@@ -1,6 +1,5 @@
 using AutoMapper;
 using MediatR;
-using System.Linq;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Services;
 using PedidosBarrio.Domain.Repositories;
@@ -10,13 +9,15 @@ namespace PedidosBarrio.Application.Queries.GetProductoById
     public class GetProductoByIdQueryHandler : IRequestHandler<GetProductoByIdQuery, ProductoDto>
     {
         private readonly IProductoRepository _productoRepository;
+        private readonly IPresentacionRepository _presentacionRepository;
         private readonly IImagenRepository _imagenRepository;
         private readonly IImageProcessingService _imageProcessingService;
         private readonly ICurrentUserService _currentUserService;
         private readonly IMapper _mapper;
 
         public GetProductoByIdQueryHandler(
-            IProductoRepository productoRepository, 
+            IProductoRepository productoRepository,
+            IPresentacionRepository presentacionRepository,
             IImagenRepository imagenRepository,
             IImageProcessingService imageProcessingService,
             ICurrentUserService currentUserService,
@@ -26,6 +27,7 @@ namespace PedidosBarrio.Application.Queries.GetProductoById
             _imagenRepository = imagenRepository;
             _imageProcessingService = imageProcessingService;
             _currentUserService = currentUserService;
+            _presentacionRepository = presentacionRepository;
             _mapper = mapper;
         }
 
@@ -74,12 +76,7 @@ namespace PedidosBarrio.Application.Queries.GetProductoById
                 dto.ImagenPrincipal = principal.URLImagen;
             }
 
-            // Calcular PrecioActual si no viene mapeado
-            if (dto.PrecioActual == null && dto.Precios.Any())
-            {
-                dto.PrecioActual = dto.Precios.FirstOrDefault(p => p.EsPrincipal)?.PrecioValor 
-                                   ?? dto.Precios.FirstOrDefault()?.PrecioValor;
-            }
+           
 
             return dto;
         }
