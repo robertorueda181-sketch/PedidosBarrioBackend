@@ -32,16 +32,17 @@ namespace PedidosBarrio.Api.EndPoint
             .WithDescription("Retorna solo las categorías de la empresa del usuario logueado");
 
             // ===== ENDPOINT: OBTENER TODOS LOS PRODUCTOS CON IMÁGENES Y PRECIOS =====
-            group.MapGet("/productos/getAll", async (IMediator mediator) =>
+            group.MapGet("/productos/public/{codigo}", async (IMediator mediator, string codigo) =>
             {
-                var query = new GetAllProductosQuery();
+                var query = new GetAllProductosQuery(codigo);
                 var result = await mediator.Send(query);
                 return Results.Ok(result);
             })
-            .WithName("GetAllProductos")
-            .WithOpenApi()
-            .WithSummary("🛍️ Obtener todos los productos")
-            .WithDescription("Retorna todos los productos de la empresa con sus imágenes y precios");
+              .WithName("GetAllProductosPublics")
+              .WithOpenApi()
+              .WithSummary("🛍️ Obtener productos (público)")
+              .WithDescription("Retorna todos los productos sin autenticación")
+              .AllowAnonymous();
 
             //group.MapGet("/{id:int}", async (int id, IMediator mediator) =>
             //{

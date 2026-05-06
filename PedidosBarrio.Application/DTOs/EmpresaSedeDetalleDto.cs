@@ -1,10 +1,8 @@
-using System.Collections.Generic;
-
 namespace PedidosBarrio.Application.DTOs
 {
     public class EmpresaSedeDetalleDto
     {
-        public Guid EmpresaID { get; set; }
+        public string Codigo { get; set; }
         public string Nombre { get; set; }
         public string Descripcion { get; set; }
         public string? Email { get; set; }

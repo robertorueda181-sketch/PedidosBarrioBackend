@@ -63,7 +63,7 @@ namespace PedidosBarrio.Application.Queries.GetEmpresaSedeDetalle
 
                     return new EmpresaSedeDetalleDto
                     {
-                        EmpresaID = empresa.ID,
+                        Codigo = negocio.Codigo,
                         Nombre = negocio?.Nombre ?? "",
                         Descripcion = negocio?.Descripcion ?? string.Empty,
                         Email = emailDesencriptado,

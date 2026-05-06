@@ -9,15 +9,18 @@ namespace PedidosBarrio.Application.Queries.GetAllProductos
     public class GetAllProductosQueryHandler : IRequestHandler<GetAllProductosQuery, GetAllProductosDto>
     {
         private readonly IProductoRepository _productoRepository;
+        private readonly INegocioRepository _negocioRepository;
         private readonly ICurrentUserService _currentUserService;
         private readonly IApplicationLogger _logger;
 
         public GetAllProductosQueryHandler(
             IProductoRepository productoRepository,
+            INegocioRepository negocioRepository,
             ICurrentUserService currentUserService,
             IApplicationLogger logger)
         {
             _productoRepository = productoRepository;
+            _negocioRepository = negocioRepository;
             _currentUserService = currentUserService;
             _logger = logger;
         }
@@ -26,12 +29,24 @@ namespace PedidosBarrio.Application.Queries.GetAllProductos
         {
             try
             {
-                // Obtener empresa del usuario logueado
-                var empresaId = _currentUserService.GetEmpresaId();
+                Guid empresaId = Guid.Empty;
+                try
+                {
+                     empresaId = _currentUserService.GetEmpresaId();
+                }
+                catch (Exception)
+                {
+                }
+                if (empresaId == Guid.Empty)
+                {
+                    var empresa = await _negocioRepository.GetByCodigoEmpresaAsync(request.Codigo.ToLower());
+
+                    empresaId = empresa.EmpresaID;
+                }
 
                 await _logger.LogInformationAsync(
-                    $"Obteniendo todos los productos para empresa: {empresaId}",
-                    "GetAllProductosQuery");
+                 $"Obteniendo todos los productos para empresa: {empresaId}",
+                 "GetAllProductosQuery");
 
                 // Obtener productos de la empresa
                 var productos = await _productoRepository.GetByEmpresaIdAsync(empresaId);
