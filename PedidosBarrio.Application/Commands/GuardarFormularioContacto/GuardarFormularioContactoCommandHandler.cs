@@ -52,17 +52,20 @@ public class GuardarFormularioContactoCommandHandler : IRequestHandler<GuardarFo
             var formulario = new FormularioContacto
             {
                 Nombre = dto.Nombre.Trim(),
-                Email = dto.Email.Trim().ToLowerInvariant(),
                 Telefono = string.IsNullOrWhiteSpace(dto.Telefono) ? null : dto.Telefono.Trim(),
                 EmpresaID = empresaId,
                 FechaRegistro = DateTime.UtcNow,
+                FechaReserva = dto.FechaReserva.Date,
+                HoraReserva = dto.HoraReserva,
+                Comentarios = dto.Comentarios,
+                Ocasion = dto.Ocasion,
                 Activa = true
             };
 
             // Guardar en la base de datos y obtener el ID generado
             var formularioId = await _formularioContactoRepository.AddAsync(formulario);
 
-            await _logger.LogInformationAsync($"Formulario de contacto guardado: ID={formularioId}, Email={formulario.Email}, FechaReserva={formulario.FechaReserva}");
+            await _logger.LogInformationAsync($"Formulario de contacto guardado: ID={formularioId}, FechaReserva={formulario.FechaReserva}");
 
             // Retornar respuesta
             return new FormularioContactoResponseDto
@@ -70,7 +73,6 @@ public class GuardarFormularioContactoCommandHandler : IRequestHandler<GuardarFo
                 FormularioContactoID = formularioId,
                 Id = formulario.Id,
                 Nombre = formulario.Nombre,
-                Email = formulario.Email,
                 Telefono = formulario.Telefono,
                 FechaReserva = formulario.FechaReserva,
                 HoraReserva = formulario.HoraReserva,

@@ -12,11 +12,6 @@ public class GuardarFormularioContactoValidator : AbstractValidator<CreateFormul
             .MaximumLength(100).WithMessage("El nombre no puede exceder los 100 caracteres")
             .MinimumLength(2).WithMessage("El nombre debe tener al menos 2 caracteres");
 
-        RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("El email es requerido")
-            .EmailAddress().WithMessage("El email no es válido")
-            .MaximumLength(150).WithMessage("El email no puede exceder los 150 caracteres");
-
         RuleFor(x => x.Telefono)
             .MaximumLength(20).WithMessage("El teléfono no puede exceder los 20 caracteres")
             .Matches(@"^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$")
@@ -32,8 +27,7 @@ public class GuardarFormularioContactoValidator : AbstractValidator<CreateFormul
             .WithMessage("La hora de reserva debe estar entre 8:00 y 22:00");
 
         RuleFor(x => x.NumeroPersonas)
-            .GreaterThanOrEqualTo(1).WithMessage("El número de personas debe ser al menos 1")
-            .LessThanOrEqualTo(50).WithMessage("El número de personas no puede exceder 50");
+            .NotEmpty().WithMessage("El número de personas es requerido");
 
         RuleFor(x => x.Ocasion)
             .MaximumLength(255).WithMessage("La ocasión no puede exceder los 255 caracteres")

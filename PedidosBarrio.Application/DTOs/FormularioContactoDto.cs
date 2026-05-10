@@ -9,11 +9,6 @@ public class CreateFormularioContactoDto
     [StringLength(100, ErrorMessage = "El nombre no puede exceder los 100 caracteres")]
     public string Nombre { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "El email es requerido")]
-    [EmailAddress(ErrorMessage = "El email no es válido")]
-    [StringLength(150, ErrorMessage = "El email no puede exceder los 150 caracteres")]
-    public string Email { get; set; } = string.Empty;
-
     [StringLength(20, ErrorMessage = "El teléfono no puede exceder los 20 caracteres")]
     public string? Telefono { get; set; }
 
@@ -22,8 +17,7 @@ public class CreateFormularioContactoDto
 
     public TimeSpan? HoraReserva { get; set; }
 
-    [Range(1, int.MaxValue, ErrorMessage = "El número de personas debe ser mayor a 0")]
-    public int? NumeroPersonas { get; set; } = 1;
+    public string? NumeroPersonas { get; set; } = "1";
 
     [StringLength(255, ErrorMessage = "La ocasión no puede exceder los 255 caracteres")]
     public string? Ocasion { get; set; }
@@ -55,7 +49,7 @@ public class FormularioContactoResponseDto
 
     public TimeSpan? HoraReserva { get; set; }
 
-    public int? NumeroPersonas { get; set; }
+    public string? NumeroPersonas { get; set; }
 
     public string? Ocasion { get; set; }
 
@@ -85,7 +79,7 @@ public class FormularioContactoListDto
 
     public TimeSpan? HoraReserva { get; set; }
 
-    public int? NumeroPersonas { get; set; }
+    public string? NumeroPersonas { get; set; }
 
     public string? Ocasion { get; set; }
 

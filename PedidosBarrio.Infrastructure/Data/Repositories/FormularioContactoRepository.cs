@@ -14,17 +14,35 @@ public class FormularioContactoRepository : EfCoreRepository<FormularioContacto>
 
     public async Task<Guid> AddAsync(FormularioContacto formulario)
     {
-        await _dbSet.AddAsync(formulario);
-        await _context.SaveChangesAsync();
-        return formulario.Id;
+        try
+        {
+            await _dbSet.AddAsync(formulario);
+            await _context.SaveChangesAsync();
+            return formulario.Id;
+        }
+        catch (Exception es)
+        {
+
+            Console.WriteLine(es.Message);
+        }
+        return Guid.Empty;
     }
 
     public async Task<IEnumerable<FormularioContacto>> GetByEmpresaIdAsync(Guid empresaId)
     {
-        return await _dbSet
-            .Where(f => f.EmpresaID == empresaId && f.Activa)
-            .OrderByDescending(f => f.FechaRegistro)
-            .ToListAsync();
+        try
+        {
+            return await _dbSet
+                       .Where(f => f.EmpresaID == empresaId && f.Activa)
+                       .OrderByDescending(f => f.FechaRegistro)
+                       .ToListAsync();
+        }
+        catch (Exception es)
+        {
+
+            Console.WriteLine(es.Message);
+        }
+        return null;
     }
 
     public async Task<IEnumerable<FormularioContacto>> GetByFechaRangeAsync(DateTime fechaInicio, DateTime fechaFin)
