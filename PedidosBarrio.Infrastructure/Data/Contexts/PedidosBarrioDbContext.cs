@@ -72,6 +72,8 @@ public partial class PedidosBarrioDbContext : DbContext
 
     public virtual DbSet<Pagina> Paginas { get; set; }
 
+    public virtual DbSet<FormularioContacto> FormularioContactos { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

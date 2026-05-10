@@ -144,6 +144,7 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<INotificacionAppRepository, NotificacionAppRepository>();
             services.AddScoped<IPageViewRepository, PageViewRepository>();
             services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
+            services.AddScoped<IFormularioContactoRepository, FormularioContactoRepository>();
 
             // Repositorios de Pedidos
             services.AddScoped<IClienteRepository, ClienteRepository>();
@@ -194,6 +195,7 @@ namespace PedidosBarrio.Infrastructure.IoC
             services.AddScoped<IValidator<ModerateTextCommand>, ModerateTextCommandValidator>();
             services.AddScoped<IValidator<ValidateImageCommand>, ValidateImageCommandValidator>();
             services.AddScoped<IValidator<ClienteGoogleAuthCommand>, ClienteGoogleAuthCommandValidator>();
+            services.AddScoped<IValidator<CreateFormularioContactoDto>, GuardarFormularioContactoValidator>();
 
             // JWT Token Service
             services.AddScoped<IJwtTokenService, JwtTokenService>();

@@ -105,6 +105,7 @@ app.MapClienteDireccionEndpoints();
 app.MapPaginaEndpoints();
 app.MapPedidoEndpoints();
 app.MapPresentacionEndpoints(); // Nuevo endpoint para presentaciones
+app.MapFormularioContactoEndpoints(); // Endpoint para formulario de contacto
 app.MapTokenDebugEndpoints(); // Debug endpoint para analizar tokens
 
 app.Run();
