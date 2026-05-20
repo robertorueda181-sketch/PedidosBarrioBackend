@@ -5,7 +5,7 @@ using PedidosBarrio.Domain.Repositories;
 
 namespace PedidosBarrio.Application.Queries.GetPaginaByCodigo
 {
-    public class GetPaginaByCodigoQueryHandler : IRequestHandler<GetPaginaByCodigoQuery, PaginaDto>
+    public class GetPaginaByCodigoQueryHandler : IRequestHandler<GetPaginaByCodigoQuery, PaginaDto?>
     {
         private readonly INegocioRepository _negocioRepository;
         private readonly IPaginaRepository _paginaRepository;
@@ -21,17 +21,15 @@ namespace PedidosBarrio.Application.Queries.GetPaginaByCodigo
             _mapper = mapper;
         }
 
-        public async Task<PaginaDto> Handle(GetPaginaByCodigoQuery query, CancellationToken cancellationToken)
+        public async Task<PaginaDto?> Handle(GetPaginaByCodigoQuery query, CancellationToken cancellationToken)
         {
-            // Lookup Negocio by codigo to get the EmpresaID
             var negocio = await _negocioRepository.GetByIdAsync(query.Codigo);
             if (negocio == null || negocio.EmpresaID == null)
             {
                 return null;
             }
 
-            // Query Pagina by CodigoEmpresa (EmpresaID)
-            var pagina = await _paginaRepository.GetByCodigoEmpresaAsync(negocio.EmpresaID.Value);
+           var pagina = await _paginaRepository.GetByCodigoEmpresaAsync(negocio.EmpresaID.Value);
             if (pagina == null)
             {
                 return null;

@@ -46,11 +46,6 @@ namespace PedidosBarrio.Application.Queries.GetNegocioByCodigoEmpresa
 
             var empresa = negocio.Empresa;
 
-            // Obtener productos de la empresa
-            var productos = (await _productoRepository.GetByEmpresaIdVisibleAsync(empresa.ID)).ToList();
-
-            // Obtener categorías que deben mostrarse (Mostrar = true y Activo = true)
-            var categorias = await _categoriaRepository.GetAllAsync();
 
             // Obtener imágenes de la empresa para los productos
             var todasLasImagenes = await _imagenRepository.GetByEmpresaIdAsync(empresa.ID);
@@ -66,39 +61,10 @@ namespace PedidosBarrio.Application.Queries.GetNegocioByCodigoEmpresa
             // Obtener dirección (Sede) de la tabla Direccion - única por empresaID
             var direccion = (await _direccionRepository.GetByEmpresaIdAsync(empresa.ID)).FirstOrDefault();
 
-            var productoDtos = new List<ProductoDetalleDto>();
-
-            foreach (var p in productos)
-            {
-                var dto = new ProductoDetalleDto
-                {
-                    ProductoID = p.ProductoID,
-                    CategoriaID = p.CategoriaID ?? 0,
-                    Nombre = p.Nombre,
-                    Descripcion = p.Descripcion ?? string.Empty,
-                    Stock = p.Stock,
-                   // Precios = 0
-                };
-
-                // Asignar precio principal
-                //var principal = dto.Precios.FirstOrDefault(pre => pre.EsPrincipal) ?? dto.Precios.FirstOrDefault();
-               // dto.Precio = principal?.PrecioValor ?? 0;
-
-                // Asignar imagen
-                if (imagenesPorProducto.TryGetValue(p.ProductoID, out var imgs) && imgs.Any())
-                {
-                    var firstImg = imgs.First();
-                    dto.URLImagen = !string.IsNullOrEmpty(firstImg.Urlimagen) 
-                        ? await _imageProcessingService.GetImageUrlAsync(firstImg.Urlimagen) 
-                        : string.Empty;
-                }
-
-                productoDtos.Add(dto);
-            }
 
             var negocioDetalle = new NegocioDetalleDto
             {
-                EmpresaID = empresa.ID,
+                Codigo = negocio.Codigo,
                 Nombre = negocio.Nombre ?? "",
                 Descripcion = negocio.Descripcion ?? string.Empty,
                 Email = "", // Email está en Usuario
@@ -112,15 +78,7 @@ namespace PedidosBarrio.Application.Queries.GetNegocioByCodigoEmpresa
                 Instagram = empresa.Instagram,
                 Twitter = empresa.Twitter,
                 Tiktok = empresa.Tiktok,
-                Whatsapp = empresa.Whatsapp,
-                Categorias = categorias.Select(c => new CategoriaDetalleDto
-                {
-                    CategoriaID = c.CategoriaID,
-                    Descripcion = c.Descripcion,
-                    Codigo = c.Color ?? string.Empty,
-                    Mostrar = c.Activa ?? false
-                }).ToList(),
-                Productos = productoDtos
+                Whatsapp = empresa.Whatsapp
             };
 
             return negocioDetalle;

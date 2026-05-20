@@ -4,8 +4,6 @@ using PedidosBarrio.Application.Logging;
 using PedidosBarrio.Application.Services;
 using PedidosBarrio.Domain.Entities;
 using PedidosBarrio.Domain.Repositories;
-using System;
-using System.Linq;
 
 namespace PedidosBarrio.Application.Commands.SaveEmpresaSede
 {
@@ -57,7 +55,7 @@ namespace PedidosBarrio.Application.Commands.SaveEmpresaSede
 
                 empresa.TelefonoPrincipal = request.Data.Telefono;
                 empresa.TelefonoSec = request.Data.Telefono2;
-
+ 
 
                 await _empresaRepository.UpdateAsync(empresa);
                 await _logger.LogInformationAsync($"Redes sociales y teléfonos actualizados para empresa {request.EmpresaID}");

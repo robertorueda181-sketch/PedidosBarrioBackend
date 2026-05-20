@@ -55,6 +55,17 @@ namespace PedidosBarrio.Infrastructure.Data.Repositories
                 .OrderByDescending(p => p.FechaRegistro)
                 .ToListAsync();
         }
+        public async Task<IEnumerable<Producto>> GetByEmpresaIdCountAsync(Guid empresaId, int count)
+        {
+            return await _context.Productos
+                .Where(p => p.EmpresaID == empresaId && (p.Activa == true))
+                .Include(p => p.Presentaciones.Where(pr => pr.EmpresaID == empresaId))
+                .ThenInclude(pr => pr.Opciones.Where(op => op.Activa && op.EsPrincipal))
+                .OrderByDescending(p => p.FechaRegistro)
+                .Take(count)
+                .ToListAsync();
+        }
+        
 
         public async Task<int> AddAsync(Producto producto)
         {

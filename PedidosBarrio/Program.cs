@@ -27,6 +27,16 @@ if (corsOrigins != null && corsOrigins.Length > 0)
                   .AllowCredentials();
         });
     });
+
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowAll", policy =>
+        {
+            policy.AllowAnyOrigin()
+             .AllowAnyMethod()
+             .AllowAnyHeader();
+        });
+    });
 }
 
 // ¡Llama a tu método de extensión aquí!
@@ -38,6 +48,7 @@ builder.Services.AddScoped<IExcelSecurityService, ExcelSecurityService>();
 
 var app = builder.Build();
 
+string nameCors = "AllowAngular";
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -50,6 +61,7 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Espacio Online API v1");
         c.RoutePrefix = "swagger"; // La URL base para Swagger UI (ej. https://localhost:7045/swagger)
     });
+    nameCors = "AllowAll";
 }
 
 app.UseHttpsRedirection();
@@ -69,7 +81,7 @@ if (Directory.Exists(externalImagesPath))
 app.UseStaticFiles();
 app.UseRouting();
 // Usar CORS
-app.UseCors("AllowAngular");
+app.UseCors(nameCors);
 
 // Usar autenticación JWT
 app.UseAuthentication();

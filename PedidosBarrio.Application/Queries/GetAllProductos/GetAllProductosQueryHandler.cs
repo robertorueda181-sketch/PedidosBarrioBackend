@@ -2,6 +2,7 @@ using MediatR;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Logging;
 using PedidosBarrio.Application.Services;
+using PedidosBarrio.Domain.Entities;
 using PedidosBarrio.Domain.Repositories;
 
 namespace PedidosBarrio.Application.Queries.GetAllProductos
@@ -48,8 +49,20 @@ namespace PedidosBarrio.Application.Queries.GetAllProductos
                  $"Obteniendo todos los productos para empresa: {empresaId}",
                  "GetAllProductosQuery");
 
-                // Obtener productos de la empresa
-                var productos = await _productoRepository.GetByEmpresaIdAsync(empresaId);
+                IEnumerable<Producto> productos;
+
+                if (request.CantReg == null)
+                {
+                    // Obtener productos de la empresa
+                     productos = await _productoRepository.GetByEmpresaIdAsync(empresaId);
+
+                }
+                else
+                {
+                    // Obtener productos de la empresa
+                     productos = await _productoRepository.GetByEmpresaIdCountAsync(empresaId, request.CantReg ?? 1);
+                }
+
 
 
 
@@ -68,8 +81,8 @@ namespace PedidosBarrio.Application.Queries.GetAllProductos
                         Inventario = p.Inventario,
                         Visible = p.Visible ?? false,
                         Aprobado = p.Aprobado,
-                        PrecioActual = 0,
-                        ImagenPrincipal = p.Presentaciones.FirstOrDefault().Opciones.FirstOrDefault().Imagen
+                        PrecioActual = p.Presentaciones.First(x => x.EsPrincipal).Opciones.First().Precio ?? 0,
+                        ImagenPrincipal = p.Presentaciones.First(x => x.EsPrincipal).Opciones.First().Imagen ?? ""
                     };
 
 

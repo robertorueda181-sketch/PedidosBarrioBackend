@@ -5,11 +5,15 @@ namespace PedidosBarrio.Application.Queries.GetAllProductos
 {
     public class GetAllProductosQuery : IRequest<GetAllProductosDto>
     {
-        public string Codigo { get; set; }
+        public string? Codigo { get; set; }
+        public int? CantReg { get; set; }
 
-        public GetAllProductosQuery(string codigo)
+
+
+        public GetAllProductosQuery(string? codigo = null)
         {
             Codigo = codigo;
         }
+
     }
 }

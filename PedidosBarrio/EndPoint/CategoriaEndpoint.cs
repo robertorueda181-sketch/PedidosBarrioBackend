@@ -16,7 +16,12 @@ namespace PedidosBarrio.Api.EndPoint
         public static void MapCategoriaEndpoints(this IEndpointRouteBuilder app)
         {
             var group = app.MapGroup("/api/Categorias")
-                           .WithTags("Categorias y Productos")
+                           .WithTags("Categorias")
+                           .RequireAuthorization();
+
+
+            var groupProductos = app.MapGroup("/api/Productos")
+                           .WithTags("Productos")
                            .RequireAuthorization();
 
             // ===== ENDPOINT: OBTENER SOLO CATEGORÍAS =====
@@ -32,7 +37,7 @@ namespace PedidosBarrio.Api.EndPoint
             .WithDescription("Retorna solo las categorías de la empresa del usuario logueado");
 
             // ===== ENDPOINT: OBTENER TODOS LOS PRODUCTOS CON IMÁGENES Y PRECIOS =====
-            group.MapGet("/productos/public/{codigo}", async (IMediator mediator, string codigo) =>
+            groupProductos.MapGet("/public/{codigo}", async (IMediator mediator, string codigo) =>
             {
                 var query = new GetAllProductosQuery(codigo);
                 var result = await mediator.Send(query);
@@ -43,6 +48,21 @@ namespace PedidosBarrio.Api.EndPoint
               .WithSummary("🛍️ Obtener productos (público)")
               .WithDescription("Retorna todos los productos sin autenticación")
               .AllowAnonymous();
+
+            groupProductos.MapGet("/", async (
+               IMediator mediator,
+               int? count) =>
+                {
+                    var query = new GetAllProductosQuery();
+                    query.CantReg = count;
+                    var result = await mediator.Send(query);
+
+                    return Results.Ok(result);
+                })
+           .WithName("GetAllProductos")
+           .WithOpenApi()
+           .WithSummary("🛍️ Obtener productos")
+            .WithDescription("Retorna todos los productos");
 
             //group.MapGet("/{id:int}", async (int id, IMediator mediator) =>
             //{
@@ -56,7 +76,7 @@ namespace PedidosBarrio.Api.EndPoint
 
 
             // ===== ENDPOINTS DE PRODUCTOS =====
-            group.MapGet("/productos/{id:int}", async (int id, IMediator mediator) =>
+            groupProductos.MapGet("/{id:int}", async (int id, IMediator mediator) =>
             {
                 var query = new GetProductoByIdQuery(id);
                 var result = await mediator.Send(query);
@@ -67,7 +87,7 @@ namespace PedidosBarrio.Api.EndPoint
             .WithSummary("🛍️ Obtener producto por ID")
             .WithDescription("Retorna los detalles de un producto específico incluyendo presentaciones y precios");
 
-            group.MapPost("/productos", async (
+            groupProductos.MapPost("/", async (
                 [FromBody] CreateProductoDto productoDto,
                 IMediator mediator) =>
             {
@@ -80,7 +100,7 @@ namespace PedidosBarrio.Api.EndPoint
             .WithSummary("🛍️ Crear nuevo producto")
             .WithDescription("Crea un nuevo producto verificando que la categoría pertenezca a la empresa");
 
-            group.MapPut("/productos/{id:int}", async (
+            groupProductos.MapPut("/{id:int}", async (
                 int id,
                 [FromBody] UpdateProductoDto productoDto,
                 IMediator mediator) =>
@@ -94,7 +114,7 @@ namespace PedidosBarrio.Api.EndPoint
             .WithSummary("✏️ Actualizar producto")
             .WithDescription("Actualiza un producto existente verificando que pertenezca a la empresa");
 
-            group.MapDelete("/productos/{id:int}", async (int id, IMediator mediator) =>
+            groupProductos.MapDelete("/{id:int}", async (int id, IMediator mediator) =>
             {
                 var command = new DeleteProductoCommand(id);
                 var result = await mediator.Send(command);
@@ -105,7 +125,7 @@ namespace PedidosBarrio.Api.EndPoint
             .WithSummary("🗑️ Eliminar producto")
             .WithDescription("Elimina un producto verificando que pertenezca a la empresa");
 
-            group.MapPatch("/productos/visible", async (
+            groupProductos.MapPatch("/visible", async (
                 [FromBody] UpdateProductoVisibleDto dto,
                 IMediator mediator) =>
             {

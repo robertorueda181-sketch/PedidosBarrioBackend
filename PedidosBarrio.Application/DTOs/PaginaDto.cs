@@ -5,12 +5,9 @@ namespace PedidosBarrio.Application.DTOs;
 /// </summary>
 public class PaginaDto
 {
-    public Guid PaginaID { get; set; }
     public string Contenido { get; set; } = null!;
     public string? Descripcion { get; set; }
-    public bool Activa { get; set; }
-    public DateTime FechaCreacion { get; set; }
-    public DateTime FechaActualizacion { get; set; }
+    public string TemplateBase { get; set; } = string.Empty;
 }
 
 /// <summary>
@@ -28,6 +25,11 @@ public class CreatePaginaDto
     /// Descripción opcional de la página
     /// </summary>
     public string? Descripcion { get; set; }
+
+    /// <summary>
+    /// Template base opcional de la página
+    /// </summary>
+    public string? TemplateBase { get; set; }
 }
 
 /// <summary>

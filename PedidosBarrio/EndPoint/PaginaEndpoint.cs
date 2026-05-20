@@ -3,10 +3,8 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using PedidosBarrio.Application.DTOs;
 using PedidosBarrio.Application.Queries.GetPaginaByCodigo;
-using PedidosBarrio.Application.Queries.GetPaginaMia;
 using PedidosBarrio.Application.Services;
 using PedidosBarrio.Domain.Repositories;
-using PedidosBarrio.Infrastructure.Services;
 
 namespace PedidosBarrio.Api.EndPoint;
 
@@ -153,6 +151,7 @@ public static class PaginaEndpoint
                 paginaExistente.Contenido = request.Contenido;
                 paginaExistente.Descripcion = request.Descripcion;
                 paginaExistente.FechaActualizacion = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
+                paginaExistente.TemplateBase = request.TemplateBase ?? "default";
 
                 var paginaActualizada = await paginaRepository.UpdateAsync(paginaExistente);
                 var dtoActualizado = mapper.Map<PaginaDto>(paginaActualizada);
@@ -162,7 +161,8 @@ public static class PaginaEndpoint
             // Crear nueva página
             var pagina = new Domain.Entities.Pagina(empresaId, request.Contenido)
             {
-                Descripcion = request.Descripcion
+                Descripcion = request.Descripcion,
+                TemplateBase = request.TemplateBase ?? "default",
             };
 
             var paginaCreada = await paginaRepository.AddAsync(pagina);

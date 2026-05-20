@@ -65,4 +65,6 @@ public class Pagina
     /// </summary>
     [Column("FechaActualizacion")]
     public DateTime FechaActualizacion { get; set; }
+
+    public string TemplateBase { get; set; } = "";
 }
